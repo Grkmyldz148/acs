@@ -1,0 +1,82 @@
+/* apple.acs — Restrained, glassy, micro-tactile.
+ *
+ *   click    → tap-tactile
+ *   pop      → pop
+ *   confirm  → ding
+ *   open     → modal-open
+ */
+
+:root {
+  master-volume: 0.55;
+  room: chamber;
+  master-eq-high: -3dB;
+}
+/* sound-mood and pitch must inherit via DOM cascade — :root rules are
+ * routed to configureMaster(), which only applies volume/EQ/room. Body
+ * is the highest-level selector that the cascade resolver sees. */
+body {
+  sound-mood: glassy;
+  pitch: +1st;
+}
+
+/* click — generic interactive (buttons, links, tabs, checkboxes, radios) */
+button, a, [role=button], [role=tab] {
+  sound-on-click: tap-tactile;
+}
+
+/* pop — primary action / success-on-press */
+button.primary,
+button[type=submit],
+[data-variant=primary] {
+  sound-on-click: pop;
+}
+
+/* Semantic action overrides — apps can use [data-action="..."] for variety
+ * within the theme. Each theme picks theme-appropriate presets. */
+[data-action=star]     { sound-on-click: ding; }
+[data-action=refresh]  { sound-on-click: tick; }
+[data-action=download] { sound-on-click: page-enter; }
+[data-action=add]      { sound-on-click: pop; }
+[data-action=delete]   { sound-on-click: error; }
+[data-action=share]    { sound-on-click: swoosh; }
+[data-action=save]     { sound-on-click: confirm; }
+
+/* confirm family — different per kind. confirm role = ding (default) */
+[role=alert], [role=status], .toast {
+  sound-on-appear: ding;
+}
+[data-state=success]      { sound-on-appear: success; }
+[data-state=error]        { sound-on-appear: error; }
+[data-state=mention]      { sound-on-appear: mention; }
+
+/* open — dialogs, drawers, dropdowns, accordions */
+dialog[open], [role=dialog][open],
+[data-state=open] {
+  sound-on-appear: modal-open;
+}
+/* details: bind to summary click — IntersectionObserver doesn't fire on
+ * attribute toggle since the <details> element itself stays visible.
+ * Use dropdown-open (lighter, brighter) for disclosure to differentiate
+ * from full-blown dialog modal-open. */
+summary {
+  sound-on-click: dropdown-open;
+}
+
+/* Form input — focus + typing.
+ * `input:not([type])` catches default <input> (browsers default to text but
+ * the attribute selector only matches explicit attribute values). */
+input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select {
+  sound-on-focus: tap-tactile;
+}
+input:not([type]), input[type=text], input[type=search], input[type=email],
+input[type=password], input[type=url], input[type=tel],
+input[type=number], textarea {
+  sound-on-input: keystroke;
+}
+input[type=range] {
+  sound-on-input: tick;
+}
+
+@media (prefers-reduced-sound: reduce) {
+  :root { master-volume: 0; }
+}

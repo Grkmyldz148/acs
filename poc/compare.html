@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ACS vs Landing — A/B</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --panel: #141414;
+    --border: #262626;
+    --fg: #ededed;
+    --dim: #888;
+    --acs: #d4d4d8;
+    --land: #fafafa;
+    --hot: #ff6b35;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    font: 14px/1.5 -apple-system, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+  }
+  header {
+    max-width: 980px;
+    margin: 0 auto 24px;
+  }
+  h1 { font-size: 22px; margin: 0 0 8px; font-weight: 600; }
+  .sub { color: var(--dim); font-size: 13px; }
+  .controls {
+    max-width: 980px;
+    margin: 0 auto 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .controls label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--dim);
+  }
+  .controls input[type=range] { width: 120px; }
+  .controls .pill {
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--fg);
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .controls .pill.active { background: var(--fg); color: var(--bg); }
+  table {
+    max-width: 980px;
+    margin: 0 auto;
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: #1a1a1a;
+    font-weight: 500;
+    color: var(--dim);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  tr.cat td {
+    background: #181818;
+    color: var(--hot);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 10px 12px;
+  }
+  tr:hover:not(.cat) td { background: #1a1a1a; }
+  td.name {
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+  }
+  button.play {
+    width: 100%;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--fg);
+    border-radius: 4px;
+    cursor: pointer;
+    font: inherit;
+    transition: background 100ms, transform 60ms;
+  }
+  button.play:hover:not(:disabled) { background: #222; }
+  button.play:active:not(:disabled) { transform: scale(0.97); }
+  button.play:disabled {
+    color: #444;
+    cursor: not-allowed;
+    border-color: #1f1f1f;
+  }
+  button.play.acs { border-left: 2px solid #60a5fa; }
+  button.play.land { border-left: 2px solid #fbbf24; }
+  button.play.both { border-left: 2px solid var(--hot); }
+  td.btn { width: 130px; }
+  .legend {
+    max-width: 980px;
+    margin: 12px auto 0;
+    display: flex;
+    gap: 16px;
+    color: var(--dim);
+    font-size: 12px;
+  }
+  .legend span::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 6px;
+    border-radius: 1px;
+    vertical-align: middle;
+  }
+  .legend .l-acs::before { background: #60a5fa; }
+  .legend .l-land::before { background: #fbbf24; }
+  .legend .l-both::before { background: var(--hot); }
+  .missing { color: #555; font-size: 11px; font-style: italic; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ACS vs Landing — A/B karşılaştırma</h1>
+  <div class="sub">Aynı preset, iki engine. Sol sütun gerçek ACS runtime (defaults.acs + DSP zinciri). Sağ sütun landing/audio-engine.js (basit Web Audio).</div>
+</header>
+
+<div class="controls">
+  <label>Master <input id="vol" type="range" min="0" max="1" step="0.01" value="0.7"></label>
+  <button class="pill" id="cal-toggle">Calibration: ON</button>
+  <span style="flex:1"></span>
+  <span class="sub" id="status">Bir butona tıkla — AudioContext aktif olur.</span>
+</div>
+
+<table id="grid"></table>
+
+<div class="legend">
+  <span class="l-acs">ACS runtime</span>
+  <span class="l-land">Landing engine</span>
+  <span class="l-both">İkisi birden (eşzamanlı)</span>
+</div>
+
+<script>
+window.addEventListener('error', (e) => {
+  const s = document.getElementById('status');
+  if (s) { s.textContent = 'JS error: ' + (e.message || e.error); s.style.color = '#ff6b6b'; }
+  console.error('[compare]', e.error || e.message, e.filename, e.lineno);
+});
+window.addEventListener('unhandledrejection', (e) => {
+  const s = document.getElementById('status');
+  if (s) { s.textContent = 'Promise reject: ' + (e.reason && e.reason.message || e.reason); s.style.color = '#ff6b6b'; }
+  console.error('[compare] reject', e.reason);
+});
+</script>
+<script src="landing-engine.js"></script>
+<script type="module" src="runtime.js"></script>
+
+<script>
+const PRESETS = [
+  { cat: 'PERCUSSION', items: ['kick','snare','hat','clap','thunk','woodblock'] },
+  { cat: 'BELLS / TONES', items: ['bell','chime','bell-soft','bell-bright','chime-soft','glass','ting','gong'] },
+  { cat: 'STRINGS', items: ['pluck-soft','pluck-bright','string'] },
+  { cat: 'UI FEEDBACK', items: ['notify','confirm','complete','denied','prompt','pop','success','error','buzz'] },
+  { cat: 'TEXTURE', items: ['whoosh','swoosh','sparkle','ping'] },
+  { cat: 'CLICK FAMILY', items: ['click','tap','click-soft','tap-tactile','tick'] },
+  { cat: 'TRANSITIONS', items: ['modal-open','modal-close','drawer-open','drawer-close','dropdown-open','dropdown-close','page-enter','page-exit'] },
+  { cat: 'TOGGLE', items: ['toggle-on','toggle-off'] },
+  { cat: 'NOTIFICATIONS', items: ['ding','mention','badge'] },
+  { cat: 'TYPEWRITER', items: ['keystroke','carriage-return'] },
+];
+
+const grid = document.getElementById('grid');
+let html = '<thead><tr><th>preset</th><th>ACS runtime</th><th>Landing engine</th><th>both</th></tr></thead><tbody>';
+for (const group of PRESETS) {
+  html += `<tr class="cat"><td colspan="4">${group.cat}</td></tr>`;
+  for (const name of group.items) {
+    html += `<tr>
+      <td class="name">${name}</td>
+      <td class="btn"><button class="play acs" data-engine="acs" data-name="${name}" disabled>▶ play</button></td>
+      <td class="btn"><button class="play land" data-engine="land" data-name="${name}" disabled>▶ play</button></td>
+      <td class="btn"><button class="play both" data-engine="both" data-name="${name}" disabled>▶ both</button></td>
+    </tr>`;
+  }
+}
+html += '</tbody>';
+grid.innerHTML = html;
+
+const status = document.getElementById('status');
+const volSlider = document.getElementById('vol');
+const calBtn = document.getElementById('cal-toggle');
+
+function setMaster(v) {
+  if (window.LandingACS) window.LandingACS.setMaster(v * 0.7);
+  // ACS: setMasterConfig exposes master-volume directly; both engines
+  // now follow the slider for fair A/B.
+  if (window.ACS && window.ACS.setMasterConfig) {
+    window.ACS.setMasterConfig({ "master-volume": String(v) });
+  }
+}
+volSlider.addEventListener('input', () => setMaster(parseFloat(volSlider.value)));
+
+let calOn = true;
+calBtn.addEventListener('click', () => {
+  if (!window.ACS || !window.ACS.enableAutoLoudness) return;
+  calOn = !calOn;
+  window.ACS.enableAutoLoudness(calOn);
+  calBtn.textContent = `Calibration: ${calOn ? 'ON' : 'OFF'}`;
+  calBtn.classList.toggle('active', !calOn);
+});
+
+function waitFor(predicate, timeout = 8000) {
+  return new Promise((resolve, reject) => {
+    const t0 = Date.now();
+    const poll = () => {
+      try {
+        if (predicate()) return resolve();
+      } catch (e) { /* keep polling */ }
+      if (Date.now() - t0 > timeout) reject(new Error('timeout'));
+      else setTimeout(poll, 50);
+    };
+    poll();
+  });
+}
+
+status.textContent = 'Runtime yükleniyor…';
+
+(async () => {
+  try {
+    await waitFor(() => window.ACS && typeof window.ACS.trigger === 'function');
+  } catch (e) {
+    status.textContent = 'ACS runtime trigger() exposure timeout (8s). Konsolu aç (Cmd+Opt+J).';
+    status.style.color = '#ff6b6b';
+    return;
+  }
+  if (!window.LandingACS || typeof window.LandingACS.play !== 'function') {
+    status.textContent = 'Landing engine yüklenemedi (LandingACS yok).';
+    status.style.color = '#ff6b6b';
+    return;
+  }
+  // Landing engine needs explicit enable + AudioContext resume on first gesture.
+  try { window.LandingACS.enable(); } catch (e) { console.warn('landing enable', e); }
+  try { window.ACS.enableAutoLoudness(true); } catch (e) { console.warn('ACS cal', e); }
+
+  document.querySelectorAll('button.play').forEach(b => b.disabled = false);
+  status.textContent = 'Hazır. Aynı satırda iki butona tıklayıp karşılaştır.';
+  status.style.color = '';
+
+  document.addEventListener('click', (ev) => {
+    const btn = ev.target.closest('button.play');
+    if (!btn) return;
+    const name = btn.dataset.name;
+    const eng = btn.dataset.engine;
+    if (eng === 'acs' || eng === 'both') {
+      try { window.ACS.trigger({ sound: name }, 'sound'); }
+      catch (e) { console.warn('ACS error', name, e); }
+    }
+    if (eng === 'land' || eng === 'both') {
+      try { window.LandingACS.play(name); }
+      catch (e) { console.warn('Landing error', name, e); }
+    }
+  });
+})();
+</script>
+</body>
+</html>

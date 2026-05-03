@@ -1,0 +1,175 @@
+/* landing.acs — sonic skin for the ACS landing page itself.
+ *
+ * The landing page advertises a stylesheet language for audio. So it
+ * should *be* one. Drop this file in via <link rel="audiostyle"> and
+ * the cascade does the binding — no per-element JS, no event wiring.
+ *
+ * Read this top-to-bottom: it's the same shape as a CSS file. Selectors
+ * on the left, sound-bearing properties on the right, and the cascade
+ * resolves conflicts by specificity just like CSS.
+ */
+/* ── Page-level config ─────────────────────────────────────────── */
+:root {
+  master-volume: 0.78;
+  room: small-room;
+  room-mix: 0.18;
+  sound-mood: bright;
+}
+
+/* ── Navigation ────────────────────────────────────────────────── */
+/* Hover whisper on nav links so the page feels "live" without nagging */
+.nav-links a {
+  sound-on-enter: tick;
+  volume: 0.25;
+}
+
+.icon-btn {
+  sound-on-click: tap;
+  sound-on-enter: tick;
+}
+
+/* ── Buttons (the workhorse cascade) ───────────────────────────── */
+/* Generic button = soft tap; specificity bumps it up for variants. */
+button, .btn {
+  sound-on-click: tap-tactile;
+}
+
+.btn-accent {
+  sound-on-click: pop;
+  /* primary action — punchier */;
+}
+
+.btn-ghost {
+  sound-on-click: tap;
+  /* secondary — quieter */
+  volume: 0.7;
+}
+
+.copy-btn {
+  sound-on-click: click-soft;
+  /* "copied to clipboard" feel */;
+}
+
+/* ── Hero "tryout" pills ───────────────────────────────────────── */
+.tryout {
+  sound-on-click: tap;
+}
+
+.tryout.primary {
+  sound-on-click: confirm;
+}
+
+.tryout.danger {
+  sound-on-click: denied;
+}
+
+.hero-cta {
+  sound-on-click: pop;
+  pitch: +1st;
+  /* hero feels brighter than rest */;
+}
+
+/* ── Notifications (in the realworld demo) ─────────────────────── */
+.notify-trigger {
+  sound-on-click: notify;
+}
+
+.compose-toast {
+  sound-on-appear: ding;
+  volume: 0.6;
+}
+
+/* ── "Without ACS" demo card — must actually be silent ─────────── *
+ * The before/after section shows the SAME UI in two cards. Every
+ * cascade rule in this file matches both cards' descendants, so the
+ * silent card would still play sounds via .compose-toast etc.
+ *
+ * `!important` is needed because the runtime's specificity formula
+ * weights the target's classes (10 each) heavier than ancestor parts
+ * (2 per ancestor), so `.compare.silent *` (target=*, ancestor=2 classes)
+ * lands at specificity ~3 while `.compose-toast` (target class=10) sits
+ * at ~11 and would otherwise win. The two-pass important merge in
+ * cascade.flatten() guarantees this overrides regardless of formula. */
+.compare.silent * {
+  volume: 0 !important;
+}
+
+/* ── Form interactions ─────────────────────────────────────────── */
+input, textarea {
+  sound-on-focus: tick;
+  volume: 0.4;
+}
+
+.compose-input, .todo-input {
+  sound-on-input: tap;
+  /* keystroke feel while typing */
+  volume: 0.35;
+}
+
+/* ── Theme switcher cards ──────────────────────────────────────── */
+.theme-binding-play {
+  sound-on-click: ping;
+}
+
+.theme {
+  sound-on-enter: tick;
+  volume: 0.3;
+}
+
+/* ── Window-chrome dots (the macOS-style red/yellow/green) ─────── */
+.window-dots > * {
+  sound-on-click: click;
+  volume: 0.5;
+}
+
+/* ── Tabs ──────────────────────────────────────────────────────── */
+.cat-tabs button, .rw-tabs button, .window-tabs > * {
+  sound-on-click: toggle-on;
+}
+
+/* ── Tweaks panel knobs / toggles ──────────────────────────────── */
+.twk-toggle {
+  sound-on-click: toggle-on;
+}
+
+.twk-toggle[data-on="false"] {
+  sound-on-click: toggle-off;
+}
+
+.twk-x {
+  sound-on-click: dropdown-close;
+}
+
+/* ── Checkboxes / todo items ───────────────────────────────────── */
+.todo-check {
+  sound-on-click: confirm;
+}
+
+.todo-check[data-done="true"] {
+  sound-on-click: tick;
+  /* uncheck = quieter */;
+}
+
+.todo-x {
+  sound-on-click: tap;
+}
+
+/* ── Section appearance (gentle scroll cue) ────────────────────── */
+.section {
+  sound-on-appear: ping;
+  volume: 0.15;
+}
+
+/* ── Accessibility: respect the user's quiet preference ────────── */
+@media (prefers-reduced-sound: reduce) {
+  :root {
+    master-volume: 0;
+  }
+}
+
+/* ── Author your own:
+ *
+ *   button.subscribe { sound-on-click: chime; }
+ *   .alert[data-state="error"] { sound: denied; pitch: -2st; }
+ *
+ *  The cascade picks the most specific match, exactly like CSS. ── */

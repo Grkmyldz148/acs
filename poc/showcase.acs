@@ -1,0 +1,728 @@
+/* ============================================================================
+ * showcase.acs — every ACS feature in one file.
+ *
+ * This is the canonical example sheet. If you can read it, you can write
+ * an .acs stylesheet. Sections:
+ *
+ *   1. :root — global config
+ *   2. @sound — custom presets (every primitive)
+ *   3. Themes — alternate sonic personalities (.theme-* on body)
+ *   4. Class bindings — snd-<name> → built-in preset
+ *   5. Element selectors — button, input, dialog[open], descendants
+ *   6. Pseudo-event selectors — :on-click, :on-enter, :on-input,
+ *                                :on-appear, :on-leave, :focus, :hover
+ *   7. Per-element overrides — room, sound-mood, pitch, volume
+ *   8. synth() — inline single-layer DSP
+ *   9. @media — prefers-reduced-sound
+ *
+ * defaults.acs is auto-loaded by the runtime, so all built-in presets
+ * (click, tap, bell, pop, keystroke, …) are already available.
+ * ============================================================================ */
+/* ============================================================================
+ * 1. :root — global config
+ * ============================================================================ */
+:root {
+  master-volume: 0.85;
+  room: medium-room;
+  master-eq-low: +1dB;
+  master-eq-high: -1dB;
+}
+
+/* ============================================================================
+ * 2. @sound — custom presets
+ * ----------------------------------------------------------------------------
+ * Each nested block inside @sound is one LAYER. Layer name is just an id.
+ * Inside a layer block, properties are one-per-line, terminated with `;`.
+ * Lists inside a value are space- or comma-separated
+ * (`ratios: 1, 2.4, 5.4` or `ratios: 1 2.4 5.4`).
+ * Layers stack additively — all play at trigger time.
+ * ============================================================================ */
+/* 2.1 — single noise burst */
+@sound burst {
+  body {
+    noise: pink;
+    filter: bandpass;
+    cutoff: 1200hz;
+    q: 0.3;
+    attack: 1ms;
+    decay: 110ms;
+    gain: 18.0;
+  }
+}
+
+/* 2.2 — tonal click (sine + FM + pitch sweep) */
+@sound tonal-click {
+  body {
+    osc: sine;
+    freq: 700hz;
+    pitch-from: 200hz;
+    fm-mod: sine;
+    fm-ratio: 0.5;
+    fm-depth: 80;
+    attack: 0.5ms;
+    decay: 50ms;
+    gain: 4.0;
+  }
+}
+
+/* 2.3 — modal bell (4 inharmonic partials, higher = faster decay) */
+@sound my-bell {
+  ring {
+    modal: 880hz;
+    ratios: 1, 1.483, 1.932, 2.546;
+    decays: 0.9s, 0.45s, 0.25s, 0.12s;
+    gains:  1, 0.55, 0.3, 0.18;
+    gain: 0.2;
+  }
+}
+
+/* 2.4 — Karplus-Strong pluck */
+@sound my-pluck {
+  string {
+    pluck: 220hz;
+    brightness: 0.7;
+    decay: 0.5s;
+    gain: 2.5;
+  }
+}
+
+/* 2.5 — multi-layer drum (modal body + filtered noise crack) */
+@sound my-snare {
+  body {
+    modal: 200hz;
+    ratios: 1, 2.7;
+    decays: 0.12s, 0.06s;
+    gains: 1, 0.4;
+    gain: 0.32;
+  }
+  crack {
+    noise: white;
+    filter: bandpass;
+    cutoff: 3500hz;
+    q: 1.2;
+    attack: 0.5ms;
+    decay: 80ms;
+    gain: 0.26;
+  }
+}
+
+/* 2.6 — saturated bass thump (drive = soft-clip) */
+@sound my-thump {
+  body {
+    modal: 60hz;
+    ratios: 1, 2.4;
+    decays: 0.18s, 0.05s;
+    gains: 1, 0.3;
+    drive: 0.5;
+    gain: 0.9;
+  }
+}
+
+/* 2.7 — stereo placement */
+@sound ping-left {
+  ping {
+    modal: 2200hz;
+    ratios: 1, 2.3;
+    decays: 0.15s, 0.06s;
+    gains: 1, 0.4;
+    pan: -0.6;
+    gain: 0.4;
+  }
+}
+
+/* 2.8 — FM bell (sine carrier + sine mod, ratio 3.5) */
+@sound fm-bell {
+  ring {
+    osc: sine;
+    freq: 1100hz;
+    fm-mod: sine;
+    fm-ratio: 3.5;
+    fm-depth: 200;
+    attack: 1ms;
+    decay: 600ms;
+    gain: 1.8;
+  }
+}
+
+/* 2.9 — typewriter keystroke (3 noise layers stacked) */
+@sound my-keystroke {
+  body {
+    noise: pink;
+    filter: lowpass;
+    cutoff: 800hz;
+    q: 0.7;
+    attack: 1ms;
+    decay: 90ms;
+    gain: 14.0;
+  }
+  strike {
+    noise: pink;
+    filter: bandpass;
+    cutoff: 2000hz;
+    q: 0.6;
+    attack: 0.5ms;
+    decay: 30ms;
+    gain: 14.0;
+  }
+  plateau {
+    noise: pink;
+    filter: bandpass;
+    cutoff: 4500hz;
+    q: 0.7;
+    attack: 0.5ms;
+    decay: 25ms;
+    gain: 12.0;
+  }
+}
+
+/* ============================================================================
+ * 3. Themes — opt-in via class on <body> or :root
+ * ============================================================================ */
+.theme-apple :root,
+body.theme-apple {
+  master-volume: 0.78;
+  room: chamber;
+  master-eq-low: +0.5dB;
+  master-eq-high: -1.5dB;
+}
+
+@sound apple-tap {
+  body {
+    osc: sine;
+    freq: 1100hz;
+    fm-mod: sine;
+    fm-ratio: 0.5;
+    fm-depth: 60;
+    attack: 0.5ms;
+    decay: 50ms;
+    gain: 4.0;
+  }
+}
+
+@sound apple-confirm {
+  ring {
+    modal: 1100hz;
+    ratios: 1, 1.5, 2.2;
+    decays: 0.5s, 0.25s, 0.12s;
+    gains: 1, 0.4, 0.2;
+    gain: 0.18;
+  }
+}
+
+.theme-material :root,
+body.theme-material {
+  master-volume: 0.85;
+  room: small-room;
+  master-eq-low: +1dB;
+  master-eq-high: +1dB;
+}
+
+@sound material-tap {
+  body {
+    modal: 880hz;
+    ratios: 1, 2.4;
+    decays: 0.06s, 0.025s;
+    gains: 1, 0.4;
+    gain: 0.85;
+  }
+}
+
+@sound material-success {
+  one {
+    modal: 880hz;
+    ratios: 1, 2;
+    decays: 0.5s, 0.25s;
+    gains: 1, 0.4;
+    gain: 0.24;
+  }
+  two {
+    modal: 1320hz;
+    ratios: 1, 2;
+    decays: 0.4s, 0.2s;
+    gains: 1, 0.4;
+    gain: 0.18;
+  }
+}
+
+.theme-retro :root,
+body.theme-retro {
+  master-volume: 0.82;
+  room: none;
+  master-eq-low: +1dB;
+  master-eq-high: -2dB;
+}
+
+@sound retro-blip {
+  body {
+    osc: square;
+    freq: 1500hz;
+    attack: 0.5ms;
+    decay: 60ms;
+    gain: 3.0;
+    filter: lowpass;
+    cutoff: 4000hz;
+    q: 0.8;
+  }
+}
+
+@sound retro-coin {
+  one {
+    osc: square;
+    freq: 988hz;
+    attack: 0.5ms;
+    decay: 100ms;
+    gain: 1.7;
+    filter: lowpass;
+    cutoff: 4000hz;
+    q: 0.8;
+  }
+  two {
+    osc: square;
+    freq: 1319hz;
+    attack: 0.5ms;
+    decay: 200ms;
+    gain: 1.7;
+    filter: lowpass;
+    cutoff: 4000hz;
+    q: 0.8;
+  }
+}
+
+.theme-brutalist :root,
+body.theme-brutalist {
+  master-volume: 0.90;
+  room: medium-room;
+  master-eq-low: +3dB;
+  master-eq-high: -2dB;
+}
+
+@sound brutalist-thump {
+  body {
+    modal: 60hz;
+    ratios: 1, 2;
+    decays: 0.20s, 0.08s;
+    gains: 1, 0.3;
+    drive: 0.5;
+    gain: 0.7;
+  }
+}
+
+/* ============================================================================
+ * 4. Class bindings — `snd-<name>` plays built-in preset
+ * ============================================================================ */
+.snd-click {
+  sound-on-click: click;
+  volume: 0.5;
+}
+
+.snd-tap {
+  sound-on-click: tap;
+  volume: 0.5;
+}
+
+.snd-tap-tactile {
+  sound-on-click: tap-tactile;
+  volume: 0.5;
+}
+
+.snd-tick {
+  sound-on-click: tick;
+  volume: 0.5;
+}
+
+.snd-pop {
+  sound-on-click: pop;
+  volume: 0.5;
+}
+
+.snd-bell {
+  sound-on-click: bell;
+  volume: 0.5;
+}
+
+.snd-chime {
+  sound-on-click: chime;
+  volume: 0.5;
+}
+
+.snd-glass {
+  sound-on-click: glass;
+  volume: 0.5;
+}
+
+.snd-gong {
+  sound-on-click: gong;
+  volume: 0.5;
+}
+
+.snd-kick {
+  sound-on-click: kick;
+  volume: 0.5;
+}
+
+.snd-snare {
+  sound-on-click: snare;
+  volume: 0.5;
+}
+
+.snd-hat {
+  sound-on-click: hat;
+  volume: 0.5;
+}
+
+.snd-clap {
+  sound-on-click: clap;
+  volume: 0.5;
+}
+
+.snd-knock {
+  sound-on-click: woodblock;
+  volume: 0.5;
+}
+
+.snd-success {
+  sound-on-click: success;
+  volume: 0.5;
+}
+
+.snd-error {
+  sound-on-click: error;
+  volume: 0.5;
+}
+
+.snd-buzz {
+  sound-on-click: buzz;
+  volume: 0.5;
+}
+
+.snd-modal-open {
+  sound-on-click: modal-open;
+  volume: 0.5;
+}
+
+.snd-modal-close {
+  sound-on-click: modal-close;
+  volume: 0.5;
+}
+
+.snd-toggle-on {
+  sound-on-click: toggle-on;
+  volume: 0.5;
+}
+
+.snd-toggle-off {
+  sound-on-click: toggle-off;
+  volume: 0.5;
+}
+
+.snd-whoosh {
+  sound-on-click: whoosh;
+  volume: 0.5;
+}
+
+.snd-sparkle {
+  sound-on-click: sparkle;
+  volume: 0.5;
+}
+
+.snd-ping {
+  sound-on-click: ping;
+  volume: 0.5;
+}
+
+/* ============================================================================
+ * 5. Element + descendant selectors
+ * ============================================================================ */
+button {
+  sound-on-click: click;
+  volume: 0.5;
+}
+
+button.primary {
+  sound-on-click: pop;
+  volume: 0.5;
+}
+
+button.secondary {
+  sound-on-click: tap;
+  volume: 0.4;
+}
+
+button.danger {
+  sound-on-click: error;
+  pitch: -2st;
+}
+
+button:hover {
+  sound-on-enter: tap;
+  volume: 0.2;
+}
+
+a:hover {
+  sound-on-enter: chime;
+  volume: 0.25;
+}
+
+.sidebar button {
+  sound-on-click: tap-tactile;
+  sound-on-enter: tick;
+  volume: 0.5;
+}
+
+.sidebar button.active {
+  sound-on-click: confirm;
+}
+
+.note-row {
+  sound-on-click: click-soft;
+  sound-on-enter: tick;
+  volume: 0.5;
+}
+
+.note-row.expanded {
+  sound: chime-soft;
+}
+
+.compose-btn {
+  sound-on-click: pop;
+  volume: 0.6;
+}
+
+.save-btn {
+  sound-on-click: complete;
+  volume: 0.55;
+}
+
+.delete-btn {
+  sound-on-click: denied;
+  volume: 0.55;
+}
+
+/* ============================================================================
+ * 6. Pseudo-event selectors
+ * ============================================================================ */
+input:focus {
+  sound-on-focus: tap;
+  pitch: 4st;
+  volume: 0.25;
+}
+
+/* Per-keystroke typewriter feel */
+input:on-input,
+.note-body textarea {
+  sound-on-input: keystroke;
+  volume: 0.3;
+}
+
+.scroll-snd:on-appear {
+  sound: ping;
+  volume: 0.5;
+}
+
+.scroll-snd:on-leave {
+  sound: tick;
+  volume: 0.4;
+}
+
+.toast.success {
+  sound-on-appear: complete;
+}
+
+.toast.error {
+  sound-on-appear: error;
+}
+
+.toast.info {
+  sound-on-appear: notify;
+}
+
+/* ============================================================================
+ * 7. Per-element overrides — room, mood, pitch
+ * ============================================================================ */
+/* Modal interactions sound in a tighter room */
+dialog[open] {
+  room: small-room;
+}
+
+dialog[open] button {
+  sound-on-click: tap-tactile;
+}
+
+.room-small {
+  sound-on-click: bell;
+  room: small-room;
+  volume: 0.5;
+}
+
+.room-medium {
+  sound-on-click: bell;
+  room: medium-room;
+  volume: 0.5;
+}
+
+.room-large {
+  sound-on-click: bell;
+  room: large-hall;
+  volume: 0.5;
+}
+
+.room-chamber {
+  sound-on-click: bell;
+  room: chamber;
+  volume: 0.5;
+}
+
+.room-dry {
+  sound-on-click: bell;
+  room: none;
+  volume: 0.5;
+}
+
+.mood-warm {
+  sound-on-click: bell;
+  sound-mood: warm;
+  volume: 0.5;
+}
+
+.mood-bright {
+  sound-on-click: bell;
+  sound-mood: bright;
+  volume: 0.5;
+}
+
+.mood-glassy {
+  sound-on-click: bell;
+  sound-mood: glassy;
+  volume: 0.5;
+}
+
+.mood-metallic {
+  sound-on-click: bell;
+  sound-mood: metallic;
+  volume: 0.5;
+}
+
+.mood-organic {
+  sound-on-click: bell;
+  sound-mood: organic;
+  volume: 0.5;
+}
+
+.mood-punchy {
+  sound-on-click: bell;
+  sound-mood: punchy;
+  volume: 0.5;
+}
+
+.mood-retro {
+  sound-on-click: bell;
+  sound-mood: retro;
+  volume: 0.5;
+}
+
+.mood-airy {
+  sound-on-click: bell;
+  sound-mood: airy;
+  volume: 0.5;
+}
+
+.mood-lofi {
+  sound-on-click: bell;
+  sound-mood: lofi;
+  volume: 0.5;
+}
+
+/* ============================================================================
+ * 8. synth() — inline single-layer DSP
+ * ============================================================================ */
+.synth-sine {
+  sound-on-click: synth(osc: sine,     freq: 440hz, attack: 3ms, decay: 220ms);
+  volume: 0.4;
+}
+
+.synth-square-bass {
+  sound-on-click: synth(osc: square,   freq: 110hz, attack: 1ms, decay: 120ms, filter: lowpass, cutoff: 600hz, q: 1.2);
+  volume: 0.4;
+}
+
+.synth-pitch-down {
+  sound-on-click: synth(osc: triangle, freq: 220hz, pitch-from: 880hz, attack: 1ms, decay: 180ms);
+  volume: 0.4;
+}
+
+/* ============================================================================
+ * 9. var() — CSS custom properties as ACS values
+ * ============================================================================ */
+/* Define design tokens once on :root (in CSS *or* ACS — either works);
+ * reference them from ACS values. Lets a stylesheet author re-skin all
+ * volume/pitch/mood values from a single set of tokens.
+ *
+ *   index.html sets:  :root { --ui-loud: 0.7; --ui-mood: warm; }
+ *   ACS reads them:   .ui { volume: var(--ui-loud); sound-mood: var(--ui-mood); }
+ */
+.snd-token-vol {
+  sound-on-click: pop;
+  volume: var(--ui-loud, 0.5);
+}
+.snd-token-mood {
+  sound-on-click: ding;
+  sound-mood: var(--ui-mood, glassy);
+  sound-mood-mix: var(--ui-mood-mix, 0.5);
+}
+
+/* ============================================================================
+ * 10. quality — global CPU/quality knob (Phase 8.7)
+ * ============================================================================ */
+/* `quality: low` caps modal partials at 3, voice pool at 4, reverb tail
+ * at 0.6×. Useful for mobile or busy UIs. Apply on :root only. Toggle
+ * the data-quality attribute below for a live A/B. */
+[data-quality=low]    :root { quality: low; }
+[data-quality=high]   :root { quality: high; }
+
+/* ============================================================================
+ * 11. realtime — sub-1ms latency opt-in (Phase 8.6)
+ * ============================================================================ */
+/* `realtime: true` on a single-mode modal/pluck or simple osc/noise layer
+ * routes through the AudioWorklet voice processor for sub-1ms latency.
+ * Use for tap-rate UI feedback (typing, hover, tick). Falls back to the
+ * main-thread path automatically when the worklet isn't ready. */
+@sound my-fast-tick {
+  body {
+    osc: sine;
+    freq: 2400hz;
+    attack: 1ms;
+    decay: 18ms;
+    gain: 0.35;
+    realtime: true;
+  }
+}
+.snd-fast-tick {
+  sound-on-click: my-fast-tick;
+}
+
+/* ============================================================================
+ * 12. @sample — name an external audio file
+ * ============================================================================ */
+/* @sample registers a URL under a name, so users write `sound: my-thump`
+ * the same way they'd reference a built-in preset. Buffer is fetched +
+ * cached on first trigger.
+ *
+ *   @sample bonk url("sounds/bonk.wav");
+ *   .snd-bonk { sound-on-click: bonk; }
+ *
+ * Disabled by default below — enable by dropping a file at the URL. */
+/*
+@sample external-bonk url("sounds/bonk.wav");
+.snd-external-bonk {
+  sound-on-click: external-bonk;
+}
+*/
+
+/* ============================================================================
+ * 13. @media — accessibility
+ * ============================================================================ */
+@media (prefers-reduced-sound: reduce) {
+  :root {
+    master-volume: 0;
+  }
+}

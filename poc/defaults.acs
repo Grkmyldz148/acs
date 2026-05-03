@@ -1,0 +1,692 @@
+/* defaults.acs — built-in preset library for ACS (Audio Cascade Sheets). CSS-style nested @sound syntax. Auto-loaded before
+ * user stylesheets. Override any preset by re-defining @sound <name>.
+ *
+ * Naming follows CSS color-name conventions: short, evocative, kebab-case.
+ * Each @sound contains one or more layer blocks (CSS-style nested rules).
+ * Layer blocks stack additively — all play at trigger time, optionally
+ * offset via `start: Nms`.
+ *
+ * Design philosophy (after 2026-05-03 overhaul): match landing/audio-engine.js
+ * — saf additive sinüs sumları (`tones:`), envelope'lu osc'lar (`osc:`),
+ * sweep'ler (`pitch-from`), filter'lı noise. Modal IIR rezonatörler
+ * (`modal:`) ve Karplus-Strong pluck'lar (`pluck:`) bırakıldı çünkü
+ * UI sesleri için "metalik / vurma" karakteri katıyordu. Hem primitive'ler
+ * runtime'da kullanılabilir durumda — özel preset için `@sound` ile
+ * override edilebilirler.
+ */
+
+
+/* ============================================================
+ * PERCUSSION
+ * ============================================================ */
+
+@sound kick {
+  body {
+    osc: sine;
+    freq: 50hz;
+    pitch-from: 140hz;
+    attack: 1ms;
+    decay: 180ms;
+    gain: 0.7;
+  }
+}
+
+@sound snare {
+  tone {
+    osc: triangle;
+    freq: 220hz;
+    attack: 1ms;
+    decay: 80ms;
+    gain: 0.3;
+  }
+  noise {
+    noise: white;
+    filter: highpass;
+    cutoff: 1200hz;
+    attack: 0.5ms;
+    decay: 120ms;
+    gain: 0.4;
+  }
+}
+
+@sound hat {
+  noise {
+    noise: white;
+    filter: highpass;
+    cutoff: 7000hz;
+    attack: 0.5ms;
+    decay: 40ms;
+    gain: 0.25;
+  }
+}
+
+@sound clap {
+  burst {
+    noise: white;
+    filter: bandpass;
+    cutoff: 1500hz;
+    q: 0.8;
+    attack: 0.5ms;
+    decay: 80ms;
+    gain: 0.35;
+  }
+}
+
+@sound thunk {
+  body {
+    osc: sine;
+    freq: 110hz;
+    pitch-from: 220hz;
+    attack: 1ms;
+    decay: 120ms;
+    gain: 0.5;
+  }
+}
+
+@sound woodblock {
+  knock {
+    tones: 1200hz;
+    ratios: 1, 2.4;
+    decays: 0.06s, 0.04s;
+    gains: 1, 0.5;
+    gain: 0.6;
+  }
+}
+
+
+/* ============================================================
+ * BELLS / TONES (additive sine sums — landing's modal())
+ * ============================================================ */
+
+@sound bell {
+  ring {
+    tones: 880hz;
+    ratios: 1, 2.76, 5.4;
+    decays: 0.6s, 0.4s, 0.25s;
+    gains: 1, 0.5, 0.3;
+    gain: 0.36;
+  }
+}
+
+@sound bell-soft {
+  ring {
+    tones: 660hz;
+    ratios: 1, 2.4;
+    decays: 0.5s, 0.3s;
+    gains: 1, 0.4;
+    gain: 0.32;
+  }
+}
+
+@sound bell-bright {
+  ring {
+    tones: 1320hz;
+    ratios: 1, 2.76, 4.2, 5.4;
+    decays: 0.4s, 0.3s, 0.2s, 0.18s;
+    gains: 1, 0.6, 0.4, 0.3;
+    gain: 0.32;
+  }
+}
+
+@sound chime {
+  ring {
+    tones: 1046hz;
+    ratios: 1, 2, 3;
+    decays: 0.7s, 0.5s, 0.35s;
+    gains: 1, 0.6, 0.4;
+    gain: 0.30;
+  }
+}
+
+@sound chime-soft {
+  ring {
+    tones: 880hz;
+    ratios: 1, 2;
+    decays: 0.6s, 0.3s;
+    gains: 1, 0.4;
+    gain: 0.30;
+  }
+}
+
+@sound glass {
+  clink {
+    tones: 1760hz;
+    ratios: 1, 2.76, 5.4;
+    decays: 0.35s, 0.22s, 0.15s;
+    gains: 1, 0.5, 0.3;
+    gain: 0.28;
+  }
+}
+
+@sound ting {
+  tip {
+    tones: 2093hz;
+    ratios: 1, 2.4;
+    decays: 0.25s, 0.15s;
+    gains: 1, 0.4;
+    gain: 0.32;
+  }
+}
+
+@sound gong {
+  body {
+    tones: 180hz;
+    ratios: 1, 1.6, 2.4, 3.2;
+    decays: 1.6s, 1.2s, 0.8s, 0.5s;
+    gains: 1, 0.7, 0.5, 0.3;
+    gain: 0.36;
+  }
+}
+
+
+/* ============================================================
+ * STRINGS (sweep / additive)
+ * ============================================================ */
+
+@sound pluck-soft {
+  string {
+    osc: triangle;
+    freq: 220hz;
+    pitch-from: 440hz;
+    attack: 2ms;
+    decay: 400ms;
+    gain: 0.25;
+  }
+}
+
+@sound pluck-bright {
+  string {
+    osc: sawtooth;
+    freq: 440hz;
+    pitch-from: 880hz;
+    attack: 2ms;
+    decay: 350ms;
+    gain: 0.18;
+  }
+}
+
+@sound string {
+  body {
+    tones: 330hz;
+    ratios: 1, 2, 3, 4;
+    decays: 0.9s, 0.7s, 0.5s, 0.3s;
+    gains: 1, 0.5, 0.3, 0.2;
+    gain: 0.28;
+  }
+}
+
+
+/* ============================================================
+ * UI FEEDBACK
+ * ============================================================ */
+
+@sound notify {
+  low {
+    tones: 1318hz;
+    ratios: 1, 2;
+    decays: 0.4s, 0.25s;
+    gains: 1, 0.5;
+    gain: 0.32;
+  }
+  high {
+    tones: 1760hz;
+    ratios: 1, 2;
+    decays: 0.4s, 0.25s;
+    gains: 1, 0.5;
+    gain: 0.32;
+    start: 100ms;
+  }
+}
+
+@sound confirm {
+  ring {
+    osc: sine;
+    freq: 1200hz;
+    attack: 5ms;
+    decay: 100ms;
+    gain: 0.28;
+  }
+}
+
+@sound complete {
+  one {
+    osc: sine;
+    freq: 660hz;
+    attack: 5ms;
+    decay: 120ms;
+    gain: 0.28;
+  }
+  two {
+    osc: sine;
+    freq: 880hz;
+    attack: 5ms;
+    decay: 120ms;
+    gain: 0.28;
+    start: 90ms;
+  }
+  three {
+    osc: sine;
+    freq: 1318hz;
+    attack: 5ms;
+    decay: 200ms;
+    gain: 0.3;
+    start: 180ms;
+  }
+}
+
+@sound success {
+  one {
+    osc: sine;
+    freq: 880hz;
+    attack: 5ms;
+    decay: 120ms;
+    gain: 0.3;
+  }
+  two {
+    osc: sine;
+    freq: 1318hz;
+    attack: 5ms;
+    decay: 180ms;
+    gain: 0.3;
+    start: 80ms;
+  }
+}
+
+@sound denied {
+  one {
+    osc: square;
+    freq: 220hz;
+    attack: 5ms;
+    decay: 80ms;
+    gain: 0.18;
+  }
+  two {
+    osc: square;
+    freq: 196hz;
+    attack: 5ms;
+    decay: 120ms;
+    gain: 0.18;
+    start: 90ms;
+  }
+}
+
+@sound error {
+  fall {
+    osc: sawtooth;
+    freq: 180hz;
+    pitch-from: 440hz;
+    attack: 5ms;
+    decay: 250ms;
+    gain: 0.22;
+  }
+}
+
+@sound buzz {
+  body {
+    osc: sawtooth;
+    freq: 110hz;
+    filter: lowpass;
+    cutoff: 800hz;
+    attack: 5ms;
+    decay: 180ms;
+    gain: 0.32;
+  }
+}
+
+@sound prompt {
+  pop {
+    osc: sine;
+    freq: 880hz;
+    attack: 5ms;
+    decay: 150ms;
+    gain: 0.25;
+  }
+}
+
+@sound pop {
+  rise {
+    osc: sine;
+    freq: 1100hz;
+    pitch-from: 600hz;
+    attack: 2ms;
+    decay: 50ms;
+    gain: 0.32;
+  }
+}
+
+
+/* ============================================================
+ * TEXTURE
+ * ============================================================ */
+
+@sound whoosh {
+  air {
+    noise: white;
+    filter: bandpass;
+    cutoff: 1200hz;
+    q: 0.5;
+    attack: 20ms;
+    decay: 350ms;
+    gain: 0.35;
+  }
+}
+
+@sound swoosh {
+  air {
+    noise: white;
+    filter: bandpass;
+    cutoff: 800hz;
+    q: 0.4;
+    attack: 15ms;
+    decay: 400ms;
+    gain: 0.32;
+  }
+}
+
+/* sparkle: 4 ascending sine notes 40 ms apart — "dı-rı-rı-rıp"
+ * cascade. Mirrors landing/audio-engine.js sparkle preset. */
+@sound sparkle {
+  one {
+    osc: sine;
+    freq: 1760hz;
+    attack: 2ms;
+    decay: 80ms;
+    gain: 0.12;
+  }
+  two {
+    osc: sine;
+    freq: 1960hz;
+    attack: 2ms;
+    decay: 80ms;
+    gain: 0.12;
+    start: 40ms;
+  }
+  three {
+    osc: sine;
+    freq: 2160hz;
+    attack: 2ms;
+    decay: 80ms;
+    gain: 0.12;
+    start: 80ms;
+  }
+  four {
+    osc: sine;
+    freq: 2360hz;
+    attack: 2ms;
+    decay: 80ms;
+    gain: 0.12;
+    start: 120ms;
+  }
+}
+
+@sound ping {
+  ring {
+    tones: 1318hz;
+    ratios: 1, 2;
+    decays: 0.5s, 0.3s;
+    gains: 1, 0.4;
+    gain: 0.32;
+  }
+}
+
+
+/* ============================================================
+ * CLICK FAMILY
+ * ============================================================ */
+
+@sound click {
+  burst {
+    noise: white;
+    filter: highpass;
+    cutoff: 2500hz;
+    attack: 0.5ms;
+    decay: 15ms;
+    gain: 0.4;
+  }
+}
+
+@sound click-soft {
+  burst {
+    noise: white;
+    filter: lowpass;
+    cutoff: 3500hz;
+    attack: 0.5ms;
+    decay: 25ms;
+    gain: 0.35;
+    realtime: true;
+  }
+}
+
+@sound tap {
+  body {
+    osc: sine;
+    freq: 880hz;
+    filter: lowpass;
+    cutoff: 4000hz;
+    attack: 2ms;
+    decay: 40ms;
+    gain: 0.35;
+  }
+}
+
+@sound tap-tactile {
+  tap {
+    osc: sine;
+    freq: 1200hz;
+    attack: 1ms;
+    decay: 25ms;
+    gain: 0.3;
+    realtime: true;
+  }
+  noise {
+    noise: white;
+    filter: highpass;
+    cutoff: 3000hz;
+    attack: 0.5ms;
+    decay: 12ms;
+    gain: 0.15;
+  }
+}
+
+@sound tick {
+  tip {
+    osc: triangle;
+    freq: 2200hz;
+    filter: bandpass;
+    cutoff: 2200hz;
+    q: 1.2;
+    attack: 1ms;
+    decay: 20ms;
+    gain: 0.25;
+  }
+}
+
+
+/* ============================================================
+ * TRANSITIONS (sweeps)
+ * ============================================================ */
+
+@sound modal-open {
+  rise {
+    osc: sine;
+    freq: 660hz;
+    pitch-from: 220hz;
+    attack: 2ms;
+    decay: 180ms;
+    gain: 0.22;
+  }
+}
+
+@sound modal-close {
+  fall {
+    osc: sine;
+    freq: 220hz;
+    pitch-from: 660hz;
+    attack: 2ms;
+    decay: 180ms;
+    gain: 0.22;
+  }
+}
+
+@sound drawer-open {
+  rise {
+    osc: triangle;
+    freq: 500hz;
+    pitch-from: 200hz;
+    attack: 2ms;
+    decay: 220ms;
+    gain: 0.35;
+  }
+}
+
+@sound drawer-close {
+  fall {
+    osc: triangle;
+    freq: 200hz;
+    pitch-from: 500hz;
+    attack: 2ms;
+    decay: 220ms;
+    gain: 0.35;
+  }
+}
+
+@sound dropdown-open {
+  rise {
+    osc: sine;
+    freq: 880hz;
+    pitch-from: 440hz;
+    attack: 1ms;
+    decay: 100ms;
+    gain: 0.32;
+  }
+}
+
+@sound dropdown-close {
+  fall {
+    osc: sine;
+    freq: 440hz;
+    pitch-from: 880hz;
+    attack: 1ms;
+    decay: 100ms;
+    gain: 0.32;
+  }
+}
+
+@sound page-enter {
+  rise {
+    osc: sine;
+    freq: 440hz;
+    pitch-from: 110hz;
+    attack: 5ms;
+    decay: 350ms;
+    gain: 0.4;
+  }
+}
+
+@sound page-exit {
+  fall {
+    osc: sine;
+    freq: 110hz;
+    pitch-from: 440hz;
+    attack: 5ms;
+    decay: 350ms;
+    gain: 0.35;
+  }
+}
+
+
+/* ============================================================
+ * TOGGLE
+ * ============================================================ */
+
+@sound toggle-on {
+  blip {
+    osc: sine;
+    freq: 1100hz;
+    attack: 3ms;
+    decay: 60ms;
+    gain: 0.28;
+  }
+}
+
+@sound toggle-off {
+  blip {
+    osc: sine;
+    freq: 700hz;
+    attack: 3ms;
+    decay: 60ms;
+    gain: 0.28;
+  }
+}
+
+
+/* ============================================================
+ * NOTIFICATIONS
+ * ============================================================ */
+
+@sound ding {
+  ring {
+    tones: 1760hz;
+    ratios: 1, 2.4;
+    decays: 0.5s, 0.3s;
+    gains: 1, 0.4;
+    gain: 0.32;
+  }
+}
+
+@sound mention {
+  one {
+    tones: 880hz;
+    ratios: 1, 2.4;
+    decays: 0.3s, 0.2s;
+    gains: 1, 0.4;
+    gain: 0.30;
+  }
+  two {
+    tones: 1318hz;
+    ratios: 1, 2.4;
+    decays: 0.3s, 0.2s;
+    gains: 1, 0.4;
+    gain: 0.30;
+    start: 70ms;
+  }
+}
+
+@sound badge {
+  clang {
+    tones: 1100hz;
+    ratios: 1, 2.76;
+    decays: 0.35s, 0.22s;
+    gains: 1, 0.5;
+    gain: 0.32;
+  }
+}
+
+
+/* ============================================================
+ * TYPEWRITER
+ * ============================================================ */
+
+/* `keystroke` not redefined here — its procedural version in presets.js
+ * uses per-trigger pitch+volume jitter so rapid input doesn't sound
+ * robotic, and the DSL has no jitter primitive yet. */
+
+@sound carriage-return {
+  fall {
+    osc: sine;
+    freq: 220hz;
+    pitch-from: 660hz;
+    attack: 5ms;
+    decay: 180ms;
+    gain: 0.22;
+  }
+  bell {
+    noise: white;
+    filter: highpass;
+    cutoff: 3000hz;
+    attack: 2ms;
+    decay: 40ms;
+    gain: 0.15;
+    start: 100ms;
+  }
+}

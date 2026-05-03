@@ -1,0 +1,71 @@
+{
+  "name": "acs-language",
+  "displayName": "ACS — Audio Cascade Sheets",
+  "description": "Language support and file icon for .acs (Audio Cascade Sheets).",
+  "version": "0.9.0",
+  "publisher": "acs",
+  "engines": {
+    "vscode": "^1.50.0"
+  },
+  "categories": ["Programming Languages", "Formatters"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/acs-lang/acs"
+  },
+  "license": "MIT",
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:acs",
+    "onCommand:acs.openSoundPicker"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "acs.openSoundPicker",
+        "title": "ACS: Open Sound Picker",
+        "category": "ACS",
+        "icon": "$(unmute)"
+      },
+      {
+        "command": "acs.auditionSound",
+        "title": "ACS: Audition Sound",
+        "category": "ACS",
+        "icon": "$(play)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "editorLangId == acs",
+          "command": "acs.openSoundPicker",
+          "group": "navigation"
+        }
+      ]
+    },
+    "languages": [
+      {
+        "id": "acs",
+        "aliases": ["ACS", "acs", "Audio Cascade Sheets"],
+        "extensions": [".acs"],
+        "icon": {
+          "light": "./icons/acs.svg",
+          "dark": "./icons/acs.svg"
+        },
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "acs",
+        "scopeName": "source.acs",
+        "path": "./syntaxes/acs.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "acs",
+        "path": "./snippets/acs.json"
+      }
+    ]
+  }
+}

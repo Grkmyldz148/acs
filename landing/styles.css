@@ -1,0 +1,485 @@
+/* ACS landing — design tokens + base */
+:root {
+  --accent-h: 165;
+  --accent-c: 0.18;
+  --accent-l: 0.72;
+  --accent: oklch(var(--accent-l) var(--accent-c) var(--accent-h));
+  --accent-soft: oklch(var(--accent-l) var(--accent-c) var(--accent-h) / 0.12);
+  --accent-line: oklch(var(--accent-l) var(--accent-c) var(--accent-h) / 0.35);
+  --accent-ink: oklch(0.18 0.04 var(--accent-h));
+
+  --density: 1;
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: var(--font-sans);
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+
+  --tx-1: 11px;
+  --tx-2: 13px;
+  --tx-3: 15px;
+  --tx-4: 18px;
+  --tx-5: 22px;
+  --tx-6: 28px;
+  --tx-7: 40px;
+  --tx-8: 56px;
+  --tx-9: 80px;
+
+  color-scheme: light dark;
+}
+
+/* Light theme */
+:root[data-theme="light"] {
+  --bg: oklch(0.985 0.003 220);
+  --bg-elev: oklch(1 0 0);
+  --bg-sunk: oklch(0.965 0.004 220);
+  --ink: oklch(0.18 0.01 240);
+  --ink-2: oklch(0.38 0.01 240);
+  --ink-3: oklch(0.55 0.01 240);
+  --line: oklch(0.9 0.005 240);
+  --line-2: oklch(0.94 0.004 240);
+  --code-bg: oklch(0.97 0.005 240);
+  --code-ink: oklch(0.22 0.01 240);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.04);
+  --shadow: 0 1px 2px oklch(0 0 0 / 0.04), 0 8px 24px oklch(0 0 0 / 0.06);
+  --grid-line: oklch(0 0 0 / 0.04);
+}
+
+/* Dark theme */
+:root[data-theme="dark"] {
+  --bg: oklch(0.16 0.01 240);
+  --bg-elev: oklch(0.2 0.012 240);
+  --bg-sunk: oklch(0.13 0.01 240);
+  --ink: oklch(0.96 0.005 240);
+  --ink-2: oklch(0.74 0.008 240);
+  --ink-3: oklch(0.55 0.01 240);
+  --line: oklch(0.27 0.012 240);
+  --line-2: oklch(0.23 0.012 240);
+  --code-bg: oklch(0.18 0.012 240);
+  --code-ink: oklch(0.92 0.005 240);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.4);
+  --shadow: 0 1px 2px oklch(0 0 0 / 0.4), 0 12px 32px oklch(0 0 0 / 0.35);
+  --grid-line: oklch(1 0 0 / 0.05);
+  --accent-ink: oklch(0.16 0.04 var(--accent-h));
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  /* Hard clamp on horizontal scroll. Any rogue overflowing element
+   * (canvas wider than viewport, code window, fixed tweaks panel,
+   * etc.) was making the whole page horizontally scrollable on mobile.
+   * `overflow-x: clip` is the modern equivalent of `hidden` that
+   * doesn't establish a new containing block — fewer side effects. */
+  overflow-x: clip;
+  /* Fallback for engines that don't support `clip` yet. */
+  overflow-x: hidden;
+}
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: var(--tx-3);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01", "cv11";
+  /* Smooth horizontal scrolling for touch where tables / code blocks
+   * still need to scroll INSIDE their container. */
+  -webkit-text-size-adjust: 100%;
+}
+
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; font-size: inherit; cursor: pointer; }
+code, pre, .mono { font-family: var(--font-mono); font-feature-settings: "calt" 0; }
+
+/* Layout */
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+@media (max-width: 720px) {
+  .wrap { padding: 0 20px; }
+}
+
+/* ---------- Nav ---------- *
+ * Sticky + backdrop-filter is a known scroll-FPS killer because the
+ * filter re-rasterizes against the page beneath every scroll frame.
+ * Tuned to keep the glass feel but cut GPU cost: bg alpha bumped to
+ * 92% (less work for blur to do), blur radius dropped 14px → 8px,
+ * saturate removed (it's a second filter pass for almost no visual
+ * gain). transform: translateZ(0) keeps the nav on its own compositor
+ * layer so scroll only repaints below — not the nav itself. */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in oklch, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  transform: translateZ(0);
+  will-change: backdrop-filter;
+}
+.nav-inner {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  height: 56px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: var(--tx-3);
+  letter-spacing: -0.01em;
+}
+/* Nav shield: drop the heavy hover transform/shadow it inherits from
+ * the hero version — at 28px those animations feel jittery. */
+.brand .acs-shield {
+  filter: none;
+  transition: opacity 150ms;
+}
+.brand:hover .acs-shield { opacity: 0.85; }
+.brand:hover .acs-shield { transform: none; }
+.nav-links {
+  display: flex;
+  gap: 22px;
+  margin-left: 8px;
+  font-size: var(--tx-2);
+  color: var(--ink-2);
+  /* On mobile we let the nav scroll horizontally inside its own track
+   * rather than pushing the whole page wide. Hide the scrollbar
+   * cosmetic-wise; arrow keys / swipe still work. */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a { white-space: nowrap; }
+.nav-links a:hover { color: var(--ink); }
+@media (max-width: 720px) {
+  .nav-links { gap: 16px; font-size: var(--tx-1); margin-left: 0; }
+  /* Hide the GitHub icon button on small screens — nav already crowded. */
+  .nav-actions .icon-btn[title="GitHub"] { display: none; }
+}
+.nav-spacer { flex: 1; }
+.nav-actions { display: flex; align-items: center; gap: 8px; }
+
+.icon-btn {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  border-radius: 8px;
+  color: var(--ink-2);
+  transition: color 120ms, background 120ms, border-color 120ms;
+}
+.icon-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+.icon-btn svg { width: 14px; height: 14px; }
+
+.sound-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px 0 8px;
+  height: 32px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  border-radius: 8px;
+  color: var(--ink-2);
+  font-size: var(--tx-2);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  transition: all 120ms;
+}
+.sound-toggle:hover { color: var(--ink); border-color: var(--ink-3); }
+.sound-toggle.on {
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.sound-toggle .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+.sound-toggle.on .dot {
+  background: var(--accent-ink);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: var(--tx-2);
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: all 120ms;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+.btn-primary:hover { background: var(--ink-2); border-color: var(--ink-2); }
+.btn-ghost {
+  background: transparent;
+  color: var(--ink-2);
+  border-color: var(--line);
+}
+.btn-ghost:hover { color: var(--ink); border-color: var(--ink-3); background: var(--bg-elev); }
+.btn-accent {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.btn-accent:hover { filter: brightness(1.05); }
+.btn svg { width: 13px; height: 13px; }
+
+/* ---------- Section helpers ---------- */
+.section {
+  padding: calc(96px * var(--density)) 0;
+  border-top: 1px solid var(--line);
+}
+.section-tight { padding: calc(64px * var(--density)) 0; }
+@media (max-width: 720px) {
+  .section { padding: calc(56px * var(--density)) 0; }
+  .section-tight { padding: calc(40px * var(--density)) 0; }
+}
+.section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 48px;
+  max-width: 720px;
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--tx-1);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: currentColor;
+}
+.section-title {
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  margin: 0;
+  text-wrap: balance;
+}
+.section-sub {
+  font-size: var(--tx-4);
+  color: var(--ink-2);
+  margin: 0;
+  text-wrap: pretty;
+  max-width: 600px;
+}
+
+/* ---------- Code ---------- */
+.code {
+  font-family: var(--font-mono);
+  font-size: var(--tx-2);
+  line-height: 1.6;
+  background: var(--code-bg);
+  color: var(--code-ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  overflow: auto;
+  white-space: pre;
+  tab-size: 2;
+}
+.code .tok-sel { color: var(--accent); }
+.code .tok-prop { color: oklch(0.55 0.13 280); }
+:root[data-theme="dark"] .code .tok-prop { color: oklch(0.78 0.14 280); }
+.code .tok-val { color: oklch(0.45 0.16 30); }
+:root[data-theme="dark"] .code .tok-val { color: oklch(0.78 0.13 50); }
+.code .tok-str { color: oklch(0.5 0.13 150); }
+:root[data-theme="dark"] .code .tok-str { color: oklch(0.78 0.13 150); }
+.code .tok-com { color: var(--ink-3); font-style: italic; }
+.code .tok-at { color: oklch(0.55 0.18 320); font-weight: 500; }
+:root[data-theme="dark"] .code .tok-at { color: oklch(0.78 0.16 320); }
+.code .tok-num { color: oklch(0.55 0.16 230); }
+:root[data-theme="dark"] .code .tok-num { color: oklch(0.78 0.13 230); }
+.code .tok-punct { color: var(--ink-3); }
+
+.kbd {
+  font-family: var(--font-mono);
+  font-size: var(--tx-1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  color: var(--ink-2);
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 48px 0 32px;
+  color: var(--ink-3);
+  font-size: var(--tx-2);
+}
+.footer-cols {
+  display: grid;
+  grid-template-columns: 2fr repeat(3, 1fr);
+  gap: 48px;
+}
+.footer h4 {
+  font-size: var(--tx-2);
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 16px;
+  letter-spacing: 0.01em;
+}
+.footer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.footer a:hover { color: var(--ink); }
+.footer-bottom {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--tx-1);
+}
+@media (max-width: 720px) {
+  .footer-cols { grid-template-columns: 1fr 1fr; gap: 32px; }
+}
+
+/* ---------- Misc atoms ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: var(--tx-1);
+  white-space: nowrap;
+}
+.chip-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.divider {
+  height: 1px;
+  background: var(--line);
+  margin: 24px 0;
+}
+
+/* ============================================================
+ * Mobile overflow guards
+ * ============================================================
+ * Apply broadly so every grid track and inline-code paragraph
+ * actually fits the viewport. Three patterns:
+ *
+ *   1. Grid items default to `min-width: auto` (intrinsic content);
+ *      a long inline-code chip pushes the cell wider than its track.
+ *      `min-width: 0` on common grid children fixes this.
+ *
+ *   2. Inline `<code>` chips with padding/border are treated as
+ *      unbreakable tokens by some engines. `overflow-wrap: anywhere`
+ *      on text containers allows breaks inside.
+ *
+ *   3. Any rule in this file uses safe defaults; per-component
+ *      overrides remain free to opt-out (`overflow-wrap: normal`).
+ */
+.install-wrap > *,
+.compare-grid > *,
+.rw-grid > *,
+.theme-grid > *,
+.feature-grid > *,
+.cg-detail-body > *,
+.cg-grid > *,
+.section-head,
+.compare,
+.cg-card { min-width: 0; }
+
+
+/* Text containers that often hold inline `<code>` chips. break-word
+ * allows long unbreakable runs (URL, identifier) to break — unlike
+ * `anywhere`, it ONLY kicks in as a last resort, so normal prose
+ * still wraps at word boundaries. Switched from `anywhere` because
+ * the more aggressive value was splitting `<code>` content mid-token
+ * (e.g. `window.ACS.devtools.m` / `ount()`). */
+.section-sub,
+.install-checks li,
+.feature-desc,
+.cg-detail-sub,
+.compare-sub,
+.rw-stylesheet-note,
+.theme-desc {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* Inline code chips stay atomic — `nowrap` keeps a chip on one line so
+ * a method name like `window.ACS.devtools.mount()` reads cleanly; the
+ * line break still happens at the space BEFORE or AFTER the chip
+ * because the parent's `overflow-wrap: break-word` only targets
+ * non-breakable runs at the last resort. If a chip is genuinely
+ * wider than the viewport, the parent's `min-width: 0` and our
+ * `overflow-x: clip` body rule keep the rest of the page from being
+ * pushed sideways. */
+.section-sub code,
+.install-checks li code,
+.feature-desc code,
+.cg-detail-sub code,
+.rw-stylesheet-note code,
+.compare-sub code,
+.theme-desc code {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+/* Section titles that wrap with `<br/>` — let them break gracefully */
+.section-title { overflow-wrap: anywhere; word-break: break-word; }
+
+@media (max-width: 720px) {
+  /* Tighten grid gaps on phones */
+  .install-wrap { gap: 24px; }
+  .install-checks { margin-top: 20px; }
+  .install-checks li { font-size: var(--tx-2); }
+  .compare { padding: 16px; }
+  .rw-app { padding: 16px; }
+  /* Section eyebrows can wrap onto two lines if needed */
+  .eyebrow { white-space: normal; }
+}

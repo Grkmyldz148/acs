@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ACS — Audio Cascade Sheets</title>
+<meta name="description" content="A CSS-like declarative stylesheet language for audio. Where CSS describes how an HTML element should look, ACS describes how it should sound — same selectors, same cascade, properties target audio: sound, volume, pitch, room, sound-mood." />
+<meta name="keywords" content="audio CSS, declarative audio, web audio, UI sound design, sound stylesheet, ACS, audio cascade sheets" />
+<meta name="author" content="ACS" />
+<meta name="theme-color" content="#0a0a0a" />
+<meta name="color-scheme" content="dark light" />
+
+<!-- Favicon: the same ACS shield used in the page brand, served directly
+     from acs-logo.svg so any future tweaks to the shield update the tab
+     icon too. The SVG renders cleanly at 16/32px; browsers cache it. -->
+<link rel="icon" type="image/svg+xml" href="acs-logo.svg" />
+<link rel="apple-touch-icon" href="acs-logo.svg" />
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="ACS — Audio Cascade Sheets" />
+<meta property="og:description" content="A CSS-like declarative stylesheet language for audio. Drop ACS into any web page; sounds bind to selectors via the same cascade you already know." />
+<meta property="og:locale" content="en_US" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="ACS — Audio Cascade Sheets" />
+<meta name="twitter:description" content="Declarative audio for the web. Same selectors and cascade as CSS, properties target sound." />
+
+<!-- Performance: preconnect / dns-prefetch for third-party origins -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://unpkg.com" crossorigin />
+
+<!-- Critical: warm the browser caches for the bundled JS + ACS runtime.
+     The bundle is the largest first-paint dependency after CSS. -->
+<link rel="preload" href="/dist/landing.bundle.js" as="script" />
+<link rel="modulepreload" href="/poc/runtime.js" />
+<link rel="prefetch" href="/poc/defaults.acs" as="fetch" crossorigin />
+
+<!-- Fonts: display=swap renders text with fallback while font loads -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="sections.css" />
+<link rel="stylesheet" href="extras.css" />
+
+<!-- The landing page eats its own dog food: this is an audio
+     stylesheet that binds sounds to the page's own UI selectors via
+     the cascade. The runtime auto-discovers <link rel="audiostyle">. -->
+<link rel="audiostyle" href="landing.acs" />
+
+<!-- Theme set before paint to avoid flash -->
+<script>
+  (function () {
+    var t = localStorage.getItem('acs.theme');
+    if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+
+<!-- Structured data — helps search engines understand what this is -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "ACS — Audio Cascade Sheets",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any (browser)",
+  "description": "A CSS-like declarative stylesheet language for audio. Selectors bind sounds to UI events through the same cascade as CSS.",
+  "offers": { "@type": "Offer", "price": "0" }
+}
+</script>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- Real ACS runtime — loaded from /poc/. Auto-fetches /poc/defaults.acs
+     so all 49 built-in presets are available without any link tag. The
+     adapter shim below maps the landing components' API surface
+     (ACS.play / enable / setMaster / setRoom / setReverbSize / presets)
+     onto the real runtime's trigger / setMasterConfig. -->
+<script type="module" src="/poc/runtime.js"></script>
+<script src="acs-shim.js" defer></script>
+
+<!-- React (production UMD globals — needed for the pre-compiled bundle's
+     `React.createElement` / `React.Fragment` references). -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+
+<!-- Pre-compiled, minified bundle of all 11 JSX source files. Built by
+     `node tools/build-landing.mjs`. Drops the @babel/standalone runtime
+     dependency (~3 MB → 67 KB minified, ~98% reduction). -->
+<script src="/dist/landing.bundle.js" defer></script>
+</body>
+</html>

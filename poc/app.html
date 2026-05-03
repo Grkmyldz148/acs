@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NotaPad — ACS demo app</title>
+  <link rel="audiostyle" href="showcase.acs" />
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --bg: #0e0e10;
+      --fg: #eaeaea;
+      --muted: #8a8a8a;
+      --accent: #4f46e5;
+      --line: #2a2a2e;
+      --row: #1a1a1d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.45;
+      min-height: 100vh;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--line);
+    }
+    header .logo { font-weight: 600; letter-spacing: -0.01em; }
+    header .skin-switcher { display: flex; gap: 4px; }
+    .skin-btn {
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--line); padding: 5px 10px;
+      border-radius: 5px; cursor: pointer; font-size: 12px;
+    }
+    .skin-btn.active { color: var(--fg); background: var(--line); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: calc(100vh - 56px);
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--line);
+      padding: 14px 8px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .sidebar button {
+      background: transparent; color: var(--fg);
+      border: 0; text-align: left;
+      padding: 8px 12px; border-radius: 6px;
+      font: inherit; font-size: 14px; cursor: pointer;
+    }
+    .sidebar button:hover { background: var(--row); }
+    .sidebar button.active { background: var(--accent); color: #fff; }
+    .sidebar h3 {
+      color: var(--muted); font-size: 11px;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0 12px; margin: 12px 0 4px;
+    }
+
+    main {
+      padding: 18px 28px;
+      max-width: 760px;
+    }
+    main h1 {
+      margin: 0 0 12px; font-weight: 600; letter-spacing: -0.02em;
+    }
+
+    .toolbar {
+      display: flex; gap: 8px; margin: 8px 0 18px;
+    }
+    .toolbar button {
+      padding: 7px 14px; border-radius: 6px;
+      font: inherit; font-size: 13px; cursor: pointer;
+      border: 1px solid var(--line);
+      background: var(--row); color: var(--fg);
+    }
+    .compose-btn { background: var(--accent) !important;
+                   border-color: var(--accent) !important; }
+    .save-btn    { background: #059669 !important;
+                   border-color: #059669 !important; }
+    .delete-btn  { background: #dc2626 !important;
+                   border-color: #dc2626 !important; color: #fff; }
+
+    .note-list { display: flex; flex-direction: column; gap: 6px; }
+    .note-row {
+      background: var(--row);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: background 120ms;
+    }
+    .note-row:hover { background: #1f1f24; }
+    .note-row .title { font-weight: 500; }
+    .note-row .meta  { color: var(--muted); font-size: 12px; }
+    .note-row.expanded { background: #1f1f24; padding: 16px 18px; }
+    .note-row.expanded .body {
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+    .note-body textarea {
+      width: 100%; height: 110px;
+      background: #14141a; color: var(--fg);
+      border: 1px solid var(--line); border-radius: 6px;
+      padding: 10px 12px; font: inherit; font-size: 13px;
+      resize: none;
+    }
+
+    .toggle {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 12px; border-radius: 99px;
+      background: var(--row); border: 1px solid var(--line);
+      cursor: pointer; font-size: 13px;
+    }
+    .toggle.on { background: #1d3a2a; border-color: #1d3a2a; }
+    .toggle::before {
+      content: ""; width: 10px; height: 10px; border-radius: 50%;
+      background: var(--muted);
+    }
+    .toggle.on::before { background: #34d399; }
+
+    dialog {
+      background: #14141a; color: var(--fg);
+      border: 1px solid var(--line); border-radius: 12px;
+      padding: 20px; max-width: 420px;
+    }
+    dialog::backdrop { background: rgba(0,0,0,0.5); }
+
+    .toast {
+      position: fixed; right: 18px; bottom: 18px;
+      background: var(--row);
+      border: 1px solid var(--line); border-radius: 8px;
+      padding: 10px 14px; font-size: 13px;
+      animation: slideIn 200ms ease-out;
+    }
+    .toast.success { border-color: #34d399; }
+    .toast.error   { border-color: #dc2626; }
+    .toast.info    { border-color: var(--accent); }
+    @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    .dialog-open-btn { background: #475569; border-color: #475569; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">📝 NotaPad
+      <span style="font-size: 12px; color: var(--muted); margin-left: 12px; font-weight: normal;">
+        <a href="index.html" style="color:#8ab4ff;">Showcase</a>
+        &middot; <span style="color:var(--fg)">App demo</span>
+        &middot; <a href="playground.html" style="color:#8ab4ff;">Playground</a>
+        &middot; <a href="builder.html" style="color:#8ab4ff;">Builder</a>
+      </span>
+    </div>
+    <div class="skin-switcher" id="skin-switcher">
+      <button class="skin-btn active" data-skin="medium-room">Medium Room</button>
+      <button class="skin-btn" data-skin="small-room">Small Room</button>
+      <button class="skin-btn" data-skin="chamber">Chamber</button>
+      <button class="skin-btn" data-skin="large-hall">Large Hall</button>
+      <button class="skin-btn" data-skin="none">Dry</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <h3>Notebooks</h3>
+      <button class="active">All Notes</button>
+      <button>Personal</button>
+      <button>Work</button>
+      <button>Ideas</button>
+      <h3>Settings</h3>
+      <button class="dialog-open-btn" id="open-settings">⚙ Settings</button>
+    </aside>
+
+    <main>
+      <h1>All Notes</h1>
+      <p style="color:var(--muted);">
+        Click a note to expand. Type in its body to hear the typewriter
+        keystroke effect. Try the skin switcher above to change the
+        room acoustics — the same UI, different sonic identity.
+      </p>
+
+      <div class="toolbar">
+        <button class="compose-btn">+ New note</button>
+        <button class="save-btn">Save</button>
+        <button class="delete-btn">Delete</button>
+        <span class="toggle on" data-state="on">Auto-save</span>
+      </div>
+
+      <div class="note-list" id="note-list">
+        <div class="note-row">
+          <div class="title">Reading list — fall</div>
+          <div class="meta">Updated 2 days ago</div>
+        </div>
+        <div class="note-row expanded">
+          <div class="title">ACS — sonic identity ideas</div>
+          <div class="meta">Updated today</div>
+          <div class="body note-body">
+            <textarea placeholder="Start typing… each keystroke gets a typewriter sound effect."></textarea>
+          </div>
+        </div>
+        <div class="note-row">
+          <div class="title">Travel: Lisbon checklist</div>
+          <div class="meta">Updated 1 week ago</div>
+        </div>
+        <div class="note-row">
+          <div class="title">Bench-test results: Q3</div>
+          <div class="meta">Updated 3 weeks ago</div>
+        </div>
+        <div class="note-row">
+          <div class="title">Recipe: focaccia base</div>
+          <div class="meta">Updated 1 month ago</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="settings-dialog">
+    <h2 style="margin: 0 0 12px;">Settings</h2>
+    <p style="color: var(--muted); font-size: 13px; margin-bottom: 18px;">
+      Within this modal, sounds route through a <code>small-room</code>
+      acoustic — it should feel tighter and more enclosed than the
+      main app.
+    </p>
+    <div style="display:flex; flex-direction:column; gap: 8px;">
+      <span class="toggle on" data-state="on">Notifications</span>
+      <span class="toggle off" data-state="off">Vibration</span>
+      <span class="toggle on" data-state="on">Sync over WiFi</span>
+    </div>
+    <div style="display:flex; gap: 8px; margin-top: 18px;">
+      <button class="save-btn">Save</button>
+      <button class="dialog-close-btn" id="close-settings">Close</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="runtime.js"></script>
+  <script>
+    // Note row expand toggle
+    document.querySelectorAll(".note-row").forEach((r) => {
+      r.addEventListener("click", () => {
+        document.querySelectorAll(".note-row.expanded").forEach((e) => {
+          if (e !== r) e.classList.remove("expanded");
+        });
+        r.classList.toggle("expanded");
+      });
+    });
+
+    // Sidebar item activation
+    document.querySelectorAll(".sidebar button").forEach((b) => {
+      if (b.id === "open-settings") return;
+      b.addEventListener("click", () => {
+        document.querySelectorAll(".sidebar button.active").forEach((a) =>
+          a.classList.remove("active")
+        );
+        b.classList.add("active");
+      });
+    });
+
+    // Toggle switches
+    document.querySelectorAll(".toggle").forEach((t) => {
+      t.addEventListener("click", () => {
+        const next = t.classList.contains("on") ? "off" : "on";
+        t.classList.toggle("on", next === "on");
+        t.classList.toggle("off", next === "off");
+        t.dataset.state = next;
+      });
+    });
+
+    // Settings dialog
+    const dialog = document.getElementById("settings-dialog");
+    document.getElementById("open-settings").addEventListener("click", () =>
+      dialog.showModal()
+    );
+    document.getElementById("close-settings").addEventListener("click", () =>
+      dialog.close()
+    );
+
+    // Skin switcher — runtime swap of :root { room } via a synthetic
+    // ACS rule injected on the fly. Demonstrates that one declaration
+    // changes the acoustic identity of the whole app.
+    document.getElementById("skin-switcher").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-skin]");
+      if (!btn) return;
+      document.querySelectorAll(".skin-btn").forEach((b) =>
+        b.classList.remove("active")
+      );
+      btn.classList.add("active");
+      const skin = btn.dataset.skin;
+      // setMasterConfig changes room without wiping the cascade bindings.
+      // Earlier we used bindAll([{:root, room: skin}]) which REPLACED all
+      // rules — showcase.acs bindings were silently lost on first switch.
+      if (window.ACS && window.ACS.setMasterConfig) {
+        window.ACS.setMasterConfig({ room: skin });
+      }
+    });
+  </script>
+</body>
+</html>

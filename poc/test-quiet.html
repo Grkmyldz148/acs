@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ACS — quiet preset test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 0 24px;
+      background: #18181b;
+      color: #fafafa;
+    }
+    h1 { font-weight: 600; font-size: 22px; margin-bottom: 8px; }
+    p { color: #a1a1aa; line-height: 1.5; margin-top: 4px; font-size: 14px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 8px;
+      margin-top: 24px;
+    }
+    button {
+      padding: 14px 16px;
+      border: 1px solid #3f3f46;
+      background: #27272a;
+      color: #fafafa;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.1s;
+      text-align: left;
+    }
+    button:hover { background: #3f3f46; }
+    button:active { background: #52525b; }
+    .factor {
+      display: block;
+      font-size: 11px;
+      color: #71717a;
+      margin-top: 2px;
+      font-family: ui-monospace, monospace;
+    }
+    .group { margin-top: 28px; }
+    .group h2 { font-size: 13px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; font-weight: 600; }
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      align-items: center;
+      font-size: 13px;
+      color: #a1a1aa;
+    }
+    button.util {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    pre {
+      background: #0a0a0b;
+      border: 1px solid #27272a;
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 11px;
+      max-height: 240px;
+      overflow: auto;
+      color: #d4d4d8;
+    }
+  </style>
+  <link rel="audiostyle" href="defaults.acs" />
+</head>
+<body>
+  <h1>Sessiz preset test sayfası</h1>
+  <p>Önceden problemli olan preset'ler. Her butona tıkla, sesi kontrol et. <code>BAKED_FACTORS</code> v7 yüklü olmalı; cache'i kontrol et.</p>
+
+  <div class="controls">
+    <button class="util" onclick="clearCache()">Cache temizle</button>
+    <button class="util" onclick="showFactors()">Factor'leri göster</button>
+    <span id="status"></span>
+  </div>
+
+  <div class="group">
+    <h2>Percussion (önceden çok sessizdi)</h2>
+    <div class="grid" id="percussion"></div>
+  </div>
+
+  <div class="group">
+    <h2>Bell / glass (önceden duyulmuyordu)</h2>
+    <div class="grid" id="bell"></div>
+  </div>
+
+  <div class="group">
+    <h2>Texture (önceden duyulmuyordu)</h2>
+    <div class="grid" id="texture"></div>
+  </div>
+
+  <div class="group">
+    <h2>Çalışan (referans için)</h2>
+    <div class="grid" id="working"></div>
+  </div>
+
+  <pre id="output" style="display:none"></pre>
+
+  <script type="module" src="runtime.js"></script>
+  <script>
+    const groups = {
+      percussion: ["kick", "snare", "hat", "thunk", "woodblock", "clap"],
+      bell: ["gong", "glass", "ting", "bell-soft", "bell-bright", "chime-soft"],
+      texture: ["sparkle", "ping", "whoosh", "swoosh"],
+      working: ["tap-tactile", "tick", "click-soft", "pop", "ding", "toggle-on"],
+    };
+
+    function makeButton(name) {
+      const b = document.createElement("button");
+      b.innerHTML = `${name}<span class="factor" id="f-${name}">…</span>`;
+      b.addEventListener("click", () => {
+        if (window.ACS) {
+          window.ACS.trigger({ sound: name }, "click", b);
+        }
+      });
+      return b;
+    }
+
+    for (const [groupName, names] of Object.entries(groups)) {
+      const container = document.getElementById(groupName);
+      for (const n of names) container.appendChild(makeButton(n));
+    }
+
+    function updateFactorLabels() {
+      if (!window.ACS?.calibrationFactors) return;
+      const factors = window.ACS.calibrationFactors();
+      for (const name of Object.values(groups).flat()) {
+        const el = document.getElementById("f-" + name);
+        if (el) {
+          const f = factors[name];
+          el.textContent = f != null ? `factor ${f.toFixed(3)}` : "—";
+        }
+      }
+    }
+    setInterval(updateFactorLabels, 500);
+
+    window.clearCache = () => {
+      const keys = Object.keys(localStorage).filter(k => k.startsWith("acs.calibration"));
+      keys.forEach(k => localStorage.removeItem(k));
+      document.getElementById("status").textContent =
+        `${keys.length} cache key silindi. Reload et.`;
+    };
+
+    window.showFactors = () => {
+      const out = document.getElementById("output");
+      out.style.display = "block";
+      out.textContent = JSON.stringify(window.ACS?.calibrationFactors?.() ?? {}, null, 2);
+    };
+  </script>
+</body>
+</html>

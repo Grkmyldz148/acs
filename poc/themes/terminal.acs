@@ -1,0 +1,70 @@
+/* terminal.acs — Monochrome CRT, mechanical keyboard, tape hiss.
+ *
+ *   click    → woodblock
+ *   pop      → tap-tactile
+ *   confirm  → carriage-return
+ *   open     → drawer-open
+ */
+
+:root {
+  master-volume: 0.6;
+  room: none;
+}
+body {
+  sound-mood: lofi;
+}
+
+/* click — woody click, no shimmer */
+button, a, [role=button], [role=tab] {
+  sound-on-click: woodblock;
+}
+
+/* pop — primary action: harder tactile thump */
+button.primary,
+button[type=submit],
+[data-variant=primary] {
+  sound-on-click: tap-tactile;
+}
+
+/* Semantic palette — terminal favors mechanical / paper sounds */
+[data-action=star]     { sound-on-click: tick; }
+[data-action=refresh]  { sound-on-click: hat; }
+[data-action=download] { sound-on-click: snare; }
+[data-action=add]      { sound-on-click: pop; }
+[data-action=delete]   { sound-on-click: thunk; }
+[data-action=share]    { sound-on-click: swoosh; }
+[data-action=save]     { sound-on-click: carriage-return; }
+
+/* confirm family */
+[role=alert], [role=status], .toast {
+  sound-on-appear: carriage-return;
+}
+[data-state=success]      { sound-on-appear: confirm; }
+[data-state=error]        { sound-on-appear: buzz; }
+[data-state=mention]      { sound-on-appear: tick; }
+
+/* open — drawer slide for any disclosure */
+dialog[open], [role=dialog][open],
+[data-state=open] {
+  sound-on-appear: drawer-open;
+}
+summary {
+  sound-on-click: drawer-open;
+}
+
+/* Form input — typewriter feel */
+input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select {
+  sound-on-focus: click;
+}
+input:not([type]), input[type=text], input[type=search], input[type=email],
+input[type=password], input[type=url], input[type=tel],
+input[type=number], textarea {
+  sound-on-input: keystroke;
+}
+input[type=range] {
+  sound-on-input: woodblock;
+}
+
+@media (prefers-reduced-sound: reduce) {
+  :root { master-volume: 0; }
+}

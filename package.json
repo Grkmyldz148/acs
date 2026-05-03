@@ -1,0 +1,78 @@
+{
+  "name": "acs-audio",
+  "version": "0.9.0",
+  "description": "Audio Cascading Style Sheets — declarative audio for the web. Same selectors and cascade as CSS, properties target sound (sound, volume, pitch, room, sound-mood).",
+  "type": "module",
+  "main": "./dist/runtime.cjs",
+  "module": "./dist/runtime.mjs",
+  "types": "./types/acs.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/runtime.mjs",
+      "require": "./dist/runtime.cjs",
+      "types": "./types/acs.d.ts"
+    },
+    "./parse": {
+      "import": "./dist/parse.mjs",
+      "types": "./types/acs.d.ts"
+    },
+    "./compile": "./tools/compile-acs.mjs",
+    "./worklets/click": "./poc/runtime/worklets/click-processor.js"
+  },
+  "files": [
+    "dist",
+    "types",
+    "poc/runtime",
+    "poc/defaults.acs",
+    "poc/runtime.js",
+    "tools/compile-acs.mjs",
+    "tools/lint-acs.mjs",
+    "tools/format.mjs",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node tools/bundle.mjs && node tools/build-landing.mjs",
+    "build:runtime": "node tools/bundle.mjs",
+    "build:landing": "node tools/build-landing.mjs",
+    "build:webview": "node tools/build-webview-picker.mjs",
+    "test": "node tests/run-all.mjs",
+    "audit": "node tools/audit.mjs",
+    "lint": "node tools/lint-acs.mjs poc/*.acs",
+    "compile-defaults": "node tools/compile-acs.mjs --pretty --out dist/defaults.json poc/defaults.acs",
+    "prepublishOnly": "npm run build:runtime && npm run audit"
+  },
+  "keywords": [
+    "audio",
+    "css",
+    "web-audio",
+    "ui-sounds",
+    "sound-design",
+    "stylesheet",
+    "declarative",
+    "cascade",
+    "synthesis",
+    "modal-synthesis",
+    "karplus-strong",
+    "fm-synthesis",
+    "audioworklet",
+    "calibration",
+    "loudness"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Grkmyldz148/acs.git"
+  },
+  "homepage": "https://USER.github.io/acs",
+  "bugs": {
+    "url": "https://github.com/Grkmyldz148/acs/issues"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
+  }
+}

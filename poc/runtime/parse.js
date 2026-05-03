@@ -1,0 +1,320 @@
+/* parse.js — stylesheet parser + value helpers.
+ *
+ * Forgiving CSS-style parser: supports rule blocks ({ ... }), selectors
+ * (comma-separated), and key:value declarations. Does not enforce CSS
+ * formal grammar — keeps PoC simple.
+ */
+
+export const stripComments = (src) => src.replace(/\/\*[\s\S]*?\*\//g, "");
+
+function parseDecls(body) {
+  const decls = {};
+  let important = null;
+  body.split(";").forEach((line) => {
+    const [k, ...rest] = line.split(":");
+    if (!k || rest.length === 0) return;
+    const key = k.trim();
+    let val = rest.join(":").trim();
+    if (!key || !val) return;
+    // CSS-style !important suffix — overrides cascade specificity at
+    // flatten time. Strip from value, track in a non-enumerable Set so
+    // validate/runtime see clean string values.
+    const m = val.match(/^([\s\S]*?\S)\s+!important\s*$/i);
+    if (m) {
+      val = m[1].trim();
+      if (!important) important = new Set();
+      important.add(key);
+    }
+    decls[key] = val;
+  });
+  if (important) {
+    Object.defineProperty(decls, "__important", {
+      value: important,
+      enumerable: false,
+    });
+  }
+  return decls;
+}
+
+// Brace-aware parser. Handles nested @media { selector { decls } }.
+// Each emitted rule is { selector, decls, mediaCondition? }.
+export function parse(source) {
+  let text = stripComments(source);
+  const rules = [];
+
+  // Body-less at-rules (statements terminated by `;`, no `{` block).
+  // Currently: `@sample <name> url("...");` — registers a sample under
+  // a name so users can write `sound: my-thump;` against an audio file.
+  // Strip from text before the brace-walker runs so its `indexOf("{")`
+  // logic doesn't trip over them.
+  text = text.replace(
+    /@sample\s+([a-zA-Z_][\w-]*)\s+url\(\s*['"]?([^'")]+)['"]?\s*\)\s*;/g,
+    (_m, name, url) => {
+      rules.push({ selector: `@sample ${name}`, decls: { url: url.trim() } });
+      return ""; // remove from text
+    }
+  );
+
+  parseInto(text, rules, null);
+  return rules;
+}
+
+function parseInto(text, rules, mediaCondition) {
+  let i = 0;
+  while (i < text.length) {
+    // Skip whitespace.
+    while (i < text.length && /\s/.test(text[i])) i++;
+    if (i >= text.length) break;
+
+    const open = text.indexOf("{", i);
+    if (open === -1) break;
+    const selectorPart = text.slice(i, open).trim();
+
+    // Find matching close brace, respecting nesting.
+    let depth = 1;
+    let j = open + 1;
+    while (j < text.length && depth > 0) {
+      const c = text[j];
+      if (c === "{") depth++;
+      else if (c === "}") depth--;
+      if (depth > 0) j++;
+    }
+    const body = text.slice(open + 1, j);
+
+    if (selectorPart.startsWith("@media ")) {
+      const cond = selectorPart.slice("@media ".length).trim();
+      parseInto(body, rules, cond);
+    } else if (selectorPart.startsWith("@sound-keyframes ")) {
+      // @sound-keyframes <name> { 0% {...} 50% {...} 100% {...} }
+      // Stored as a single rule with selector "@sound-keyframes <name>";
+      // decls is the parsed sequence (array). bindAll registers them.
+      const sequence = parseKeyframes(body);
+      const rule = {
+        selector: selectorPart,
+        decls: { __sequence: sequence },
+      };
+      if (mediaCondition) rule.mediaCondition = mediaCondition;
+      rules.push(rule);
+    } else if (selectorPart.startsWith("@sound ") && /\{/.test(body)) {
+      // Nested-block @sound syntax. Each inner block = one layer.
+      // Property values inside a nested block can use commas freely
+      // (as list separators) since `;` is the terminator.
+      const innerRules = [];
+      parseInto(body, innerRules, null);
+      const decls = {};
+      for (const ir of innerRules) {
+        decls[ir.selector] = ir.decls; // value is an object, not a string
+      }
+      const rule = { selector: selectorPart, decls };
+      if (mediaCondition) rule.mediaCondition = mediaCondition;
+      rules.push(rule);
+    } else {
+      const decls = parseDecls(body);
+      const selectors = selectorPart
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      selectors.forEach((sel) => {
+        const rule = { selector: sel, decls };
+        if (mediaCondition) rule.mediaCondition = mediaCondition;
+        rules.push(rule);
+      });
+    }
+    i = j + 1;
+  }
+}
+
+// "tap 0ms, pop 100ms, bell 200ms" → [{sound:"tap", at:0}, {sound:"pop", at:0.1}, ...]
+// Also accepts percentages: "tap 0%, pop 50%, bell 100%" (relative to
+// sound-duration, default 1s).
+export function parseSequence(valStr, totalDurationSec = 1.0) {
+  if (!valStr) return [];
+  const out = [];
+  for (const part of valStr.split(",")) {
+    const s = part.trim();
+    if (!s) continue;
+    const m = s.match(/^([\w-]+)\s+([\d.]+)(ms|s|%)?$/);
+    if (!m) continue;
+    const sound = m[1];
+    const num = parseFloat(m[2]);
+    const unit = m[3];
+    let at = 0;
+    if (unit === "ms") at = num / 1000;
+    else if (unit === "s") at = num;
+    else if (unit === "%") at = (num / 100) * totalDurationSec;
+    else at = num; // bare number = seconds
+    out.push({ sound, at });
+  }
+  return out;
+}
+
+// Parse `@sound-keyframes` body → sequence array.
+// Body looks like: "0% { sound: tap; volume: 0.3 } 50% { sound: pop } ..."
+export function parseKeyframes(body, totalDurationSec = 1.0) {
+  const out = [];
+  const re = /(\d+(?:\.\d+)?)%\s*\{([^}]*)\}/g;
+  let m;
+  while ((m = re.exec(body))) {
+    const pct = parseFloat(m[1]);
+    const decls = {};
+    m[2].split(";").forEach((line) => {
+      const [k, ...rest] = line.split(":");
+      if (!k || rest.length === 0) return;
+      const key = k.trim();
+      const val = rest.join(":").trim();
+      if (key && val) decls[key] = val;
+    });
+    if (decls.sound || decls["sound-on-click"]) {
+      out.push({
+        sound: decls.sound || decls["sound-on-click"],
+        at: (pct / 100) * totalDurationSec,
+        decls,
+      });
+    }
+  }
+  out.sort((a, b) => a.at - b.at);
+  return out;
+}
+
+// "key: value, key: value" → { key: value, ... }
+export function parseLayer(valStr) {
+  const out = {};
+  valStr.split(",").forEach((pair) => {
+    const idx = pair.indexOf(":");
+    if (idx < 0) return;
+    out[pair.slice(0, idx).trim()] = pair.slice(idx + 1).trim();
+  });
+  return out;
+}
+
+// "1+1.5+2.5+4" or "1 1.5 2.5 4" or "1, 1.5, 2.5, 4" → [1, 1.5, 2.5, 4]
+// Also strips "hz", "khz", "ms", "s" units so list values like
+// "1s, 0.5s, 0.25s" parse cleanly as [1, 0.5, 0.25].
+export function parseList(s) {
+  s = resolveVar(s);
+  if (!s) return [];
+  return s
+    .split(/[+,\s]+/)
+    .map((x) => x.trim().replace(/(hz|khz|ms|s|st|dB|db)$/i, ""))
+    .filter(Boolean)
+    .map(parseFloat)
+    .filter((n) => isFinite(n));
+}
+
+// CSS-var bridge: resolve `var(--name)` and `var(--name, fallback)` against
+// the document's computed styles on `:root`. Lets stylesheets share design
+// tokens between .css and .acs:
+//
+//   .acs:    button { volume: var(--ui-loud, 0.7); }
+//   .css:    :root { --ui-loud: 0.85; }
+//
+// In non-DOM contexts (calibration, analyzer, tests) getComputedStyle is
+// unavailable — we return the original string unchanged so parse* helpers
+// fall back to their numeric defaults rather than crashing.
+//
+// The substitution is text-level: it produces a plain string that is then
+// fed to the existing parse* helpers, so all unit handling (`hz`, `ms`,
+// `st`) keeps working without any per-helper changes.
+export function resolveVar(v) {
+  if (typeof v !== "string") return v;
+  if (!v.includes("var(")) return v;
+  if (typeof document === "undefined" || !document.documentElement) return v;
+  let styles;
+  try { styles = getComputedStyle(document.documentElement); }
+  catch (e) { return v; }
+  return v.replace(/var\(\s*(--[\w-]+)\s*(?:,\s*([^)]*))?\)/g, (_m, name, fallback) => {
+    const val = styles.getPropertyValue(name).trim();
+    if (val) return val;
+    return (fallback || "").trim();
+  });
+}
+
+// Pitch in semitones ("Nst") → frequency multiplier.
+export function parsePitch(v) {
+  if (!v) return 1;
+  v = resolveVar(v);
+  // Accept optional leading + sign (e.g., "+2st" same as "2st"). Earlier
+  // the regex was `/^(-?\d+...)/` which accepted negatives but treated
+  // `+1st` as a non-match → silently fell through to raw float (12 = 12×
+  // playback speed instead of one octave ≈ 1.06×).
+  const m = String(v).trim().match(/^([+-]?\d+(?:\.\d+)?)st$/);
+  if (m) return Math.pow(2, parseFloat(m[1]) / 12);
+  const num = parseFloat(v);
+  return isFinite(num) ? num : 1;
+}
+
+export function parseVolume(v) {
+  if (!v) return undefined;
+  v = resolveVar(v);
+  const num = parseFloat(v);
+  if (!isFinite(num)) return undefined;
+  // Clamp to [0, 2] — values above 2 are almost certainly typos and would
+  // overdrive the modal IIR / oscillator chain past safe levels even with
+  // the inner saturation. 2.0 still allows headroom over the calibration
+  // baseline (0.5) for "loud" UI sounds.
+  return Math.max(0, Math.min(2, num));
+}
+
+// Parse a volume value that may carry the `!raw` modifier — bypasses
+// auto-calibration entirely (sound designers want exact control).
+//   { value: 0.5, raw: true }   for "0.5 !raw"
+//   { value: 0.5, raw: false }  for "0.5"
+export function parseVolumeRaw(v) {
+  if (!v) return undefined;
+  const s = String(v).trim();
+  const raw = /\s!raw$/i.test(s);
+  const cleaned = raw ? s.replace(/\s!raw$/i, "").trim() : s;
+  const value = parseVolume(cleaned);
+  if (value === undefined) return undefined;
+  return { value, raw };
+}
+
+export function parseDb(v) {
+  if (!v) return NaN;
+  v = resolveVar(v);
+  const m = String(v).match(/^([+-]?\d+(?:\.\d+)?)dB$/i);
+  return m ? parseFloat(m[1]) : parseFloat(v);
+}
+
+export function parseFreq(v, fallback = 440) {
+  if (!v) return fallback;
+  v = resolveVar(v);
+  // Optional leading + (no negative — frequencies must be positive).
+  const m = String(v).trim().match(/^\+?(\d+(?:\.\d+)?)\s*(hz|khz)?$/i);
+  if (!m) return parseFloat(v) || fallback;
+  const n = parseFloat(m[1]);
+  return m[2] && m[2].toLowerCase() === "khz" ? n * 1000 : n;
+}
+
+export function parseTime(v, fallback = 0.2) {
+  if (!v) return fallback;
+  v = resolveVar(v);
+  const m = String(v).trim().match(/^(\d+(?:\.\d+)?)\s*(ms|s)?$/i);
+  if (!m) {
+    const n = parseFloat(v);
+    if (!isFinite(n)) return fallback;
+    // Negative times don't make sense for our DSL (decay, attack, start
+    // offset). Clamp to 0 to avoid Web Audio errors and silent surprises.
+    return Math.max(0, n);
+  }
+  const n = parseFloat(m[1]);
+  const unit = m[2] && m[2].toLowerCase();
+  // Default unit: seconds (matches CSS animation conventions). Bare
+  // numbers were previously treated as ms — confusing because every
+  // call site passes its fallback in seconds.
+  if (unit === "ms") return n / 1000;
+  return n;
+}
+
+// "osc: sine, freq: 440hz, ..." → { osc: "sine", freq: "440hz", ... }
+export function parseSynthArgs(inner) {
+  const out = {};
+  inner.split(",").forEach((pair) => {
+    const idx = pair.indexOf(":");
+    if (idx < 0) return;
+    const k = pair.slice(0, idx).trim();
+    const v = pair.slice(idx + 1).trim();
+    if (k) out[k] = v;
+  });
+  return out;
+}

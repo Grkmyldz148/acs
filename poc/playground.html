@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ACS Playground</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      --bg: #09090b;
+      --fg: #fafafa;
+      --muted: #a1a1aa;
+      --muted-2: #71717a;
+      --line: #1f1f23;
+      --line-2: #2a2a30;
+      --row: #0e0e11;
+      --row-2: #16161a;
+      --subtle: #27272a;
+      --accent: #fafafa;
+      --accent-fg: #18181b;
+      --ring: rgba(250,250,250,0.18);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0; background: var(--bg); color: var(--fg);
+      line-height: 1.5; -webkit-font-smoothing: antialiased;
+    }
+    :focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ring); }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 24px 48px; }
+    h1 {
+      font-weight: 600; letter-spacing: -0.02em; margin: 0 0 8px;
+      font-size: 22px;
+    }
+    .desc { color: var(--muted); font-size: 13.5px; max-width: 70ch; }
+    h2 {
+      font-size: 11px; color: var(--muted-2); letter-spacing: 0.08em;
+      text-transform: uppercase; font-weight: 600; margin: 28px 0 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .panel {
+      background: var(--row); border: 1px solid var(--line);
+      border-radius: 10px; padding: 18px;
+    }
+    .row {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      margin-bottom: 10px;
+    }
+    label { font-size: 12px; color: var(--muted); min-width: 70px; }
+    select, input[type=range] {
+      background: var(--row-2); color: var(--fg);
+      border: 1px solid var(--line); border-radius: 6px;
+      padding: 5px 9px; font: inherit; font-size: 12px;
+    }
+    select {
+      cursor: pointer; appearance: none; padding-right: 26px;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10' fill='none'><path d='M2 4l3 3 3-3' stroke='%23a1a1aa' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+    }
+    select:hover { border-color: var(--line-2); }
+    input[type=range] { width: 200px; padding: 0; accent-color: var(--fg); }
+    button {
+      background: transparent; color: var(--fg);
+      border: 1px solid var(--line); border-radius: 6px;
+      padding: 6px 12px; font: inherit; font-size: 12.5px; font-weight: 500;
+      cursor: pointer;
+      transition: background 120ms, border-color 120ms, opacity 120ms;
+    }
+    button:hover { background: var(--subtle); border-color: var(--line-2); }
+    button:active { opacity: 0.85; }
+    button.play {
+      background: var(--accent); border-color: var(--accent); color: var(--accent-fg);
+      font-weight: 600;
+    }
+    button.play:hover { opacity: 0.9; background: var(--accent); border-color: var(--accent); }
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+      gap: 6px;
+    }
+    .preset-grid button {
+      padding: 7px 10px; font-size: 12px; text-align: left;
+      font-weight: 500;
+    }
+    textarea {
+      width: 100%; height: 220px;
+      background: var(--bg); color: var(--fg);
+      border: 1px solid var(--line); border-radius: 8px;
+      padding: 12px;
+      font-family: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
+      font-size: 12px; line-height: 1.55; resize: vertical;
+      transition: border-color 120ms;
+    }
+    textarea:hover { border-color: var(--line-2); }
+    textarea:focus { border-color: var(--fg); outline: none; }
+    code {
+      background: var(--row-2); padding: 2px 6px; border-radius: 4px;
+      font-size: 12px; border: 1px solid var(--line);
+      font-family: ui-monospace, monospace;
+    }
+    .info { font-size: 11.5px; color: var(--muted-2); margin-top: 8px; }
+    .group { display: flex; flex-direction: column; gap: 10px; padding: 10px 0; }
+    .swatch {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 999px;
+      font-size: 10.5px; background: var(--row-2); border: 1px solid var(--line);
+      color: var(--muted);
+    }
+    .factor-table {
+      max-height: 240px; overflow: auto;
+      font-family: ui-monospace, monospace; font-size: 11.5px;
+      background: var(--bg); border: 1px solid var(--line);
+      padding: 10px 14px; border-radius: 8px;
+      color: var(--muted);
+    }
+    .factor-row {
+      display: flex; justify-content: space-between;
+      padding: 2px 0;
+    }
+    .factor-row strong { color: var(--fg); font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav style="margin-bottom: 18px; font-size: 12.5px; display: flex; gap: 4px;">
+      <a href="index.html" style="color: var(--muted); padding: 5px 10px; border-radius: 6px; text-decoration: none;">Showcase</a>
+      <a href="app.html" style="color: var(--muted); padding: 5px 10px; border-radius: 6px; text-decoration: none;">App demo</a>
+      <span style="color: var(--fg); padding: 5px 10px; border-radius: 6px; background: var(--subtle); font-weight: 500;">Playground</span>
+      <a href="builder.html" style="color: var(--muted); padding: 5px 10px; border-radius: 6px; text-decoration: none;">Builder</a>
+    </nav>
+    <h1>ACS Playground</h1>
+    <p class="desc">
+      Interactive ses tasarım stüdyosu. Sol panelden hazır preset'i seç,
+      sağ panelden kendi <code>@sound</code> bloğunu yaz ve test et.
+      Volume / pitch / mood / room canlı uygulanır.
+    </p>
+
+    <h2>Global params</h2>
+    <div class="row">
+      <label>volume</label>
+      <input type="range" id="vol" min="0" max="1" step="0.05" value="0.5">
+      <span id="vol-v" class="swatch">0.50</span>
+    </div>
+    <div class="row">
+      <label>pitch (st)</label>
+      <input type="range" id="pitch" min="-12" max="12" step="1" value="0">
+      <span id="pitch-v" class="swatch">0st</span>
+    </div>
+    <div class="row">
+      <label>mood</label>
+      <select id="mood">
+        <option value="">none</option>
+        <option>warm</option>
+        <option>bright</option>
+        <option>glassy</option>
+        <option>metallic</option>
+        <option>organic</option>
+        <option>punchy</option>
+        <option>retro</option>
+        <option>airy</option>
+        <option>lofi</option>
+      </select>
+      <label>room</label>
+      <select id="room">
+        <option value="">none (dry)</option>
+        <option>small-room</option>
+        <option>medium-room</option>
+        <option>chamber</option>
+        <option>large-hall</option>
+      </select>
+    </div>
+
+    <div class="grid" style="margin-top: 24px;">
+      <div class="panel">
+        <h2 style="margin: 0 0 12px;">Built-in presets</h2>
+        <div id="preset-grid" class="preset-grid"></div>
+      </div>
+
+      <div class="panel">
+        <h2 style="margin: 0 0 8px;">Custom @sound editor</h2>
+        <textarea id="editor" spellcheck="false">@sound my-test {
+  body:  modal: 660hz, ratios: 1+1.5+2.5, t60s: 0.6+0.3+0.15, gains: 1+0.5+0.25, gain: 1.5;
+}</textarea>
+        <div class="row" style="margin-top: 10px;">
+          <button class="play" id="apply-play">Apply &amp; Play</button>
+          <span class="info" id="apply-status"></span>
+        </div>
+      </div>
+    </div>
+
+    <h2>Quick QA</h2>
+    <p class="desc">
+      Tüm preset'leri arka arkaya çalar — loudness tutarlılığını ve
+      tüm preset'lerin temizliğini hızlıca audit etmek için.
+    </p>
+    <button id="test-all">▶ Test all presets (200ms apart)</button>
+    <button id="stop-test" style="margin-left: 6px;">⏹ Stop</button>
+    <span id="test-status" class="info" style="margin-left: 10px;"></span>
+
+    <h2>Calibration factors (auto-leveling)</h2>
+    <p class="desc">
+      Her preset için ölçülen RMS'e göre hesaplanan ses seviyesi
+      düzeltme faktörü. 1.0 = değişiklik yok. &gt; 1.0 = boost,
+      &lt; 1.0 = attenuate. Sayfa açıldıktan birkaç saniye sonra
+      hepsi dolar.
+    </p>
+    <button id="dump-factors">Refresh factor table</button>
+    <button id="copy-factors" style="margin-left: 6px;">Copy as JSON</button>
+    <button id="export-factors" style="margin-left: 6px;">Download CSV</button>
+    <div id="factors" class="factor-table" style="margin-top: 8px;">
+      <em>Click "Refresh" after first interaction.</em>
+    </div>
+  </div>
+
+  <script type="module" src="runtime.js"></script>
+  <script>
+    const grid = document.getElementById("preset-grid");
+    const vol = document.getElementById("vol");
+    const pitch = document.getElementById("pitch");
+    const mood = document.getElementById("mood");
+    const room = document.getElementById("room");
+    const volV = document.getElementById("vol-v");
+    const pitchV = document.getElementById("pitch-v");
+    const editor = document.getElementById("editor");
+    const applyBtn = document.getElementById("apply-play");
+    const applyStatus = document.getElementById("apply-status");
+    const factorsBox = document.getElementById("factors");
+    const dumpBtn = document.getElementById("dump-factors");
+
+    // Wait for ACS runtime to expose itself.
+    function ready(cb) {
+      if (window.ACS) return cb();
+      const id = setInterval(() => {
+        if (window.ACS) { clearInterval(id); cb(); }
+      }, 50);
+    }
+
+    function play(name) {
+      const decls = {
+        sound: name,
+        volume: vol.value,
+        pitch: pitch.value + "st",
+      };
+      if (mood.value) decls["sound-mood"] = mood.value;
+      if (room.value) decls["room"] = room.value;
+      window.ACS.trigger(decls, "sound-on-click");
+    }
+
+    function classify(name) {
+      if (/^(click|tap|tick|pop)/.test(name)) return "Click";
+      if (/^(modal|drawer|dropdown|page)-/.test(name)) return "Transitions";
+      if (/^toggle-/.test(name)) return "Toggle";
+      if (/^(kick|snare|hat|clap|thunk|knock|woodblock)$/.test(name)) return "Percussion";
+      if (/^(success|complete|confirm|error|denied|prompt|buzz)$/.test(name)) return "Feedback";
+      if (/^(notify|ding|mention|badge)$/.test(name)) return "Notification";
+      if (/^(bell|chime|glass|ting|gong|carriage-return|old-bell)/.test(name)) return "Bells";
+      if (/^(pluck|string)/.test(name)) return "Strings";
+      if (/^(whoosh|swoosh|sparkle|ping)$/.test(name)) return "Texture";
+      if (/^keystroke/.test(name)) return "Procedural";
+      return "Custom / Other";
+    }
+    const CATEGORY_ORDER = [
+      "Click", "Bells", "Percussion", "Strings",
+      "Feedback", "Notification", "Transitions", "Toggle",
+      "Texture", "Procedural", "Custom / Other",
+    ];
+
+    function buildPresetGrid() {
+      const allNames = new Set([
+        ...Object.keys(window.ACS.presets || {}),
+        ...Object.keys(window.ACS.customPresets || {}),
+      ]);
+      const grouped = {};
+      for (const name of allNames) {
+        const cat = classify(name);
+        (grouped[cat] = grouped[cat] || []).push(name);
+      }
+      grid.innerHTML = "";
+      for (const cat of CATEGORY_ORDER) {
+        const list = grouped[cat];
+        if (!list || !list.length) continue;
+        const heading = document.createElement("div");
+        heading.style.cssText = "grid-column: 1 / -1; color: #888; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; margin-top: 8px;";
+        heading.textContent = `${cat} (${list.length})`;
+        grid.appendChild(heading);
+        for (const name of list.sort()) {
+          const b = document.createElement("button");
+          b.textContent = name;
+          b.addEventListener("click", () => play(name));
+          grid.appendChild(b);
+        }
+      }
+    }
+
+    vol.addEventListener("input", () => (volV.textContent = (+vol.value).toFixed(2)));
+    pitch.addEventListener("input", () => (pitchV.textContent = pitch.value + "st"));
+
+    applyBtn.addEventListener("click", () => {
+      try {
+        const text = editor.value;
+        const rules = window.ACS.parse(text);
+        // Find @sound block(s) and register them
+        let registered = null;
+        for (const r of rules) {
+          if (r.selector.startsWith("@sound ")) {
+            const name = r.selector.slice("@sound ".length).trim();
+            window.ACS.bindAll([r]);
+            registered = name;
+          }
+        }
+        if (registered) {
+          applyStatus.textContent = `Registered "${registered}". Playing…`;
+          play(registered);
+          buildPresetGrid();
+        } else {
+          applyStatus.textContent = "No @sound block found.";
+        }
+      } catch (e) {
+        applyStatus.textContent = "Error: " + e.message;
+      }
+    });
+
+    function currentFactors() {
+      return Object.entries(window.ACS.calibrationFactors() || {}).sort();
+    }
+    dumpBtn.addEventListener("click", () => {
+      const rows = currentFactors();
+      if (!rows.length) {
+        factorsBox.innerHTML = "<em>No factors yet — trigger any preset to start calibration.</em>";
+        return;
+      }
+      factorsBox.innerHTML = rows
+        .map(([k, v]) =>
+          `<div class="factor-row"><span>${k}</span><span>${v.toFixed(3)}</span></div>`
+        )
+        .join("");
+    });
+    document.getElementById("copy-factors").addEventListener("click", async () => {
+      const obj = Object.fromEntries(currentFactors());
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(obj, null, 2));
+        const status = document.getElementById("test-status");
+        status.textContent = "✓ Factors copied as JSON.";
+        setTimeout(() => (status.textContent = ""), 2000);
+      } catch (e) {
+        alert("Clipboard write failed: " + e.message);
+      }
+    });
+    document.getElementById("export-factors").addEventListener("click", () => {
+      const rows = currentFactors();
+      const csv = "preset,factor\n" + rows.map(([k, v]) => `${k},${v.toFixed(4)}`).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "acs-calibration.csv";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    });
+
+    ready(buildPresetGrid);
+
+    // Quick QA — sequential test of all presets.
+    let testTimer = null;
+    document.getElementById("test-all").addEventListener("click", () => {
+      const all = [
+        ...Object.keys(window.ACS.presets || {}),
+        ...Object.keys(window.ACS.customPresets || {}),
+      ].sort();
+      if (testTimer) clearInterval(testTimer);
+      let i = 0;
+      const status = document.getElementById("test-status");
+      testTimer = setInterval(() => {
+        if (i >= all.length) {
+          clearInterval(testTimer);
+          testTimer = null;
+          status.textContent = "✓ Done.";
+          return;
+        }
+        status.textContent = `Playing ${i + 1}/${all.length}: ${all[i]}`;
+        play(all[i]);
+        i++;
+      }, 250);
+    });
+    document.getElementById("stop-test").addEventListener("click", () => {
+      if (testTimer) {
+        clearInterval(testTimer);
+        testTimer = null;
+        document.getElementById("test-status").textContent = "Stopped.";
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ACS — PoC Demo</title>
+  <link rel="audiostyle" href="showcase.acs" />
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      max-width: 880px;
+      margin: 40px auto;
+      padding: 0 24px 80px;
+      background: #0e0e10;
+      color: #eaeaea;
+      line-height: 1.55;
+    }
+    h1 { font-weight: 600; letter-spacing: -0.02em; }
+    h2 { font-weight: 500; margin-top: 36px; color: #a8a8a8; font-size: 16px;
+         text-transform: uppercase; letter-spacing: 0.06em; }
+    h3 { font-weight: 500; margin-top: 18px; margin-bottom: 4px;
+         color: #cfcfcf; font-size: 13px; letter-spacing: 0.04em;
+         text-transform: uppercase; }
+    p { color: #c0c0c0; max-width: 64ch; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 18px; }
+    button {
+      background: #1d1d20;
+      color: #eaeaea;
+      border: 1px solid #2a2a2e;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 120ms;
+    }
+    button:hover { background: #2c2c30; border-color: #3a3a3e; }
+    button.primary  { background: #4f46e5; border-color: #4f46e5; }
+    button.danger   { background: #dc2626; border-color: #dc2626; }
+    button.success  { background: #059669; border-color: #059669; }
+    button.secondary { background: transparent; }
+    input {
+      background: #1a1a1d; color: #eaeaea;
+      border: 1px solid #2a2a2e; padding: 9px 12px;
+      border-radius: 6px; font: inherit; width: 240px;
+    }
+    a { color: #8ab4ff; }
+    code { background: #1a1a1d; padding: 2px 6px; border-radius: 4px;
+           font-size: 13px; }
+    .note { font-size: 13px; color: #777; margin-top: 32px;
+            border-top: 1px solid #2a2a2e; padding-top: 16px; }
+    .desc { font-size: 13px; color: #888; margin: 4px 0 8px; }
+  </style>
+</head>
+<body>
+  <nav style="margin-bottom: 16px; font-size: 13px; color: #888;">
+    <a href="index.html" style="color:#eaeaea; text-decoration:none; font-weight: 600;">Showcase</a>
+    &middot; <a href="app.html" style="color:#8ab4ff;">App demo (NotaPad)</a>
+    &middot; <a href="playground.html" style="color:#8ab4ff;">Playground</a>
+    &middot; <a href="builder.html" style="color:#8ab4ff;">Builder</a>
+  </nav>
+  <h1>ACS PoC</h1>
+  <p>
+    Bütün sesler <code>defaults.acs</code> + <code>demo.acs</code>'den
+    geliyor; runtime.js'e dokunulmamış. <code>modal</code>,
+    <code>pluck</code>, FM, noise, osc primitive'lerini kullanan
+    <code>@sound</code> blokları aşağıda kategorize.
+  </p>
+
+  <h2>Click Family</h2>
+  <p class="desc">FM-tabanlı tactile click tarifi (SOUND_DESIGN.md'den).</p>
+  <div class="row">
+    <button class="snd-click">click</button>
+    <button class="snd-click-soft">click-soft</button>
+    <button class="snd-tap">tap</button>
+    <button class="snd-tap-tactile">tap-tactile</button>
+    <button class="snd-tick">tick</button>
+    <button class="snd-pop">pop</button>
+  </div>
+
+  <h2>Bells &amp; Tones</h2>
+  <p class="desc">Modal synthesis (Surge'dan port + analyzer-tuned).</p>
+  <div class="row">
+    <button class="snd-bell">bell (modal)</button>
+    <button class="snd-bell-soft">bell-soft</button>
+    <button class="snd-bell-bright">bell-bright</button>
+    <button class="snd-old-bell">old-bell (3-sine)</button>
+    <button class="snd-chime">chime</button>
+    <button class="snd-chime-soft">chime-soft</button>
+    <button class="snd-glass">glass</button>
+    <button class="snd-ting">ting</button>
+    <button class="snd-gong">gong</button>
+  </div>
+
+  <h2>Percussion</h2>
+  <p class="desc">Modal + noise burst hibridleri.</p>
+  <div class="row">
+    <button class="snd-kick">kick</button>
+    <button class="snd-snare">snare</button>
+    <button class="snd-hat">hat</button>
+    <button class="snd-clap">clap</button>
+    <button class="snd-thunk">thunk</button>
+    <button class="snd-knock">knock</button>
+    <button class="snd-woodblock">woodblock</button>
+  </div>
+
+  <h2>Strings (Karplus-Strong)</h2>
+  <div class="row">
+    <button class="snd-pluck-soft">pluck-soft</button>
+    <button class="snd-pluck-bright">pluck-bright</button>
+    <button class="snd-string">string</button>
+  </div>
+
+  <h2>UI Feedback</h2>
+  <p class="desc">FM bell + harmonic recipe'ler.</p>
+  <div class="row">
+    <button class="snd-success success">success</button>
+    <button class="snd-complete success">complete</button>
+    <button class="snd-confirm">confirm</button>
+    <button class="snd-notify">notify</button>
+    <button class="snd-ding">ding</button>
+    <button class="snd-mention">mention</button>
+    <button class="snd-badge">badge</button>
+    <button class="snd-error danger">error</button>
+    <button class="snd-denied danger">denied</button>
+    <button class="snd-prompt">prompt</button>
+    <button class="snd-buzz">buzz</button>
+  </div>
+
+  <h2>Transitions (open/close pairs)</h2>
+  <p class="desc">Sine sweep, ascending=open, descending=close.</p>
+  <div class="row">
+    <button class="snd-modal-open primary">modal-open</button>
+    <button class="snd-modal-close">modal-close</button>
+    <button class="snd-drawer-open">drawer-open</button>
+    <button class="snd-drawer-close">drawer-close</button>
+    <button class="snd-dropdown-open">dropdown-open</button>
+    <button class="snd-dropdown-close">dropdown-close</button>
+    <button class="snd-page-enter">page-enter</button>
+    <button class="snd-page-exit">page-exit</button>
+  </div>
+
+  <h2>Toggle</h2>
+  <div class="row">
+    <button class="snd-toggle-on">toggle-on</button>
+    <button class="snd-toggle-off">toggle-off</button>
+  </div>
+
+  <h2>Texture</h2>
+  <div class="row">
+    <button class="snd-whoosh">whoosh</button>
+    <button class="snd-swoosh">swoosh</button>
+    <button class="snd-sparkle">sparkle</button>
+    <button class="snd-ping">ping</button>
+  </div>
+
+  <h2>Mood — orthogonal style overlay</h2>
+  <p class="desc">
+    Aynı <code>bell</code> preset'i, farklı <code>sound-mood</code>
+    değerleriyle. Mood preset'i değiştirmiyor — tetiklenince üstüne
+    filter+saturation katmanı uyguluyor (cascade-friendly).
+  </p>
+  <div class="row">
+    <button class="mood-warm">warm</button>
+    <button class="mood-bright">bright</button>
+    <button class="mood-glassy">glassy</button>
+    <button class="mood-metallic">metallic</button>
+    <button class="mood-organic">organic</button>
+    <button class="mood-punchy">punchy</button>
+    <button class="mood-retro">retro</button>
+    <button class="mood-airy">airy</button>
+    <button class="mood-lofi">lofi</button>
+  </div>
+
+  <h2>Per-element room override</h2>
+  <p class="desc">
+    Aynı <code>bell</code> preset'i, ama her buton kendi
+    <code>room: ...</code> property'siyle farklı bir akustik mekânda çalıyor.
+    Cascade per-element özelleştirme.
+  </p>
+  <div class="row">
+    <button class="room-dry">dry (none)</button>
+    <button class="room-small">small-room</button>
+    <button class="room-chamber">chamber</button>
+    <button class="room-medium">medium-room</button>
+    <button class="room-large">large-hall</button>
+  </div>
+
+  <h2>Inline synth() — preset değil, direkt DSP</h2>
+  <div class="row">
+    <button class="synth-sine">Sine 440</button>
+    <button class="synth-square-bass">Square bass + LPF</button>
+    <button class="synth-pitch-down">Pitch glide ↓</button>
+    <button class="synth-textured">Saw + pink noise</button>
+  </div>
+
+  <h2>Scroll / appear demo</h2>
+  <p class="desc">
+    Aşağı kaydır — viewport'a giren her kart <code>:on-appear</code>
+    ile <code>ping</code>, çıkanlar <code>:on-leave</code> ile
+    <code>tick</code> tetikler. IntersectionObserver tabanlı.
+  </p>
+  <div style="height: 200px; overflow: auto; background: #14141a;
+              border: 1px solid #2a2a2e; border-radius: 8px; padding: 8px;">
+    <div style="height: 600px; display: flex; flex-direction: column; gap: 50px;">
+      <div class="scroll-snd" style="height: 100px; background: #1f1f24; border-radius: 6px; padding: 12px;">card 1</div>
+      <div class="scroll-snd" style="height: 100px; background: #1f1f24; border-radius: 6px; padding: 12px;">card 2</div>
+      <div class="scroll-snd" style="height: 100px; background: #1f1f24; border-radius: 6px; padding: 12px;">card 3</div>
+      <div class="scroll-snd" style="height: 100px; background: #1f1f24; border-radius: 6px; padding: 12px;">card 4</div>
+    </div>
+  </div>
+
+  <h2>Form etkileşimi</h2>
+  <div class="row">
+    <input placeholder="Daktilo: yazı yaz…" />
+    <input placeholder="Sonra şuna geç…" />
+  </div>
+
+  <h2>Link hover</h2>
+  <p>
+    <a href="#">Bu link'in üstüne gel</a> — chime sesi çalmalı.
+    <a href="#">Bu da</a>.
+  </p>
+
+  <h2>var() — CSS custom-property bridge</h2>
+  <p>
+    Slider'lar <code>:root</code>'taki CSS custom property'leri günceller;
+    showcase.acs onları <code>volume: var(--ui-loud)</code> ve
+    <code>sound-mood: var(--ui-mood)</code> olarak okur.
+  </p>
+  <div class="row">
+    <button class="snd-token-vol">var(--ui-loud) → volume</button>
+    <button class="snd-token-mood">var(--ui-mood) → sound-mood</button>
+  </div>
+  <div class="row" style="gap:14px;align-items:center;flex-wrap:wrap;margin-top:10px">
+    <label style="font-size:12px;color:#8a8a8a">--ui-loud
+      <input type="range" id="vt-loud" min="0" max="1" step="0.05" value="0.5">
+      <span id="vt-loud-v" style="font-family:ui-monospace,monospace">0.50</span>
+    </label>
+    <label style="font-size:12px;color:#8a8a8a">--ui-mood
+      <select id="vt-mood">
+        <option value="">(none)</option>
+        <option>warm</option><option>bright</option><option>glassy</option>
+        <option>metallic</option><option>organic</option><option>punchy</option>
+      </select>
+    </label>
+    <label style="font-size:12px;color:#8a8a8a">--ui-mood-mix
+      <input type="range" id="vt-mix" min="0" max="1" step="0.05" value="0.5">
+      <span id="vt-mix-v" style="font-family:ui-monospace,monospace">0.50</span>
+    </label>
+  </div>
+
+  <h2>quality — global CPU/quality knob</h2>
+  <p>
+    <code>quality: low</code> partial sayısını ve voice pool'u kısar; reverb tail'ini
+    %60'a indirir. Dinleme önyüzü: aşağıdaki butonlar aynı preset'i farklı kalitelerde
+    çalar (level değişimi anlık uygulanır).
+  </p>
+  <div class="row">
+    <button onclick="window.ACS.setMasterConfig({ quality: 'low' })">quality: low</button>
+    <button onclick="window.ACS.setMasterConfig({ quality: 'medium' })">medium</button>
+    <button onclick="window.ACS.setMasterConfig({ quality: 'high' })">high</button>
+    <button class="snd-bell">play preset</button>
+  </div>
+
+  <h2>realtime — sub-1ms latency opt-in</h2>
+  <p>
+    <code>realtime: true</code> single-mode modal/pluck veya basit osc/noise layer'larını
+    AudioWorklet'te çalıştırır. Tap-rate UI feedback için (yazma, tick, tap) algılanır
+    bir gecikme farkı.
+  </p>
+  <div class="row">
+    <button class="snd-fast-tick">my-fast-tick (worklet)</button>
+    <button class="snd-tick">tick (main-thread)</button>
+  </div>
+
+  <h2>devtools — overlay panel</h2>
+  <p>
+    <code>window.ACS.devtools.mount()</code> sağ-alta ufak bir panel açar:
+    her trigger'ın preset adı, kaynak selector'u, calibration factor'u ve mood/room state'i.
+    onTrigger üzerinden çalışır; mount edilmeden sıfır overhead.
+  </p>
+  <div class="row">
+    <button onclick="window.ACS.devtools.toggle()">Toggle devtools</button>
+  </div>
+
+  <p class="note">
+    Tarayıcı politikası: AudioContext ilk kullanıcı etkileşiminden sonra
+    açılır. <code>defaults.acs</code> ve <code>demo.acs</code> auto-load.
+    Toplam preset: <strong>49</strong> @sound (defaults.acs) + 2 procedural
+    (runtime/presets.js).
+  </p>
+
+  <script type="module" src="runtime.js"></script>
+  <script>
+    // Wire the var() showcase sliders to actual CSS custom properties on
+    // :root. ACS reads them at trigger time via getComputedStyle, so any
+    // change is picked up by the next trigger automatically.
+    function bindCssVarSlider(rangeId, vId, propName, format = (v) => v) {
+      const r = document.getElementById(rangeId);
+      const v = document.getElementById(vId);
+      const apply = () => {
+        document.documentElement.style.setProperty(propName, format(r.value));
+        if (v) v.textContent = parseFloat(r.value).toFixed(2);
+      };
+      r.addEventListener("input", apply);
+      apply();
+    }
+    bindCssVarSlider("vt-loud", "vt-loud-v", "--ui-loud");
+    bindCssVarSlider("vt-mix",  "vt-mix-v",  "--ui-mood-mix");
+    document.getElementById("vt-mood").addEventListener("change", (e) => {
+      document.documentElement.style.setProperty("--ui-mood", e.target.value || "glassy");
+    });
+  </script>
+</body>
+</html>

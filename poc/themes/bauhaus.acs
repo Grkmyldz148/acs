@@ -1,0 +1,71 @@
+/* bauhaus.acs — Geometric, primary, no decoration. Pure forms.
+ *
+ *   click    → click
+ *   pop      → ping
+ *   confirm  → ding
+ *   open     → modal-open
+ */
+
+:root {
+  master-volume: 0.6;
+  room: small-room;
+  master-eq-high: -1dB;
+}
+body {
+  sound-mood: bright;
+}
+
+/* click — the bauhaus tap is a single sharp ping. No thump, no shimmer. */
+button, a, [role=button], [role=tab] {
+  sound-on-click: click;
+}
+
+/* pop — primary action: pure modal ping */
+button.primary,
+button[type=submit],
+[data-variant=primary] {
+  sound-on-click: ping;
+}
+
+/* Semantic palette — primary forms only */
+[data-action=star]     { sound-on-click: ding; }
+[data-action=refresh]  { sound-on-click: tick; }
+[data-action=download] { sound-on-click: drawer-open; }
+[data-action=add]      { sound-on-click: pop; }
+[data-action=delete]   { sound-on-click: denied; }
+[data-action=share]    { sound-on-click: page-exit; }
+[data-action=save]     { sound-on-click: ding; }
+
+/* confirm family */
+[role=alert], [role=status], .toast {
+  sound-on-appear: ding;
+}
+[data-state=success]      { sound-on-appear: confirm; }
+[data-state=error]        { sound-on-appear: error; }
+[data-state=mention]      { sound-on-appear: ping; }
+
+/* open */
+dialog[open], [role=dialog][open],
+[data-state=open] {
+  sound-on-appear: modal-open;
+}
+summary {
+  sound-on-click: tick;
+}
+
+/* Form input */
+input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select {
+  sound-on-focus: click;
+}
+input:not([type]), input[type=text], input[type=search], input[type=email],
+input[type=password], input[type=url], input[type=tel],
+input[type=number], textarea {
+  sound-on-input: click-soft;
+}
+input[type=range] {
+  sound-on-input: tick;
+}
+
+@media (prefers-reduced-sound: reduce) {
+  :root { master-volume: 0; }
+}

@@ -1,0 +1,1450 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ACS Sound Picker</title>
+  <link rel="audiostyle" href="defaults.acs" />
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+      --bg: #09090b;
+      --fg: #fafafa;
+      --muted: #a1a1aa;
+      --muted-2: #71717a;
+      --line: #1f1f23;
+      --line-2: #27272a;
+      --row: #16161a;
+      --row-2: #1c1c20;
+      --accent: #fafafa;
+      --accent-fg: #18181b;
+      --good: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; background: var(--bg); color: var(--fg);
+      display: flex; flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top bar */
+    header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 10px 18px; border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    h1 { font-size: 13px; font-weight: 600; margin: 0; color: var(--fg); letter-spacing: -0.01em; }
+    .hint { font-size: 11px; color: var(--muted-2); }
+    .top-actions { margin-left: auto; display: flex; gap: 6px; }
+    .top-actions button { font-size: 11px; padding: 4px 10px; }
+    input[type=search] {
+      background: var(--row); color: var(--fg);
+      border: 1px solid var(--line); border-radius: 6px;
+      padding: 5px 10px; font-size: 12px; font-family: inherit;
+      min-width: 220px;
+    }
+    input[type=search]::placeholder { color: var(--muted-2); }
+
+    /* Intent bar — semantic, not DSP */
+    .intents {
+      display: flex; gap: 4px; flex-wrap: wrap; padding: 10px 18px;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .intent {
+      padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px;
+      background: transparent; color: var(--muted);
+      font-size: 11.5px; cursor: pointer; user-select: none;
+      transition: background 80ms, color 80ms, border-color 80ms;
+    }
+    .intent:hover { background: var(--row); color: var(--fg); }
+    .intent.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+    /* Grid */
+    main {
+      flex: 1; overflow-y: auto; padding: 14px 18px 200px;
+    }
+    .grid {
+      display: grid; gap: 8px;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    .card {
+      background: var(--row); border: 1px solid var(--line); border-radius: 8px;
+      padding: 9px 11px; cursor: pointer; user-select: none;
+      transition: background 60ms, border-color 60ms;
+      display: flex; flex-direction: column; gap: 6px;
+      outline: none;
+    }
+    .card:hover { background: var(--row-2); border-color: var(--line-2); }
+    .card:focus-visible, .card.selected {
+      border-color: var(--fg); background: var(--row-2);
+    }
+    .card.playing { border-color: var(--good); }
+    .card .name { font-size: 12.5px; font-weight: 600; }
+    .card .meta {
+      font-size: 10px; color: var(--muted-2);
+      display: flex; justify-content: space-between;
+      font-family: ui-monospace, SF Mono, Menlo, monospace;
+    }
+    .thumbnail {
+      display: flex; align-items: flex-end; gap: 1px;
+      height: 24px; opacity: 0.85;
+    }
+    .thumbnail .bar {
+      flex: 1; background: var(--muted-2); border-radius: 1px;
+      min-height: 1px;
+      transition: background 80ms;
+    }
+    .card:hover .thumbnail .bar,
+    .card.selected .thumbnail .bar { background: var(--fg); }
+    .empty {
+      grid-column: 1 / -1; text-align: center; color: var(--muted);
+      padding: 60px 20px; font-size: 13px;
+    }
+
+    /* Bottom inline tweak bar */
+    .tweak {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--row); border-top: 1px solid var(--line-2);
+      padding: 12px 18px;
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.3);
+      transition: transform 200ms ease;
+    }
+    .tweak.hidden { transform: translateY(100%); }
+    .tweak-row {
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    }
+    .tweak-row .name {
+      font-weight: 600; font-size: 14px; min-width: 140px;
+    }
+    .tweak-row .control {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--muted);
+    }
+    .tweak-row .control input[type=range] {
+      width: 100px; accent-color: var(--fg);
+    }
+    .tweak-row .control select, .tweak-row .control input[type=text] {
+      background: var(--row-2); color: var(--fg);
+      border: 1px solid var(--line); border-radius: 5px;
+      padding: 3px 8px; font-size: 11px; font-family: inherit;
+    }
+    .tweak-row .control input[type=text] { font-family: ui-monospace, SF Mono, Menlo, monospace; min-width: 200px; }
+    .tweak-snippet {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: #0a0a0b; border: 1px solid var(--line);
+      border-radius: 6px;
+      display: flex; gap: 10px; align-items: center;
+      font-family: ui-monospace, SF Mono, Menlo, monospace; font-size: 12px;
+    }
+    .tweak-snippet code {
+      flex: 1; color: var(--fg); white-space: nowrap; overflow-x: auto;
+    }
+    button {
+      background: transparent; color: var(--fg);
+      border: 1px solid var(--line); border-radius: 5px;
+      padding: 5px 10px; font-size: 12px; font-family: inherit; font-weight: 500;
+      cursor: pointer; transition: background 80ms;
+    }
+    button:hover { background: var(--row-2); }
+    button.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); font-weight: 600; }
+    button.primary:hover { background: #e4e4e7; }
+
+    /* Layer editor — slides up from bottom like the tweak bar but bigger.
+       When open, the tweak bar slides off and the editor takes over. */
+    .editor {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--row); border-top: 1px solid var(--line-2);
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.45);
+      transition: transform 220ms cubic-bezier(.2,.8,.2,1);
+      /* Bumped from 70vh → 80vh so a layer card with the FM expansion
+       * (osc + fm-mod selected adds 4 extra knobs) doesn't force the
+       * card-internal scroll to hide essentials. */
+      max-height: 80vh;
+      display: flex; flex-direction: column;
+    }
+    .editor.hidden { transform: translateY(100%); }
+    .editor-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 18px; border-bottom: 1px solid var(--line-2);
+      flex-shrink: 0;
+    }
+    .editor-tag {
+      font-size: 10px; letter-spacing: 0.15em;
+      color: var(--muted-2); text-transform: uppercase;
+      margin-right: 8px;
+    }
+    .editor-name { font-size: 14px; font-weight: 600; color: var(--fg); }
+    .editor-actions { display: flex; gap: 6px; }
+    /* Mini waveform — 32 vertical bars showing the editing preset's
+       envelope. Updates after each knob change (debounced). */
+    .editor-wave {
+      display: flex; align-items: flex-end; gap: 2px;
+      height: 24px; min-width: 110px;
+      margin: 0 14px;
+    }
+    .editor-wave .b {
+      flex: 1; background: var(--muted-2); border-radius: 1px;
+      min-height: 2px; transition: background 80ms;
+    }
+    .editor-wave .b.hot { background: var(--good); }
+    /* Drag-reorder cue: only the head is the drag handle so input
+       interactions inside the body stay clickable. */
+    .layer-card-head[draggable="true"] { cursor: grab; }
+    .layer-card.dragging { opacity: 0.4; }
+    .layer-card-head.dragging { cursor: grabbing; }
+    .layer-card.drop-target { outline: 2px dashed var(--good); outline-offset: -2px; }
+    .editor-layers {
+      display: flex; gap: 10px;
+      overflow-x: auto; overflow-y: hidden;
+      padding: 14px 18px;
+      flex: 1;
+      min-height: 0;
+    }
+    .editor-foot {
+      display: flex; gap: 8px; align-items: center;
+      padding: 8px 18px 12px;
+      border-top: 1px solid var(--line-2);
+      flex-shrink: 0;
+    }
+    .editor-foot input {
+      background: var(--row-2); color: var(--fg);
+      border: 1px solid var(--line); border-radius: 5px;
+      padding: 4px 10px; font-size: 12px; font-family: ui-monospace, monospace;
+      min-width: 140px;
+    }
+    .editor-foot code {
+      flex: 1; color: var(--muted);
+      background: #0a0a0b; border: 1px solid var(--line); border-radius: 5px;
+      padding: 6px 10px;
+      font-size: 11px; max-height: 60px; overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    /* Layer card — single-column knob layout. Each card is wide enough
+       to fit a slider + value readout side-by-side without squishing.
+       The body scrolls vertically when knob count exceeds card height —
+       Drive / Pan / Start (and FM controls when osc) live below the
+       fold for tones/modal layers. */
+    .layer-card {
+      flex: 0 0 280px;
+      background: var(--row-2); border: 1px solid var(--line);
+      border-radius: 8px;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      max-height: 100%;
+      min-height: 0;
+    }
+    .layer-card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      gap: 6px;
+    }
+    .layer-card-head .layer-num {
+      font-family: ui-monospace, monospace;
+      font-size: 9px; color: var(--muted-2);
+      letter-spacing: 0.12em;
+    }
+    .layer-card-head input {
+      background: transparent; color: var(--fg);
+      border: 0; outline: 0;
+      font-family: ui-monospace, monospace; font-size: 12px;
+      flex: 1; min-width: 0;
+    }
+    .layer-card-rm {
+      background: transparent; border: 0; color: var(--muted-2);
+      font-size: 16px; line-height: 1; padding: 0 4px; cursor: pointer;
+    }
+    .layer-card-rm:hover { color: #ef4444; }
+    .layer-card-body {
+      padding: 12px;
+      display: flex; flex-direction: column; gap: 10px;
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* Knob — label on top, input + value on the row below */
+    .knob { display: flex; flex-direction: column; gap: 4px; }
+    .knob > label {
+      font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted-2);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .knob-row { display: flex; align-items: center; gap: 8px; }
+    .knob input[type=range] {
+      flex: 1; accent-color: var(--fg);
+      height: 4px; min-width: 0;
+    }
+    .knob input[type=text],
+    .knob input[type=number],
+    .knob select {
+      flex: 1; min-width: 0;
+      background: var(--row); color: var(--fg);
+      border: 1px solid var(--line); border-radius: 4px;
+      padding: 5px 8px; font-size: 11px; font-family: ui-monospace, monospace;
+    }
+    .knob-val {
+      font-family: ui-monospace, monospace; font-size: 10px;
+      color: var(--muted); min-width: 48px; text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Empty-state hint when only one layer exists. Reminds the user
+       what stacking layers means without nagging when they already get it. */
+    .editor-hint {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 18px;
+      font-size: 11px; color: var(--muted-2);
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--line-2);
+      flex-shrink: 0;
+    }
+    .editor-hint b { color: var(--muted); font-weight: 600; }
+    .editor-hint code {
+      background: var(--row-2); padding: 1px 5px; border-radius: 3px;
+      font-family: ui-monospace, monospace; font-size: 10px; color: var(--fg);
+    }
+    .toast {
+      position: fixed; bottom: 220px; left: 50%; transform: translateX(-50%);
+      background: var(--fg); color: var(--bg);
+      padding: 8px 16px; border-radius: 999px; font-size: 12px;
+      opacity: 0; pointer-events: none; transition: opacity 150ms;
+      font-weight: 600;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ACS Sound Picker</h1>
+    <span class="hint">↑↓→← navigate · ⏎ select · ⌘C copy · M cycle mood · R cycle room · / search</span>
+    <div class="top-actions">
+      <input type="search" id="search" placeholder="Search…" />
+      <button id="play-btn" title="Play (Space)">▶</button>
+    </div>
+  </header>
+
+  <div class="intents" id="intents"></div>
+
+  <main>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" style="display: none;">No presets match.</div>
+  </main>
+
+  <div class="tweak hidden" id="tweak">
+    <div class="tweak-row">
+      <span class="name" id="sel-name">—</span>
+      <span class="control">
+        <label>volume</label>
+        <input type="range" id="vol" min="0" max="2" step="0.05" value="0.5" />
+        <span id="vol-v" style="font-family: ui-monospace, monospace; min-width: 28px;">0.50</span>
+      </span>
+      <span class="control">
+        <label>pitch</label>
+        <input type="range" id="pitch" min="-12" max="12" step="1" value="0" />
+        <span id="pitch-v" style="font-family: ui-monospace, monospace; min-width: 32px;">0 st</span>
+      </span>
+      <span class="control">
+        <label>mood</label>
+        <select id="mood">
+          <option value="">none</option>
+          <option>warm</option><option>bright</option><option>glassy</option>
+          <option>metallic</option><option>organic</option><option>punchy</option>
+          <option>retro</option><option>airy</option><option>lofi</option>
+        </select>
+      </span>
+      <span class="control" id="mood-mix-control" style="display: none;">
+        <label>mix</label>
+        <input type="range" id="mood-mix" min="0" max="1" step="0.05" value="1" />
+        <span id="mood-mix-v" style="font-family: ui-monospace, monospace; min-width: 28px;">1.00</span>
+      </span>
+      <span class="control">
+        <label>room</label>
+        <select id="room">
+          <option value="">none</option>
+          <option>small-room</option><option>chamber</option><option>medium-room</option>
+          <option>large-hall</option><option>plate</option>
+        </select>
+      </span>
+      <span class="control">
+        <label>quality</label>
+        <select id="quality">
+          <option value="medium">medium</option>
+          <option value="low">low</option>
+          <option value="high">high</option>
+        </select>
+      </span>
+    </div>
+    <div class="tweak-snippet">
+      <input type="text" id="selector" value=".button" title="CSS selector for snippet" />
+      <code id="snippet">{ sound-on-click: name; }</code>
+      <button class="primary" id="copy">📋 Copy</button>
+      <button id="edit-toggle" title="Open layer editor">✎ Edit layers</button>
+    </div>
+  </div>
+
+  <!-- Layer editor — opens on demand for DSL @sound presets. Each layer
+       becomes a card; knob changes re-audition the live edit. The output
+       at the bottom is a paste-ready @sound block. -->
+  <div class="editor hidden" id="editor">
+    <div class="editor-head">
+      <div style="display: flex; align-items: center;">
+        <div>
+          <span class="editor-tag">EDITING</span>
+          <span class="editor-name mono" id="editor-name">—</span>
+        </div>
+        <div class="editor-wave" id="editor-wave" aria-label="live waveform"></div>
+      </div>
+      <div class="editor-actions">
+        <button id="editor-audition" class="primary">▶ Audition</button>
+        <button id="editor-add-layer">+ Layer</button>
+        <button id="editor-reset" title="Revert to the original preset">↺ Reset</button>
+        <button id="editor-close" title="Close editor">✕</button>
+      </div>
+    </div>
+    <div class="editor-hint">
+      <b>Layers stack additively</b>
+      — every layer's voice graph plays simultaneously on trigger.
+      <code>body { modal: 200hz }</code> + <code>crack { noise: white; filter: highpass }</code> = a snare.
+    </div>
+    <div class="editor-layers" id="editor-layers"></div>
+    <div class="editor-foot">
+      <input type="text" id="editor-name-input" placeholder="my-custom-bell" />
+      <code id="editor-output" class="mono"></code>
+      <button class="primary" id="editor-copy">📋 Copy as @sound</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module" src="runtime.js"></script>
+  <script>
+    // -----------------------------------------------------------------
+    // Intent → preset name mapping (semantic — what the user wants to do).
+    // Order matters; "All" is special.
+    // -----------------------------------------------------------------
+    const INTENTS = [
+      ["All",            null],
+      ["Click button",   ["tap-tactile", "tap", "click", "click-soft", "tick", "pop"]],
+      ["Confirm save",   ["confirm", "complete", "success", "ding"]],
+      ["Show modal",     ["modal-open", "drawer-open", "dropdown-open", "page-enter"]],
+      ["Hide modal",     ["modal-close", "drawer-close", "dropdown-close", "page-exit"]],
+      ["Notify user",    ["notify", "ding", "mention", "badge", "bell-soft", "chime-soft"]],
+      ["Toggle setting", ["toggle-on", "toggle-off"]],
+      ["Type / input",   ["keystroke", "tick", "tap-tactile"]],
+      ["Delete / cancel",["denied", "error", "thunk"]],
+      ["Drag / drop",    ["whoosh", "swoosh", "pop", "kick"]],
+      ["Bell / chime",   ["bell-soft", "bell-bright", "chime-soft", "glass", "ting", "gong"]],
+      ["Percussion",     ["kick", "snare", "hat", "clap", "thunk", "woodblock", "carriage-return"]],
+      ["String",         ["pluck-soft", "pluck-bright", "string"]],
+      ["Texture / FX",   ["whoosh", "swoosh", "sparkle", "ping"]],
+    ];
+
+    let activeIntent = "All";
+    let searchTerm = "";
+    let selectedIdx = -1;
+    let cards = []; // currently rendered card elements (in order)
+    let hoverTimer = null;
+    let lastPreviewName = null;
+    let thumbnailCache = {};
+
+    // -----------------------------------------------------------------
+    // Thumbnail generation — render preset offline, derive 32-bar envelope.
+    // Cached in localStorage so subsequent loads are instant.
+    // -----------------------------------------------------------------
+    const THUMBNAIL_CACHE_KEY = "acs.picker.thumbnails.v2";
+    const NUM_BARS = 24;
+
+    function loadThumbnailCache() {
+      try {
+        const raw = localStorage.getItem(THUMBNAIL_CACHE_KEY);
+        if (raw) thumbnailCache = JSON.parse(raw);
+      } catch (e) {}
+    }
+    function saveThumbnailCache() {
+      try {
+        localStorage.setItem(THUMBNAIL_CACHE_KEY, JSON.stringify(thumbnailCache));
+      } catch (e) {}
+    }
+
+    async function buildThumbnail(name) {
+      if (thumbnailCache[name]) return thumbnailCache[name];
+      const runner = window.ACS.customPresets[name] || window.ACS.presets[name];
+      if (!runner) return null;
+      const sr = 24000; // half rate is plenty for envelope shape
+      const dur = 1.2;
+      try {
+        const ctx = new OfflineAudioContext(1, sr * dur, sr);
+        const factor = window.ACS.calibrationFactors()[name] ?? 1;
+        runner(ctx, { dest: ctx.destination, volume: 0.5 * factor, pitchMul: 1 });
+        const buf = await ctx.startRendering();
+        const ch = buf.getChannelData(0);
+        // Compute peak per bin.
+        const samplesPerBar = Math.floor(ch.length / NUM_BARS);
+        const bars = new Array(NUM_BARS);
+        let globalPeak = 0;
+        for (let b = 0; b < NUM_BARS; b++) {
+          let p = 0;
+          const start = b * samplesPerBar;
+          const end = start + samplesPerBar;
+          for (let i = start; i < end; i++) {
+            const a = Math.abs(ch[i]);
+            if (a > p) p = a;
+          }
+          bars[b] = p;
+          if (p > globalPeak) globalPeak = p;
+        }
+        // Normalize & trim trailing-silence bars to next nonzero.
+        if (globalPeak > 0) {
+          for (let i = 0; i < bars.length; i++) bars[i] /= globalPeak;
+        }
+        thumbnailCache[name] = bars;
+        return bars;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function renderThumbnailDOM(bars) {
+      const wrap = document.createElement("div");
+      wrap.className = "thumbnail";
+      const arr = bars || new Array(NUM_BARS).fill(0.05);
+      for (const v of arr) {
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.height = `${Math.max(2, v * 100)}%`;
+        wrap.appendChild(bar);
+      }
+      return wrap;
+    }
+
+    // -----------------------------------------------------------------
+    // Rendering
+    // -----------------------------------------------------------------
+    function ready(cb) {
+      if (window.ACS) return cb();
+      const id = setInterval(() => {
+        if (window.ACS) { clearInterval(id); cb(); }
+      }, 50);
+    }
+
+    function buildIntents() {
+      const bar = document.getElementById("intents");
+      bar.innerHTML = "";
+      for (const [label, _names] of INTENTS) {
+        const btn = document.createElement("div");
+        btn.className = "intent" + (label === activeIntent ? " active" : "");
+        btn.textContent = label;
+        btn.addEventListener("click", () => {
+          activeIntent = label;
+          buildIntents();
+          buildGrid();
+        });
+        bar.appendChild(btn);
+      }
+    }
+
+    function allPresets() {
+      const a = window.ACS;
+      if (!a) return [];
+      return [
+        ...Object.keys(a.presets || {}),
+        ...Object.keys(a.customPresets || {}),
+      ];
+    }
+
+    function presetsForIntent(label) {
+      const entry = INTENTS.find(([l]) => l === label);
+      if (!entry || !entry[1]) return allPresets().sort();
+      // Filter to only those present in registry (so missing ones don't show).
+      const reg = new Set(allPresets());
+      return entry[1].filter((n) => reg.has(n));
+    }
+
+    function durationGuess(name) {
+      // Quick length estimate from thumbnail (last nonzero bar / NUM_BARS * 1.2s).
+      const bars = thumbnailCache[name];
+      if (!bars) return null;
+      let last = 0;
+      for (let i = 0; i < bars.length; i++) if (bars[i] > 0.02) last = i;
+      return ((last + 1) / NUM_BARS) * 1.2;
+    }
+
+    function buildGrid() {
+      const grid = document.getElementById("grid");
+      const empty = document.getElementById("empty");
+      grid.innerHTML = "";
+      const term = searchTerm.toLowerCase();
+      let items = presetsForIntent(activeIntent);
+      if (term) {
+        items = items.filter((n) =>
+          n.toLowerCase().includes(term) ||
+          activeIntent.toLowerCase().includes(term)
+        );
+      }
+      empty.style.display = items.length ? "none" : "block";
+      cards = [];
+      items.forEach((name, i) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.tabIndex = 0;
+        card.dataset.name = name;
+        const nameEl = document.createElement("div");
+        nameEl.className = "name";
+        nameEl.textContent = name;
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        const dur = durationGuess(name);
+        meta.innerHTML = `<span>${dur != null ? dur.toFixed(2) + "s" : "—"}</span>`;
+        const factor = window.ACS.calibrationFactors()[name];
+        if (factor != null) meta.innerHTML += `<span>×${factor.toFixed(2)}</span>`;
+        const thumb = renderThumbnailDOM(thumbnailCache[name]);
+        card.appendChild(nameEl);
+        card.appendChild(thumb);
+        card.appendChild(meta);
+        card.addEventListener("mouseenter", () => schedulePreview(name, card));
+        card.addEventListener("mouseleave", () => clearTimeout(hoverTimer));
+        card.addEventListener("click", () => selectCard(i));
+        card.addEventListener("dblclick", () => copySnippet());
+        card.addEventListener("focus", () => selectCard(i, false));
+        cards.push(card);
+        grid.appendChild(card);
+      });
+      if (selectedIdx >= cards.length) selectedIdx = -1;
+    }
+
+    function schedulePreview(name, cardEl) {
+      clearTimeout(hoverTimer);
+      hoverTimer = setTimeout(() => {
+        if (lastPreviewName !== name) {
+          lastPreviewName = name;
+          play(name, cardEl);
+        }
+      }, 180);
+    }
+
+    function decls() {
+      const d = {};
+      const v = parseFloat(document.getElementById("vol").value);
+      if (isFinite(v)) d.volume = String(v);
+      const p = parseInt(document.getElementById("pitch").value, 10);
+      if (p) d.pitch = `${p}st`;
+      const m = document.getElementById("mood").value;
+      if (m) {
+        d["sound-mood"] = m;
+        const mix = parseFloat(document.getElementById("mood-mix").value);
+        if (isFinite(mix) && mix < 1) d["sound-mood-mix"] = String(mix);
+      }
+      const r = document.getElementById("room").value;
+      if (r) d.room = r;
+      return d;
+    }
+
+    function play(name, cardEl) {
+      cards.forEach((c) => c.classList.remove("playing"));
+      if (cardEl) {
+        cardEl.classList.add("playing");
+        setTimeout(() => cardEl.classList.remove("playing"), 350);
+      }
+      window.ACS.trigger({ ...decls(), sound: name }, "click", cardEl);
+    }
+
+    function selectCard(idx, focusEl = true) {
+      selectedIdx = Math.max(-1, Math.min(cards.length - 1, idx));
+      cards.forEach((c, i) => c.classList.toggle("selected", i === selectedIdx));
+      const sel = cards[selectedIdx];
+      if (sel) {
+        if (focusEl) sel.focus({ preventScroll: false });
+        sel.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        // If the editor is open and the user clicked a different card,
+        // re-seed the editor with that preset's layers. Otherwise show
+        // the simpler tweak bar.
+        const editorOpen = !document.getElementById("editor").classList.contains("hidden");
+        if (editorOpen && sel.dataset.name !== editingName) {
+          openEditor(sel.dataset.name);
+        } else if (!editorOpen) {
+          showTweakBar(sel.dataset.name);
+        }
+      } else {
+        hideTweakBar();
+      }
+    }
+
+    function showTweakBar(name) {
+      const tw = document.getElementById("tweak");
+      tw.classList.remove("hidden");
+      document.getElementById("sel-name").textContent = name;
+      updateSnippet();
+      // Auto-play the selection so user hears what they picked.
+      const card = cards[selectedIdx];
+      if (lastPreviewName !== name) {
+        lastPreviewName = name;
+        play(name, card);
+      }
+    }
+
+    function hideTweakBar() {
+      document.getElementById("tweak").classList.add("hidden");
+    }
+
+    function updateSnippet() {
+      const name = cards[selectedIdx]?.dataset.name;
+      if (!name) return;
+      const sel = document.getElementById("selector").value.trim() || ".button";
+      const props = [`sound-on-click: ${name};`];
+      const m = document.getElementById("mood").value;
+      const mix = parseFloat(document.getElementById("mood-mix").value);
+      const r = document.getElementById("room").value;
+      const v = parseFloat(document.getElementById("vol").value);
+      const p = parseInt(document.getElementById("pitch").value, 10);
+      const q = document.getElementById("quality").value;
+      if (v !== 0.5) props.push(`volume: ${v.toFixed(2)};`);
+      if (p) props.push(`pitch: ${p}st;`);
+      if (m) {
+        props.push(`sound-mood: ${m};`);
+        if (mix < 1) props.push(`sound-mood-mix: ${mix.toFixed(2)};`);
+      }
+      if (r) props.push(`room: ${r};`);
+      let snippet = `${sel} { ${props.join(" ")} }`;
+      // Quality is :root-only, so it shows up as a separate rule when set
+      // away from the default. Reminder to author: this is a global knob.
+      if (q && q !== "medium") {
+        snippet = `:root { quality: ${q}; }\n` + snippet;
+      }
+      document.getElementById("snippet").textContent = snippet;
+    }
+
+    function copySnippet() {
+      const text = document.getElementById("snippet").textContent;
+      navigator.clipboard.writeText(text).then(() => toast("Copied"));
+    }
+
+    function toast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 1100);
+    }
+
+    // -----------------------------------------------------------------
+    // Keyboard nav
+    // -----------------------------------------------------------------
+    document.addEventListener("keydown", (e) => {
+      const inField = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName);
+      if (e.key === "/" && !inField) {
+        e.preventDefault();
+        document.getElementById("search").focus();
+        return;
+      }
+      if (e.key === "Escape") {
+        if (inField) document.activeElement.blur();
+        else hideTweakBar();
+        return;
+      }
+      if (inField && document.activeElement.tagName !== "SELECT") return;
+
+      if (e.key === " ") {
+        e.preventDefault();
+        const sel = cards[selectedIdx];
+        if (sel) play(sel.dataset.name, sel);
+        return;
+      }
+      if (e.key === "Enter") {
+        const sel = cards[selectedIdx];
+        if (sel) play(sel.dataset.name, sel);
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "c") {
+        if (selectedIdx >= 0) { e.preventDefault(); copySnippet(); }
+        return;
+      }
+      const cols = Math.max(1, Math.floor(
+        document.getElementById("grid").offsetWidth / 158
+      ));
+      let next = selectedIdx;
+      if (e.key === "ArrowRight") next++;
+      else if (e.key === "ArrowLeft") next--;
+      else if (e.key === "ArrowDown") next += cols;
+      else if (e.key === "ArrowUp") next -= cols;
+      else if (e.key === "m" || e.key === "M") return cycleSelect("mood");
+      else if (e.key === "r" || e.key === "R") return cycleSelect("room");
+      else return;
+      e.preventDefault();
+      if (next < 0) next = 0;
+      if (next >= cards.length) next = cards.length - 1;
+      if (selectedIdx === -1 && cards.length) next = 0;
+      selectCard(next);
+    });
+
+    function cycleSelect(id) {
+      const el = document.getElementById(id);
+      const idx = el.selectedIndex;
+      el.selectedIndex = (idx + 1) % el.options.length;
+      el.dispatchEvent(new Event("change"));
+    }
+
+    // -----------------------------------------------------------------
+    // Wire up tweak bar
+    // -----------------------------------------------------------------
+    document.getElementById("vol").addEventListener("input", (e) => {
+      document.getElementById("vol-v").textContent = parseFloat(e.target.value).toFixed(2);
+      updateSnippet();
+    });
+    document.getElementById("pitch").addEventListener("input", (e) => {
+      document.getElementById("pitch-v").textContent = `${e.target.value} st`;
+      updateSnippet();
+    });
+    document.getElementById("mood").addEventListener("change", () => {
+      // Show the mix slider only when a mood is selected — without a mood
+      // the slider has no effect.
+      document.getElementById("mood-mix-control").style.display =
+        document.getElementById("mood").value ? "" : "none";
+      updateSnippet();
+      const sel = cards[selectedIdx];
+      if (sel) play(sel.dataset.name, sel);
+    });
+    document.getElementById("mood-mix").addEventListener("input", (e) => {
+      document.getElementById("mood-mix-v").textContent = parseFloat(e.target.value).toFixed(2);
+      updateSnippet();
+      const sel = cards[selectedIdx];
+      if (sel) play(sel.dataset.name, sel);
+    });
+    document.getElementById("room").addEventListener("change", () => {
+      updateSnippet();
+      const sel = cards[selectedIdx];
+      if (sel) play(sel.dataset.name, sel);
+    });
+    document.getElementById("quality").addEventListener("change", (e) => {
+      // Apply live so the user can A/B at the picker. Setting quality on
+      // :root via setMasterConfig is the same path the runtime takes when
+      // a stylesheet declares it.
+      if (window.ACS && window.ACS.setMasterConfig) {
+        window.ACS.setMasterConfig({ quality: e.target.value });
+      }
+      updateSnippet();
+      const sel = cards[selectedIdx];
+      if (sel) play(sel.dataset.name, sel);
+    });
+    document.getElementById("selector").addEventListener("input", updateSnippet);
+    document.getElementById("copy").addEventListener("click", copySnippet);
+    document.getElementById("play-btn").addEventListener("click", () => {
+      const sel = cards[selectedIdx];
+      if (sel) play(sel.dataset.name, sel);
+    });
+    document.getElementById("search").addEventListener("input", (e) => {
+      searchTerm = e.target.value;
+      buildGrid();
+    });
+
+    // -----------------------------------------------------------------
+    // -----------------------------------------------------------------
+    // Layer editor — knob-based DSL for the @sound block of the
+    // currently-selected preset. Reads source text from the inlined
+    // <script id="acs-defaults"> block (built-in presets) or from the
+    // user's last edit (custom). All edits stay in editingLayers; the
+    // text + audition + output are derived from that array.
+    // -----------------------------------------------------------------
+
+    let editingName = null;
+    let editingLayers = []; // [{ name, source, freq, ratios, decays, gains, gain, attack, decay, filter, cutoff, q, drive, pan, start, brightness, ... }]
+    let editingOriginal = null; // snapshot for Reset
+    let auditionTimer = null;
+
+    // Pull a preset's @sound block straight out of the inlined defaults
+    // text. Returns null for procedural presets (no DSL source) or names
+    // we just don't have — caller falls back to a single placeholder layer.
+    function getDSLBlock(name) {
+      const txt = document.getElementById("acs-defaults")?.textContent || "";
+      const re = new RegExp(`@sound\\s+${name.replace(/[-/\\^$*+?.()|[\\]{}]/g, "\\$&")}\\s*\\{`, "g");
+      const m = re.exec(txt);
+      if (!m) return null;
+      // Find matching close brace
+      let depth = 1, i = m.index + m[0].length;
+      while (i < txt.length && depth > 0) {
+        if (txt[i] === "{") depth++;
+        else if (txt[i] === "}") depth--;
+        if (depth > 0) i++;
+      }
+      return txt.slice(m.index + m[0].length, i);
+    }
+
+    // Parse the body of @sound { ... } into an array of layer objects.
+    // Mirrors poc/runtime/parse.js#parseLayer but inline (no module access).
+    function parseEditingLayers(body) {
+      const layers = [];
+      const re = /([a-zA-Z_][\w-]*)\s*\{/g;
+      let m;
+      while ((m = re.exec(body)) !== null) {
+        let depth = 1, i = m.index + m[0].length;
+        while (i < body.length && depth > 0) {
+          if (body[i] === "{") depth++;
+          else if (body[i] === "}") depth--;
+          if (depth > 0) i++;
+        }
+        if (depth !== 0) break;
+        const decls = body.slice(m.index + m[0].length, i);
+        const layer = { __name: m[1] };
+        for (const part of decls.split(";")) {
+          const ix = part.indexOf(":");
+          if (ix < 0) continue;
+          const k = part.slice(0, ix).trim();
+          const v = part.slice(ix + 1).trim();
+          if (k && v) layer[k] = v;
+        }
+        layers.push(layer);
+        re.lastIndex = i + 1;
+      }
+      return layers;
+    }
+
+    // Pick the source primitive a layer is using.
+    function layerSource(L) {
+      for (const k of ["modal", "tones", "pluck", "osc", "noise"]) {
+        if (L[k] !== undefined) return k;
+      }
+      return "noise";
+    }
+
+    function defaultLayer() {
+      return { __name: "body", tones: "440hz", ratios: "1", decays: "0.3s", gains: "1", gain: "0.4" };
+    }
+
+    // Re-emit @sound text from editingLayers (paste-ready output).
+    function buildSoundText(name) {
+      const body = editingLayers.map((L) => {
+        const order = [
+          // Source primitive first.
+          "modal", "tones", "pluck", "osc", "noise",
+          // Common params.
+          "freq", "pitch-from", "detune",
+          "ratios", "decays", "gains", "brightness",
+          "fm-mod", "fm-ratio", "fm-depth",
+          "filter", "cutoff", "q",
+          "attack", "decay",
+          "gain", "drive", "saturation", "pan", "shape",
+          "start", "realtime",
+        ];
+        const lines = [];
+        for (const k of order) {
+          if (L[k] !== undefined && L[k] !== "") lines.push(`    ${k}: ${L[k]};`);
+        }
+        return `  ${L.__name || "body"} {\n${lines.join("\n")}\n  }`;
+      }).join("\n");
+      return `@sound ${name} {\n${body}\n}`;
+    }
+
+    // Register the editing preset in the runtime so we can audition it.
+    // Direct write to customPresets (no bindAll) — earlier we used
+    // bindAll which WIPES every customPreset before re-registering, so
+    // any other @sound the user had loaded got clobbered on every
+    // audition. `volume: "1 !raw"` bypasses calibration since the
+    // editing preset's loudness changes with each knob tweak.
+    function auditionEditing() {
+      if (!editingLayers.length) return;
+      try {
+        const layers = editingLayers.map((L) => {
+          const { __name, ...rest } = L;
+          // Strip empty values so the layer object matches what
+          // parseLayer would produce.
+          for (const k of Object.keys(rest)) {
+            if (rest[k] === "" || rest[k] == null) delete rest[k];
+          }
+          return rest;
+        });
+        const runner = window.ACS.makeSoundFromLayers(layers);
+        window.ACS.customPresets["__edit__"] = runner;
+        window.ACS.trigger({ sound: "__edit__", volume: "1 !raw" }, "click");
+      } catch (e) {
+        console.warn("[picker] audition failed:", e);
+      }
+    }
+
+    function scheduleAudition() {
+      clearTimeout(auditionTimer);
+      auditionTimer = setTimeout(() => {
+        auditionEditing();
+        renderEditorWave();
+      }, 80);
+    }
+
+    // Render the editing preset offline and draw a 32-bar envelope so
+    // the user has live visual feedback while turning knobs. Reuses the
+    // same OfflineAudioContext approach as the thumbnail cache.
+    let waveRenderInflight = null;
+    async function renderEditorWave() {
+      if (!editingLayers.length) return;
+      // Throttle: drop overlapping renders.
+      if (waveRenderInflight) return;
+      waveRenderInflight = (async () => {
+        try {
+          const sr = 24000;
+          const dur = 1.2;
+          const ctx = new OfflineAudioContext(1, sr * dur, sr);
+          const layers = editingLayers.map((L) => {
+            const { __name, ...r } = L;
+            for (const k of Object.keys(r)) if (r[k] === "" || r[k] == null) delete r[k];
+            return r;
+          });
+          const runner = window.ACS.makeSoundFromLayers(layers);
+          runner(ctx, { dest: ctx.destination, volume: 0.5, pitchMul: 1 });
+          const buf = await ctx.startRendering();
+          const ch = buf.getChannelData(0);
+          const NUM = 32;
+          const samplesPerBar = Math.floor(ch.length / NUM);
+          let peak = 0;
+          const bars = new Array(NUM);
+          for (let i = 0; i < NUM; i++) {
+            let p = 0;
+            const start = i * samplesPerBar;
+            const end = start + samplesPerBar;
+            for (let j = start; j < end; j++) {
+              const a = Math.abs(ch[j]);
+              if (a > p) p = a;
+            }
+            bars[i] = p;
+            if (p > peak) peak = p;
+          }
+          const host = document.getElementById("editor-wave");
+          host.innerHTML = "";
+          const norm = peak > 0 ? 1 / peak : 1;
+          for (const v of bars) {
+            const b = document.createElement("div");
+            b.className = "b" + (v * norm > 0.6 ? " hot" : "");
+            b.style.height = `${Math.max(2, v * norm * 100)}%`;
+            host.appendChild(b);
+          }
+        } catch (e) {
+          // Render can fail on bogus knob combos (e.g. freq=0). Silent.
+        } finally {
+          waveRenderInflight = null;
+        }
+      })();
+    }
+
+    function updateEditorOutput() {
+      const name = document.getElementById("editor-name-input").value.trim() || "my-preset";
+      document.getElementById("editor-output").textContent = buildSoundText(name);
+    }
+
+    // Render a single layer card. Returns the DOM element.
+    function renderLayerCard(layer, index, total) {
+      const card = document.createElement("div");
+      card.className = "layer-card";
+      card.dataset.layerIndex = String(index);
+
+      // Head doubles as the drag handle. Body stays interactive
+      // (sliders / dropdowns / text inputs) — making the whole card
+      // draggable would have hijacked every slider interaction.
+      const head = document.createElement("div");
+      head.className = "layer-card-head";
+      head.draggable = true;
+      head.title = "Drag to reorder";
+      head.addEventListener("dragstart", (e) => {
+        card.classList.add("dragging");
+        head.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", String(index));
+      });
+      head.addEventListener("dragend", () => {
+        card.classList.remove("dragging");
+        head.classList.remove("dragging");
+        document.querySelectorAll(".layer-card.drop-target")
+          .forEach((c) => c.classList.remove("drop-target"));
+      });
+      // Drop targets are the cards themselves so you can drop anywhere
+      // along a card's vertical span, not just on its head.
+      card.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        card.classList.add("drop-target");
+      });
+      card.addEventListener("dragleave", () => card.classList.remove("drop-target"));
+      card.addEventListener("drop", (e) => {
+        e.preventDefault();
+        card.classList.remove("drop-target");
+        const from = parseInt(e.dataTransfer.getData("text/plain"), 10);
+        const to = index;
+        if (isNaN(from) || from === to) return;
+        const [moved] = editingLayers.splice(from, 1);
+        editingLayers.splice(to, 0, moved);
+        renderEditor();
+        scheduleAudition();
+      });
+      const num = document.createElement("span");
+      num.className = "layer-num";
+      num.textContent = `L${index + 1}/${total}`;
+      head.appendChild(num);
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.value = layer.__name || "body";
+      nameInput.addEventListener("input", (e) => {
+        layer.__name = e.target.value.trim() || "body";
+        updateEditorOutput();
+      });
+      head.appendChild(nameInput);
+      const rm = document.createElement("button");
+      rm.className = "layer-card-rm";
+      rm.textContent = "✕";
+      rm.title = "Remove layer";
+      rm.addEventListener("click", () => {
+        if (editingLayers.length <= 1) {
+          toast("a sound needs at least one layer");
+          return;
+        }
+        editingLayers.splice(index, 1);
+        renderEditor();
+        scheduleAudition();
+      });
+      head.appendChild(rm);
+      card.appendChild(head);
+
+      const body = document.createElement("div");
+      body.className = "layer-card-body";
+
+      // Source dropdown
+      const srcKnob = mkKnob("Source", "select", layerSource(layer), (val) => {
+        // Clear other source keys when switching.
+        ["modal","tones","pluck","osc","noise"].forEach((k) => delete layer[k]);
+        if (val === "osc") layer[val] = "sine";
+        else if (val === "noise") layer[val] = "white";
+        else layer[val] = "440hz";
+        renderEditor();
+        scheduleAudition();
+      }, ["modal","tones","pluck","osc","noise"]);
+      srcKnob.classList.add("full");
+      body.appendChild(srcKnob);
+
+      // Source value (freq for modal/tones/pluck/osc; noise color for noise)
+      const src = layerSource(layer);
+      if (src === "noise") {
+        body.appendChild(mkKnob("Color", "select", layer.noise || "white",
+          (v) => { layer.noise = v; updateEditorOutput(); scheduleAudition(); },
+          ["white", "pink", "brown"]));
+      } else if (src === "osc") {
+        body.appendChild(mkKnob("Wave", "select", layer.osc || "sine",
+          (v) => { layer.osc = v; updateEditorOutput(); scheduleAudition(); },
+          ["sine", "square", "sawtooth", "triangle"]));
+        const f = parseFreqHz(layer.freq) || 440;
+        body.appendChild(mkKnob("Freq", "range", f, (v) => {
+          layer.freq = v + "hz";
+          updateEditorOutput(); scheduleAudition();
+        }, null, { min: 40, max: 8000, step: 1, fmt: (n) => n + "hz", logScale: true }));
+        // pitch-from: glide-down sweep start frequency. 0 = no sweep.
+        const sweepFrom = parseFreqHz(layer["pitch-from"]) || 0;
+        body.appendChild(mkKnob("Sweep from", "range", sweepFrom, (v) => {
+          if (v <= 0) delete layer["pitch-from"];
+          else layer["pitch-from"] = v + "hz";
+          updateEditorOutput(); scheduleAudition();
+        }, null, { min: 0, max: 4000, step: 10, fmt: (n) => n > 0 ? n + "hz" : "off" }));
+        // detune (cents)
+        const det = parseFloat(layer.detune) || 0;
+        body.appendChild(mkKnob("Detune", "range", det, (v) => {
+          if (v === 0) delete layer.detune;
+          else layer.detune = String(v);
+          updateEditorOutput(); scheduleAudition();
+        }, null, { min: -100, max: 100, step: 1, fmt: (n) => n + " ¢" }));
+        // FM modulator wave (off = no FM)
+        const fmWave = layer["fm-mod"] || "";
+        body.appendChild(mkKnob("FM wave", "select", fmWave, (v) => {
+          if (v) layer["fm-mod"] = v;
+          else { delete layer["fm-mod"]; delete layer["fm-ratio"]; delete layer["fm-depth"]; }
+          renderEditor(); scheduleAudition();
+        }, ["", "sine", "square", "sawtooth", "triangle"]));
+        if (fmWave) {
+          const r = parseFloat(layer["fm-ratio"]) || 2;
+          body.appendChild(mkKnob("FM ratio", "range", r, (v) => {
+            layer["fm-ratio"] = String(v); updateEditorOutput(); scheduleAudition();
+          }, null, { min: 0.25, max: 8, step: 0.05, fmt: (n) => n.toFixed(2) }));
+          const d = parseFloat(layer["fm-depth"]) || 100;
+          body.appendChild(mkKnob("FM depth", "range", d, (v) => {
+            layer["fm-depth"] = String(v); updateEditorOutput(); scheduleAudition();
+          }, null, { min: 0, max: 800, step: 5, fmt: (n) => n.toFixed(0) }));
+        }
+      } else {
+        // modal / tones / pluck — share the freq + start key
+        const f = parseFreqHz(layer[src]) || 440;
+        body.appendChild(mkKnob("Freq", "range", f, (v) => {
+          layer[src] = v + "hz";
+          updateEditorOutput(); scheduleAudition();
+        }, null, { min: 40, max: 8000, step: 1, fmt: (n) => n + "hz", logScale: true }));
+        // Karplus-Strong brightness only makes sense for pluck.
+        if (src === "pluck") {
+          const b = parseFloat(layer.brightness) || 0.6;
+          body.appendChild(mkKnob("Brightness", "range", b, (v) => {
+            layer.brightness = String(v); updateEditorOutput(); scheduleAudition();
+          }, null, { min: 0, max: 1, step: 0.02, fmt: (n) => n.toFixed(2) }));
+        }
+      }
+
+      // ratios / decays / gains as text inputs (for modal/tones)
+      if (src === "modal" || src === "tones") {
+        body.appendChild(mkKnob("Ratios", "text", layer.ratios || "1, 2.76, 5.4",
+          (v) => { layer.ratios = v; updateEditorOutput(); scheduleAudition(); }));
+        body.appendChild(mkKnob("Decays", "text", layer.decays || "0.5s, 0.3s, 0.15s",
+          (v) => { layer.decays = v; updateEditorOutput(); scheduleAudition(); }));
+        body.appendChild(mkKnob("Gains", "text", layer.gains || "1, 0.5, 0.3",
+          (v) => { layer.gains = v; updateEditorOutput(); scheduleAudition(); }));
+      }
+
+      // Filter
+      const filt = layer.filter || "";
+      body.appendChild(mkKnob("Filter", "select", filt, (v) => {
+        if (v) layer.filter = v; else delete layer.filter;
+        renderEditor(); scheduleAudition();
+      }, ["", "lowpass", "highpass", "bandpass", "lowshelf", "highshelf", "peaking", "notch"]));
+      if (filt) {
+        const cutoff = parseFreqHz(layer.cutoff) || 1000;
+        body.appendChild(mkKnob("Cutoff", "range", cutoff, (v) => {
+          layer.cutoff = v + "hz"; updateEditorOutput(); scheduleAudition();
+        }, null, { min: 80, max: 16000, step: 10, fmt: (n) => n + "hz", logScale: true }));
+      }
+
+      // Attack + Decay (for osc/noise — single envelope)
+      if (src === "osc" || src === "noise") {
+        const a = parseTimeMs(layer.attack) ?? 1;
+        body.appendChild(mkKnob("Attack", "range", a, (v) => {
+          layer.attack = v + "ms"; updateEditorOutput(); scheduleAudition();
+        }, null, { min: 0, max: 200, step: 1, fmt: (n) => n + "ms" }));
+      }
+      if (src === "osc" || src === "noise" || src === "pluck") {
+        const d = parseTimeMs(layer.decay) ?? 200;
+        body.appendChild(mkKnob("Decay", "range", d, (v) => {
+          layer.decay = v + "ms"; updateEditorOutput(); scheduleAudition();
+        }, null, { min: 5, max: 3000, step: 5, fmt: (n) => n + "ms" }));
+      }
+
+      // Gain (master for layer)
+      const g = parseFloat(layer.gain) || 0.5;
+      body.appendChild(mkKnob("Gain", "range", g, (v) => {
+        layer.gain = String(v); updateEditorOutput(); scheduleAudition();
+      }, null, { min: 0, max: 2, step: 0.05, fmt: (n) => n.toFixed(2) }));
+
+      // Drive (soft-clip saturation). 0 = off.
+      const drive = parseFloat(layer.drive ?? layer.saturation) || 0;
+      body.appendChild(mkKnob("Drive", "range", drive, (v) => {
+        if (v <= 0) { delete layer.drive; delete layer.saturation; }
+        else layer.drive = String(v);
+        updateEditorOutput(); scheduleAudition();
+      }, null, { min: 0, max: 3, step: 0.1, fmt: (n) => n > 0 ? n.toFixed(1) : "off" }));
+
+      // Pan
+      const pan = parseFloat(layer.pan) || 0;
+      body.appendChild(mkKnob("Pan", "range", pan, (v) => {
+        if (v === 0) delete layer.pan;
+        else layer.pan = String(v);
+        updateEditorOutput(); scheduleAudition();
+      }, null, { min: -1, max: 1, step: 0.05, fmt: (n) => n.toFixed(2) }));
+
+      // Start delay — schedules this layer relative to the trigger.
+      // Two layers with different `start:` values give you a sequence
+      // (e.g. dı-dın chime: layer1 start 0, layer2 start 180ms).
+      const startMs = parseTimeMs(layer.start) ?? 0;
+      body.appendChild(mkKnob("Start", "range", startMs, (v) => {
+        if (v <= 0) delete layer.start;
+        else layer.start = v + "ms";
+        updateEditorOutput(); scheduleAudition();
+      }, null, { min: 0, max: 1000, step: 5, fmt: (n) => n + "ms" }));
+
+      card.appendChild(body);
+      return card;
+    }
+
+    // Knob factory: type = "range" | "text" | "number" | "select".
+    function mkKnob(label, type, value, onChange, options, conf) {
+      const el = document.createElement("div");
+      el.className = "knob";
+      const lab = document.createElement("label");
+      lab.textContent = label;
+      el.appendChild(lab);
+      const row = document.createElement("div");
+      row.className = "knob-row";
+      let input;
+      if (type === "select") {
+        input = document.createElement("select");
+        for (const opt of (options || [])) {
+          const o = document.createElement("option");
+          o.value = opt;
+          o.textContent = opt || "(none)";
+          if (opt === value) o.selected = true;
+          input.appendChild(o);
+        }
+        input.addEventListener("change", () => onChange(input.value));
+      } else if (type === "range") {
+        input = document.createElement("input");
+        input.type = "range";
+        input.min = conf.min; input.max = conf.max; input.step = conf.step;
+        input.value = value;
+        const display = document.createElement("span");
+        display.className = "knob-val";
+        display.textContent = conf.fmt(parseFloat(value));
+        input.addEventListener("input", () => {
+          const n = parseFloat(input.value);
+          display.textContent = conf.fmt(n);
+          onChange(n);
+        });
+        row.appendChild(input);
+        row.appendChild(display);
+        el.appendChild(row);
+        return el;
+      } else {
+        input = document.createElement("input");
+        input.type = type;
+        input.value = value;
+        input.addEventListener("input", () => onChange(input.value));
+      }
+      row.appendChild(input);
+      el.appendChild(row);
+      return el;
+    }
+
+    function parseFreqHz(v) {
+      if (v == null) return null;
+      const m = String(v).match(/^([\d.]+)\s*(k?hz)?/i);
+      if (!m) return null;
+      const n = parseFloat(m[1]);
+      return /^k/i.test(m[2] || "") ? n * 1000 : n;
+    }
+    function parseTimeMs(v) {
+      if (v == null) return null;
+      const s = String(v).trim();
+      if (s.endsWith("ms")) return parseFloat(s);
+      if (s.endsWith("s"))  return parseFloat(s) * 1000;
+      const n = parseFloat(s);
+      return isFinite(n) ? n : null;
+    }
+
+    function renderEditor() {
+      const host = document.getElementById("editor-layers");
+      host.innerHTML = "";
+      const total = editingLayers.length;
+      editingLayers.forEach((L, i) => host.appendChild(renderLayerCard(L, i, total)));
+      updateEditorOutput();
+    }
+
+    function openEditor(presetName) {
+      editingName = presetName;
+      const block = getDSLBlock(presetName);
+      editingLayers = block ? parseEditingLayers(block) : [defaultLayer()];
+      if (!editingLayers.length) editingLayers = [defaultLayer()];
+      // Deep-clone snapshot so Reset can restore the as-loaded state
+      // even after dozens of knob tweaks.
+      editingOriginal = JSON.parse(JSON.stringify(editingLayers));
+      document.getElementById("editor-name").textContent = presetName;
+      document.getElementById("editor-name-input").value = presetName + "-edit";
+      document.getElementById("editor").classList.remove("hidden");
+      document.getElementById("tweak").classList.add("hidden");
+      renderEditor();
+    }
+
+    function resetEditor() {
+      if (!editingOriginal) return;
+      editingLayers = JSON.parse(JSON.stringify(editingOriginal));
+      renderEditor();
+      scheduleAudition();
+      toast("reset to original");
+    }
+
+    function closeEditor() {
+      document.getElementById("editor").classList.add("hidden");
+      const sel = cards[selectedIdx];
+      if (sel) document.getElementById("tweak").classList.remove("hidden");
+    }
+
+    // Wire editor buttons
+    document.getElementById("edit-toggle").addEventListener("click", () => {
+      const sel = cards[selectedIdx];
+      if (sel) openEditor(sel.dataset.name);
+    });
+    document.getElementById("editor-close").addEventListener("click", closeEditor);
+    document.getElementById("editor-audition").addEventListener("click", auditionEditing);
+    document.getElementById("editor-reset").addEventListener("click", resetEditor);
+    document.getElementById("editor-add-layer").addEventListener("click", () => {
+      editingLayers.push({ ...defaultLayer(), __name: "layer" + (editingLayers.length + 1) });
+      renderEditor();
+      scheduleAudition();
+    });
+    document.getElementById("editor-name-input").addEventListener("input", updateEditorOutput);
+    document.getElementById("editor-copy").addEventListener("click", async () => {
+      const text = document.getElementById("editor-output").textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        toast("@sound block copied");
+      } catch (e) { toast("clipboard blocked"); }
+    });
+
+    // -----------------------------------------------------------------
+    // Boot
+    // -----------------------------------------------------------------
+    ready(async () => {
+      loadThumbnailCache();
+      buildIntents();
+      buildGrid();
+      // Generate thumbnails for all presets in parallel (cached).
+      const all = allPresets();
+      const missing = all.filter((n) => !thumbnailCache[n]);
+      if (missing.length) {
+        await Promise.all(missing.map(buildThumbnail));
+        saveThumbnailCache();
+        buildGrid(); // re-render with thumbnails
+      }
+      // Auto-select the first card so the tweak bar (volume / pitch /
+      // mood / mood-mix / room / quality + snippet copy) is visible
+      // from boot. Without this the controls only appeared after the
+      // user clicked a card — making the editor look "missing".
+      // Pre-set lastPreviewName to suppress the auto-audition on the
+      // initial reveal (user didn't ask to hear it yet).
+      if (cards.length && selectedIdx === -1) {
+        lastPreviewName = cards[0].dataset.name;
+        selectCard(0, /* focusEl */ false);
+      }
+      // Refresh factor display every second while background calibration completes.
+      setInterval(() => {
+        const factors = window.ACS.calibrationFactors() || {};
+        cards.forEach((card) => {
+          const meta = card.querySelector(".meta");
+          const f = factors[card.dataset.name];
+          if (f != null && meta) {
+            // Update last <span>
+            const spans = meta.querySelectorAll("span");
+            const last = spans[spans.length - 1];
+            if (last && last.textContent.startsWith("×")) {
+              last.textContent = "×" + f.toFixed(2);
+            }
+          }
+        });
+      }, 1000);
+
+      // ---- VSCode webview integration ------------------------------
+      // The extension can send `{type:'select', preset}` to focus a
+      // specific preset card, or `{type:'audition', preset}` to focus
+      // AND immediately play it. Used by the "Audition" CodeLens above
+      // each @sound block so the editor's quick-play matches the IDE
+      // workflow without leaving the file.
+      const _vscode = (typeof acquireVsCodeApi === "function")
+        ? acquireVsCodeApi()
+        : null;
+      if (_vscode) {
+        window.addEventListener("message", (ev) => {
+          const msg = ev && ev.data;
+          if (!msg) return;
+          if (msg.type === "select" || msg.type === "audition") {
+            const idx = cards.findIndex((c) => c.dataset.name === msg.preset);
+            if (idx >= 0) {
+              if (msg.type === "audition") lastPreviewName = null; // force play
+              selectCard(idx);
+            }
+          }
+        });
+        // Tell the host we're ready so any deferred select/audition fires.
+        _vscode.postMessage({ type: "ready" });
+      }
+    });
+  </script>
+</body>
+</html>

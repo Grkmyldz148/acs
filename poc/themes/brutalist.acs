@@ -1,0 +1,68 @@
+/* brutalist.acs — No reverb, loud thunks, noise bursts.
+ * Designed to be felt, not blended in.
+ *
+ *   click    → thunk
+ *   pop      → kick
+ *   confirm  → badge
+ *   open     → whoosh
+ */
+
+:root {
+  master-volume: 1.2;
+  room: none;
+  master-eq-low: +6dB;
+  master-eq-high: +2dB;
+}
+body {
+  sound-mood: punchy;
+  pitch: -4st;
+}
+
+button, a, [role=button], [role=tab] {
+  sound-on-click: thunk;
+}
+
+button.primary,
+button[type=submit],
+[data-variant=primary] {
+  sound-on-click: kick;
+}
+
+[data-action=star]     { sound-on-click: badge; }
+[data-action=refresh]  { sound-on-click: click; }
+[data-action=download] { sound-on-click: whoosh; }
+[data-action=add]      { sound-on-click: kick; }
+[data-action=delete]   { sound-on-click: denied; }
+[data-action=share]    { sound-on-click: swoosh; }
+[data-action=save]     { sound-on-click: badge; }
+
+[role=alert], [role=status], .toast {
+  sound-on-appear: badge;
+}
+[data-state=success]      { sound-on-appear: ding; }
+[data-state=error]        { sound-on-appear: denied; }
+[data-state=mention]      { sound-on-appear: buzz; }
+
+dialog[open], [role=dialog][open],
+[data-state=open] {
+  sound-on-appear: whoosh;
+}
+summary {
+  sound-on-click: swoosh;
+}
+
+input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select {
+  sound-on-focus: thunk;
+}
+input:not([type]), input[type=text], input[type=search], input[type=email],
+input[type=password], input[type=url], input[type=tel],
+input[type=number], textarea {
+  sound-on-input: click;
+}
+input[type=range] {
+  sound-on-input: thunk;
+}
+
+@media (prefers-reduced-sound: reduce) {
+  :root { master-volume: 0; }
+}

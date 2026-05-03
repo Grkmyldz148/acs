@@ -1,0 +1,4 @@
+install.sh
+.vscodeignore
+*.vsix
+.DS_Store

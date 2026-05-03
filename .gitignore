@@ -1,0 +1,36 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Build artifacts that should be regenerated, not committed
+dist/landing.bundle.js
+dist/landing.bundle.js.map
+
+# Generated webview (re-built from poc/picker.html on demand)
+tools/vscode-acs/webview/picker.html
+
+# AI tooling — internal to maintainer's workflow, not for the repo
+CLAUDE.md
+.claude/
+
+# Reference projects we may clone locally (per CLAUDE.md: never commit)
+references/
+
+# VSCode extension packaging output
+*.vsix
+
+# Tunnel / deploy artifacts
+.cloudflared/
+*.pid

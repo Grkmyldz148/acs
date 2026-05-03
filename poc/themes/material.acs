@@ -1,0 +1,67 @@
+/* material.acs — Warm, percussive, intentionally physical.
+ *
+ *   click    → woodblock
+ *   pop      → tap
+ *   confirm  → success
+ *   open     → drawer-open
+ */
+
+:root {
+  master-volume: 0.85;
+  room: small-room;
+  master-eq-low: +3dB;
+  master-eq-high: -1dB;
+}
+body {
+  sound-mood: warm;
+  pitch: -2st;
+}
+
+button, a, [role=button], [role=tab] {
+  sound-on-click: woodblock;
+}
+
+button.primary,
+button[type=submit],
+[data-variant=primary] {
+  sound-on-click: tap;
+}
+
+[data-action=star]     { sound-on-click: chime; }
+[data-action=refresh]  { sound-on-click: tap; }
+[data-action=download] { sound-on-click: drawer-open; }
+[data-action=add]      { sound-on-click: pop; }
+[data-action=delete]   { sound-on-click: thunk; }
+[data-action=share]    { sound-on-click: swoosh; }
+[data-action=save]     { sound-on-click: success; }
+
+[role=alert], [role=status], .toast {
+  sound-on-appear: success;
+}
+[data-state=success]      { sound-on-appear: complete; }
+[data-state=error]        { sound-on-appear: error; }
+[data-state=mention]      { sound-on-appear: mention; }
+
+dialog[open], [role=dialog][open],
+[data-state=open] {
+  sound-on-appear: drawer-open;
+}
+summary {
+  sound-on-click: dropdown-open;
+}
+
+input:not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select {
+  sound-on-focus: woodblock;
+}
+input:not([type]), input[type=text], input[type=search], input[type=email],
+input[type=password], input[type=url], input[type=tel],
+input[type=number], textarea {
+  sound-on-input: keystroke;
+}
+input[type=range] {
+  sound-on-input: tap;
+}
+
+@media (prefers-reduced-sound: reduce) {
+  :root { master-volume: 0; }
+}

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ACS Themes — preview</title>
+<link rel="audiostyle" href="themes/apple.acs" id="theme-link">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --panel: #141414;
+    --border: #262626;
+    --fg: #ededed;
+    --dim: #888;
+    --accent: #0071e3;
+  }
+  [data-theme=apple]    { --accent: #0071e3; --bg: #f5f5f7; --panel: #fff; --fg: #1d1d1f; --border: #d2d2d7; --dim: #6e6e73; }
+  [data-theme=material] { --accent: #6750a4; --bg: #fffbfe; --panel: #fff; --fg: #1c1b1f; --border: #cac4d0; --dim: #49454f; }
+  [data-theme=retro]    { --accent: #ff4775; --bg: #fff8e7; --panel: #fff; --fg: #202037; --border: #e5d8b0; --dim: #6b5d3d; }
+  [data-theme=brutalist]{ --accent: #cdff00; --bg: #0a0a0a; --panel: #1a1a1a; --fg: #fff; --border: #cdff00; --dim: #888; }
+  [data-theme=cinematic]{ --accent: #f59e0b; --bg: #0c0a09; --panel: #1c1917; --fg: #fafaf9; --border: #292524; --dim: #a8a29e; }
+  [data-theme=bauhaus]  { --accent: #d62828; --bg: #faf9f6; --panel: #fff; --fg: #1a1a1a; --border: #1a1a1a; --dim: #555; }
+  [data-theme=terminal] { --accent: #4ade80; --bg: #0a0a0a; --panel: #111; --fg: #4ade80; --border: #1f3520; --dim: #4ade8088; }
+  [data-theme=ambient]  { --accent: #c4a8e8; --bg: #f5f3ff; --panel: #faf5ff; --fg: #2e1065; --border: #ddd6fe; --dim: #6d28d9aa; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    font: 14px/1.5 -apple-system, system-ui, sans-serif;
+    background: var(--bg); color: var(--fg);
+    transition: background 200ms, color 200ms;
+  }
+  header { max-width: 920px; margin: 0 auto 24px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--dim); font-size: 13px; }
+  .picker {
+    max-width: 920px; margin: 0 auto 24px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .picker button {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--fg);
+    border-radius: 6px;
+    cursor: pointer;
+    font: inherit;
+  }
+  .picker button[aria-pressed=true] {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  [data-theme=brutalist] .picker button[aria-pressed=true] { color: #000; }
+  .grid {
+    max-width: 920px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .card {
+    padding: 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .card h3 { margin: 0 0 12px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dim); font-weight: 500; }
+  .card .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+  button.demo {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--fg);
+    border-radius: 6px;
+    cursor: pointer;
+    font: inherit;
+  }
+  button.demo.primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  [data-theme=brutalist] button.demo.primary { color: #000; }
+  input, textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--fg);
+    border-radius: 6px;
+    font: inherit;
+    margin-bottom: 8px;
+  }
+  input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  dialog {
+    padding: 20px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--fg);
+    border-radius: 8px;
+    max-width: 360px;
+  }
+  dialog::backdrop { background: rgba(0,0,0,0.5); }
+  details {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    background: var(--bg);
+  }
+  details[open] { padding-bottom: 12px; }
+  summary { cursor: pointer; }
+  .switch {
+    display: inline-flex; align-items: center; gap: 8px;
+    cursor: pointer;
+  }
+  .switch [role=switch] {
+    width: 36px; height: 20px;
+    border-radius: 999px;
+    background: var(--border);
+    position: relative;
+    border: none;
+    cursor: pointer;
+  }
+  .switch [role=switch][aria-checked=true] { background: var(--accent); }
+  .switch [role=switch]::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 150ms;
+  }
+  .switch [role=switch][aria-checked=true]::after { transform: translateX(16px); }
+  .toast {
+    padding: 10px 14px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 6px;
+    margin-top: 8px;
+    font-size: 13px;
+  }
+  [data-theme=brutalist] .toast { color: #000; }
+  .meta { color: var(--dim); font-size: 12px; margin-top: 8px; font-family: ui-monospace, monospace; }
+  .role-table {
+    max-width: 920px; margin: 0 auto 24px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+  }
+  .role-table .role-row {
+    display: grid;
+    grid-template-columns: 80px 16px 1fr;
+    align-items: center;
+    padding: 4px 0;
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+  }
+  .role-table .role-row .key { color: var(--dim); }
+  .role-table .role-row .val { color: var(--fg); }
+  .role-table .role-desc { color: var(--dim); font-size: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+  .tabs {
+    display: inline-flex;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .tabs button[role=tab] {
+    padding: 5px 12px;
+    border: none;
+    background: transparent;
+    color: var(--dim);
+    border-radius: 5px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+  }
+  .tabs button[role=tab][aria-selected=true] {
+    background: var(--panel);
+    color: var(--fg);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+  [data-theme=brutalist] .tabs button[role=tab][aria-selected=true] {
+    background: var(--accent); color: #000;
+  }
+  input[type=range] {
+    accent-color: var(--accent);
+  }
+  input[type=checkbox], input[type=radio] {
+    accent-color: var(--accent);
+    width: 16px; height: 16px;
+    cursor: pointer;
+  }
+  select { cursor: pointer; }
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+  .action-grid .action {
+    text-align: center;
+  }
+</style>
+</head>
+<body data-theme="apple">
+
+<header>
+  <h1>ACS Themes — live preview</h1>
+  <div class="sub">Bir tema seç, aşağıdaki UI elementleriyle etkileş. İlk tıklama AudioContext'i açar.</div>
+</header>
+
+<div class="picker" role="tablist">
+  <button data-theme="apple" aria-pressed="true">Apple</button>
+  <button data-theme="material">Material</button>
+  <button data-theme="retro">Retro</button>
+  <button data-theme="brutalist">Brutalist</button>
+  <button data-theme="cinematic">Cinematic</button>
+  <button data-theme="bauhaus">Bauhaus</button>
+  <button data-theme="terminal">Terminal</button>
+  <button data-theme="ambient">Ambient</button>
+  <span style="flex:1"></span>
+  <span class="meta" style="font-family:ui-monospace,monospace;align-self:center">▸ <span id="now-playing">—</span></span>
+</div>
+
+<div class="role-table" id="role-table"></div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Buttons & links</h3>
+    <div class="row">
+      <button class="demo">Default</button>
+      <button class="demo primary" type="submit">Primary</button>
+      <button class="demo" disabled>Disabled</button>
+      <a href="#" onclick="event.preventDefault()">A link</a>
+    </div>
+    <div class="meta">click · pop (primary)</div>
+  </div>
+
+  <div class="card">
+    <h3>Tabs</h3>
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true">Overview</button>
+      <button role="tab" aria-selected="false">Activity</button>
+      <button role="tab" aria-selected="false">Settings</button>
+    </div>
+    <div class="meta">[role=tab] → click</div>
+  </div>
+
+  <div class="card">
+    <h3>Switch & checkbox</h3>
+    <label class="switch">
+      <button role="switch" aria-checked="false" aria-label="setting"></button>
+      Notifications
+    </label>
+    <label style="display:flex;gap:8px;align-items:center;margin-top:10px;cursor:pointer">
+      <input type="checkbox"> Subscribe to newsletter
+    </label>
+    <label style="display:flex;gap:8px;align-items:center;margin-top:6px;cursor:pointer">
+      <input type="radio" name="plan"> Free plan
+    </label>
+    <label style="display:flex;gap:8px;align-items:center;margin-top:2px;cursor:pointer">
+      <input type="radio" name="plan"> Pro plan
+    </label>
+    <div class="meta">checkbox / radio / switch → click</div>
+  </div>
+
+  <div class="card">
+    <h3>Form input</h3>
+    <input type="text" placeholder="Type something…" />
+    <select style="width:100%;padding:8px 12px;border:1px solid var(--border);background:var(--bg);color:var(--fg);border-radius:6px;font:inherit;margin-bottom:8px">
+      <option>Option one</option>
+      <option>Option two</option>
+      <option>Option three</option>
+    </select>
+    <input type="range" min="0" max="100" value="50" style="width:100%">
+    <div class="meta">native form controls</div>
+  </div>
+
+  <div class="card">
+    <h3>Notifications</h3>
+    <div class="row">
+      <button class="demo" onclick="fireToast('success')">Success</button>
+      <button class="demo" onclick="fireToast('error')">Error</button>
+      <button class="demo" onclick="fireToast('alert')">Alert</button>
+    </div>
+    <div id="toast-host"></div>
+    <div class="meta" style="margin-top:8px">[data-state=success/error], [role=alert] → confirm</div>
+  </div>
+
+  <div class="card">
+    <h3>Dialogs & disclosure</h3>
+    <div class="row">
+      <button class="demo" onclick="document.getElementById('demo-dlg').showModal()">Open dialog</button>
+    </div>
+    <details style="margin-top:8px">
+      <summary>Section title</summary>
+      <p style="margin: 8px 0 0;color:var(--dim);font-size:13px">Inner content shown when expanded.</p>
+    </details>
+    <details style="margin-top:6px">
+      <summary>Another section</summary>
+      <p style="margin: 8px 0 0;color:var(--dim);font-size:13px">More inner content.</p>
+    </details>
+    <div class="meta" style="margin-top:8px">dialog[open], summary → open</div>
+  </div>
+
+  <div class="card" style="grid-column: 1 / -1">
+    <h3>Cards / actions</h3>
+    <div class="action-grid">
+      <button class="demo action" data-action="star">★ Star</button>
+      <button class="demo action" data-action="refresh">↻ Refresh</button>
+      <button class="demo action" data-action="download">⤓ Download</button>
+      <button class="demo action" data-action="add">⊕ Add</button>
+      <button class="demo action" data-action="delete">✕ Delete</button>
+      <button class="demo action primary" type="submit">⏎ Submit</button>
+    </div>
+    <div class="meta" style="margin-top:8px">[data-action] selectors override theme.click per semantic action</div>
+  </div>
+</div>
+
+<dialog id="demo-dlg">
+  <h3 style="margin-top:0">Theme preview dialog</h3>
+  <p style="color:var(--dim);font-size:13px">Open / close to hear the theme's modal sound.</p>
+  <button class="demo" onclick="this.closest('dialog').close()">Close</button>
+</dialog>
+
+<script type="module" src="runtime.js"></script>
+<script>
+  const link = document.getElementById('theme-link');
+  const body = document.body;
+  const THEMES = {
+    apple:     { desc: 'Restrained, glassy, micro-tactile.',
+                 roles: { click: 'tap-tactile', pop: 'pop',  confirm: 'ding',     open: 'modal-open' } },
+    material:  { desc: 'Warm, percussive, intentionally physical.',
+                 roles: { click: 'woodblock',   pop: 'tap',  confirm: 'success',  open: 'drawer-open' } },
+    retro:     { desc: 'Lofi mood, square-wave clicks, chiptune confirmations.',
+                 roles: { click: 'click',       pop: 'tick', confirm: 'complete', open: 'page-enter' } },
+    brutalist: { desc: 'No reverb. Loud thunks. Designed to be felt.',
+                 roles: { click: 'thunk',       pop: 'kick', confirm: 'badge',    open: 'whoosh' } },
+    cinematic: { desc: 'Big airy hall, gong / page-transition energy.',
+                 roles: { click: 'swoosh',      pop: 'modal-open', confirm: 'gong',     open: 'page-enter' } },
+    bauhaus:   { desc: 'Geometric, primary forms. Sharp pings, no shimmer.',
+                 roles: { click: 'click',       pop: 'ping',  confirm: 'ding',     open: 'modal-open' } },
+    terminal:  { desc: 'CRT, mechanical keyboard, paper feed.',
+                 roles: { click: 'woodblock',   pop: 'tap-tactile', confirm: 'carriage-return', open: 'drawer-open' } },
+    ambient:   { desc: 'Soft, washy, generative. Bell-soft + chime-soft.',
+                 roles: { click: 'bell-soft',   pop: 'chime-soft', confirm: 'success',  open: 'sparkle' } },
+  };
+
+  function renderRoleTable(t) {
+    const def = THEMES[t];
+    const host = document.getElementById('role-table');
+    let html = `<div class="role-desc">${def.desc}</div>`;
+    for (const [k, v] of Object.entries(def.roles)) {
+      html += `<div class="role-row"><span class="key">${k}</span><span>→</span><span class="val">${v}</span></div>`;
+    }
+    host.innerHTML = html;
+  }
+  renderRoleTable('apple');
+
+  document.querySelectorAll('.picker button').forEach(b => {
+    b.addEventListener('click', async () => {
+      const t = b.dataset.theme;
+      document.querySelectorAll('.picker button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      body.dataset.theme = t;
+      link.href = `themes/${t}.acs?_=${Date.now()}`;
+      renderRoleTable(t);
+      if (window.ACS && window.ACS.reload) {
+        try {
+          await window.ACS.reload();
+        } catch (e) {
+          console.warn('[themes] reload failed:', e);
+        }
+      }
+    });
+  });
+
+  // "Now playing" indicator via the runtime's onTrigger hook. This fires
+  // for sounds that actually play (post-throttle, post-cascade), regardless
+  // of whether they were dispatched from a DOM event or a direct
+  // ACS.trigger() call. Earlier we monkey-patched window.ACS.trigger but
+  // dom.js held a captured `triggerFn` reference, bypassing the wrap.
+  function instrumentACS() {
+    if (!window.ACS || !window.ACS.onTrigger || window.ACS._instrumented) return;
+    window.ACS.onTrigger((preset) => {
+      const el = document.getElementById('now-playing');
+      if (!el) return;
+      el.textContent = preset;
+      el.style.color = 'var(--accent)';
+      clearTimeout(el._t);
+      el._t = setTimeout(() => { el.textContent = '—'; el.style.color = ''; }, 600);
+    });
+    window.ACS._instrumented = true;
+  }
+  // Poll for window.ACS up to ~5 seconds. If the runtime never loads
+  // (404, JS error), give up so we don't poll forever in the background.
+  const instStarted = Date.now();
+  const inst = setInterval(() => {
+    if (window.ACS && window.ACS.onTrigger) { instrumentACS(); clearInterval(inst); }
+    else if (Date.now() - instStarted > 5000) { clearInterval(inst); }
+  }, 50);
+
+  // Tab selection
+  document.querySelectorAll('[role=tablist] [role=tab]').forEach(t => {
+    t.addEventListener('click', (e) => {
+      const list = e.currentTarget.closest('[role=tablist]');
+      list.querySelectorAll('[role=tab]').forEach(x => x.setAttribute('aria-selected', String(x === e.currentTarget)));
+    });
+  });
+
+  function fireToast(kind) {
+    const host = document.getElementById('toast-host');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    if (kind === 'success') { t.setAttribute('data-state', 'success'); t.textContent = '✓ Saved'; }
+    else if (kind === 'error')  { t.setAttribute('data-state', 'error');  t.textContent = '✗ Something broke'; }
+    else                        { t.setAttribute('role', 'alert');        t.textContent = '! Heads up'; }
+    host.appendChild(t);
+    setTimeout(() => t.remove(), 2400);
+  }
+
+  // Checkbox / radio / switch: native HTML changes state AFTER the click
+  // handler, but ACS' :checked selector evaluates at click time (still old
+  // state). Play state-aware sounds via JS, the same way landing's
+  // realworld demo does (`it.done ? 'toggle-off' : 'toggle-on'`).
+  document.addEventListener('change', (ev) => {
+    const el = ev.target;
+    if (!window.ACS || !window.ACS.trigger) return;
+    if (el.matches('input[type=checkbox], input[type=radio]')) {
+      window.ACS.trigger({ sound: el.checked ? 'toggle-on' : 'toggle-off' }, 'sound', el);
+    } else if (el.matches('select')) {
+      // Native <select> dropdown change. Per-theme "select" sound — we
+      // pick a small confirmation preset that's not too loud.
+      const t = body.dataset.theme;
+      const sound = { apple: 'tick', material: 'tap', retro: 'tick', brutalist: 'click' }[t] || 'tick';
+      window.ACS.trigger({ sound }, 'sound', el);
+    }
+  });
+  // role=switch: not a native HTML control, no change event.
+  document.addEventListener('click', (ev) => {
+    const sw = ev.target.closest('[role=switch]');
+    if (!sw || !window.ACS) return;
+    const wasOn = sw.getAttribute('aria-checked') === 'true';
+    const nowOn = !wasOn;
+    sw.setAttribute('aria-checked', String(nowOn));
+    window.ACS.trigger({ sound: nowOn ? 'toggle-on' : 'toggle-off' }, 'sound', sw);
+    ev.stopImmediatePropagation();
+  }, true);
+</script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ACS DevTools</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --bg: #09090b; --fg: #fafafa; --muted: #a1a1aa; --line: #1f1f23;
+      --row: #16161a; --accent: #fafafa; --accent-fg: #18181b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); }
+    header { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; gap: 16px; align-items: center; }
+    h1 { font-size: 16px; font-weight: 600; margin: 0; }
+    .desc { color: var(--muted); font-size: 13px; }
+    main { padding: 20px; max-width: 1200px; margin: 0 auto; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .panel { background: var(--row); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+    .panel h2 { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px; font-weight: 600; }
+    textarea { width: 100%; height: 320px; background: #0a0a0b; color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 10px; font-family: ui-monospace, SF Mono, Menlo, monospace; font-size: 12px; line-height: 1.5; resize: vertical; }
+    button { background: var(--accent); color: var(--accent-fg); border: 0; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    button.secondary { background: transparent; color: var(--fg); border: 1px solid var(--line); font-weight: 500; }
+    button + button { margin-left: 6px; }
+    .triggers { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .triggers button { background: transparent; color: var(--fg); border: 1px solid var(--line); padding: 6px 10px; font-size: 12px; font-weight: 500; }
+    .triggers button:hover { background: var(--line); }
+    pre.log { background: #0a0a0b; border: 1px solid var(--line); border-radius: 6px; padding: 10px; font-size: 11px; max-height: 200px; overflow: auto; color: var(--muted); margin: 10px 0 0; }
+    .row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+    label { font-size: 12px; color: var(--muted); }
+    input[type=file] { color: var(--muted); font-size: 12px; }
+    .status { font-size: 12px; color: var(--muted); margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ACS DevTools</h1>
+    <span class="desc">Edit, drop, or watch <code>.acs</code> files. Hot reload + per-trigger probe.</span>
+  </header>
+  <main>
+    <div class="grid">
+      <div class="panel">
+        <h2>Stylesheet</h2>
+        <div class="row">
+          <input type="file" id="file-input" accept=".acs,text/plain" />
+          <button id="apply-btn">Apply &amp; bind</button>
+          <button class="secondary" id="watch-btn">Watch URL…</button>
+          <span id="status" class="status"></span>
+        </div>
+        <textarea id="editor" spellcheck="false">/* Paste or drop a .acs file. Auto-applies on change. */
+:root { master-volume: 0.9; room: medium-room; }
+
+@sound my-thump {
+  body { modal: 90hz; ratios: 1, 2.4; decays: 0.18s, 0.05s; gains: 1, 0.3; gain: 1.6; }
+  click { noise: white; filter: bandpass; cutoff: 2200hz; q: 1.5; attack: 0.5ms; decay: 18ms; gain: 0.7; }
+}
+
+button.demo { sound-on-click: my-thump; }</textarea>
+        <pre class="log" id="log">Ready.</pre>
+      </div>
+
+      <div class="panel">
+        <h2>Trigger preset</h2>
+        <div class="row">
+          <label for="trigger-name">name</label>
+          <input id="trigger-name" type="text" value="my-thump" style="background: #0a0a0b; color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 4px 8px; font-size: 12px;" />
+          <button id="play-btn">Play</button>
+          <button class="secondary" id="probe-btn">Probe</button>
+        </div>
+        <div class="triggers" id="quick"></div>
+
+        <h2 style="margin-top: 18px;">Probe results</h2>
+        <pre class="log" id="probe-log">Click Probe to render any preset offline and inspect its peak/RMS.</pre>
+
+        <h2 style="margin-top: 18px;">Voice pool</h2>
+        <pre class="log" id="pool-log">No voices yet.</pre>
+      </div>
+    </div>
+
+    <p class="desc" style="margin-top: 24px;">
+      <strong>Hot keys:</strong> Cmd/Ctrl+Enter — apply &amp; play current name. Cmd/Ctrl+Shift+Enter — apply only.
+    </p>
+  </main>
+
+  <script type="module" src="runtime.js"></script>
+  <script>
+    const editor = document.getElementById("editor");
+    const log = document.getElementById("log");
+    const probeLog = document.getElementById("probe-log");
+    const poolLog = document.getElementById("pool-log");
+    const status = document.getElementById("status");
+    const triggerName = document.getElementById("trigger-name");
+    const quick = document.getElementById("quick");
+
+    function logLine(msg) {
+      const t = new Date().toTimeString().slice(0, 8);
+      log.textContent = `[${t}] ${msg}\n` + log.textContent;
+      log.scrollTop = 0;
+    }
+
+    function ready(cb) {
+      if (window.ACS) return cb();
+      const id = setInterval(() => {
+        if (window.ACS) { clearInterval(id); cb(); }
+      }, 50);
+    }
+
+    function applyEditor() {
+      try {
+        const rules = window.ACS.parse(editor.value);
+        window.ACS.bindAll(rules);
+        const sounds = rules.filter((r) => r.selector.startsWith("@sound "))
+          .map((r) => r.selector.slice("@sound ".length).trim());
+        logLine(`Bound ${rules.length} rules, ${sounds.length} @sound. Names: ${sounds.join(", ") || "(none)"}`);
+        rebuildQuickButtons();
+        status.textContent = "✓ applied";
+        setTimeout(() => status.textContent = "", 1500);
+      } catch (e) {
+        logLine("Parse error: " + e.message);
+        status.textContent = "✗ error";
+      }
+    }
+
+    function rebuildQuickButtons() {
+      const all = [
+        ...Object.keys(window.ACS.presets || {}),
+        ...Object.keys(window.ACS.customPresets || {}),
+      ].sort();
+      quick.innerHTML = "";
+      for (const n of all.slice(0, 60)) {
+        const b = document.createElement("button");
+        b.textContent = n;
+        b.addEventListener("click", () => {
+          triggerName.value = n;
+          window.ACS.trigger({ sound: n }, "click", b);
+        });
+        quick.appendChild(b);
+      }
+    }
+
+    document.getElementById("apply-btn").addEventListener("click", applyEditor);
+    document.getElementById("play-btn").addEventListener("click", () => {
+      const n = triggerName.value.trim();
+      if (n) window.ACS.trigger({ sound: n }, "click", null);
+    });
+    document.getElementById("probe-btn").addEventListener("click", async () => {
+      const n = triggerName.value.trim();
+      if (!n) return;
+      try {
+        const r = await window.ACS.probe(n);
+        probeLog.textContent = JSON.stringify(r, null, 2);
+      } catch (e) {
+        probeLog.textContent = "Probe failed: " + e.message;
+      }
+    });
+    document.getElementById("watch-btn").addEventListener("click", () => {
+      const url = prompt("URL of .acs file to watch (1s polling):");
+      if (url) {
+        window.ACS.watch(url, 1000);
+        logLine("Watching " + url);
+      }
+    });
+
+    // File drop / picker.
+    document.getElementById("file-input").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        editor.value = reader.result;
+        applyEditor();
+      };
+      reader.readAsText(file);
+    });
+    document.body.addEventListener("dragover", (e) => e.preventDefault());
+    document.body.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files[0];
+      if (!file || !file.name.endsWith(".acs")) return;
+      const reader = new FileReader();
+      reader.onload = () => { editor.value = reader.result; applyEditor(); };
+      reader.readAsText(file);
+    });
+
+    // Hot keys.
+    editor.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        e.preventDefault();
+        applyEditor();
+        if (!e.shiftKey) {
+          const n = triggerName.value.trim();
+          if (n) window.ACS.trigger({ sound: n }, "click", null);
+        }
+      }
+    });
+
+    // Auto-apply on idle (1 sec after last edit).
+    let editTimer = null;
+    editor.addEventListener("input", () => {
+      clearTimeout(editTimer);
+      editTimer = setTimeout(applyEditor, 800);
+    });
+
+    // Live voice pool counter.
+    setInterval(() => {
+      if (!window.ACS?.voicePool) return;
+      const stats = window.ACS.voicePool._stats();
+      const lines = Object.entries(stats).filter(([_, v]) => v > 0);
+      poolLog.textContent = lines.length
+        ? lines.map(([n, c]) => `${n}: ${c} voice(s)`).join("\n")
+        : "No active voices.";
+    }, 200);
+
+    ready(() => {
+      applyEditor();
+      logLine("Runtime loaded. Drop .acs file, paste, or edit inline.");
+    });
+  </script>
+</body>
+</html>

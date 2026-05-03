@@ -1,0 +1,598 @@
+/* ACS landing — section + component styles */
+
+/* ---------- Hero ---------- */
+.hero {
+  position: relative;
+  padding: 88px 0 100px;
+  overflow: hidden;
+}
+@media (max-width: 720px) {
+  .hero { padding: 56px 0 72px; }
+}
+.hero-grid-bg {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: -1px -1px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black, transparent 80%);
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-waveform {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 88px;
+  pointer-events: none;
+  z-index: 0;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 72px;
+  align-items: center;
+}
+@media (max-width: 960px) {
+  .hero-inner { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+}
+/* Grid items default to min-width: auto = intrinsic content width,
+ * which lets a long line of inline-code push the cell wider than its
+ * track on mobile. min-width: 0 reverts that so children honor the
+ * 1fr track. */
+.hero-left, .hero-right { min-width: 0; }
+.hero-eyebrow { margin-bottom: 28px; }
+.hero-eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+/* ACS shield logo — CSS3/HTML5-style pentagon badge with the same
+ * outer geometry, inner right-half highlight, and two-tone wordmark
+ * (left half dimmer, right half pure-bg). Theme-adaptive: outer fills
+ * with --ink so it inverts cleanly in dark mode. */
+.acs-shield {
+  display: block;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.10));
+  transition: transform 200ms cubic-bezier(.2,.8,.2,1);
+}
+.acs-shield:hover { transform: translateY(-2px) rotate(-2deg); }
+.acs-shield-outer  { fill: var(--ink); }
+.acs-shield-inner  { fill: color-mix(in oklch, var(--ink) 86%, var(--bg)); }
+.acs-shield-tag-l  { fill: color-mix(in oklch, var(--bg) 60%, var(--ink)); }
+.acs-shield-tag-r  { fill: var(--bg); }
+.acs-shield-mark-l { fill: color-mix(in oklch, var(--bg) 80%, var(--ink)); }
+.acs-shield-mark-r { fill: var(--bg); }
+.hero-title {
+  font-size: clamp(40px, 6.4vw, 72px);
+  font-weight: 600;
+  line-height: 1.0;
+  letter-spacing: -0.035em;
+  margin: 0 0 24px;
+  text-wrap: balance;
+}
+.hero-title-accent {
+  font-style: italic;
+  font-weight: 500;
+  background: linear-gradient(180deg, var(--ink), color-mix(in oklch, var(--accent), var(--ink) 45%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero-sub {
+  font-size: var(--tx-4);
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 540px;
+  margin: 0 0 36px;
+  text-wrap: pretty;
+  /* The inline `<code>` chips and entity-encoded "<link>" can be
+   * treated as unbreakable tokens by some engines, pushing the
+   * paragraph wider than its grid track. `anywhere` allows breaking
+   * inside those chips when no soft-break point is available. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.hero-sub code {
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.92em;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  /* Allow the chip itself to wrap onto a new line if the paragraph
+   * runs out of room — keeps mobile widths honest. */
+  display: inline;
+  white-space: normal;
+}
+.hero-cta {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+}
+.hero-cta .btn { height: 44px; padding: 0 20px; font-size: var(--tx-3); }
+.hero-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: var(--tx-2);
+  color: var(--ink-3);
+}
+.hero-meta-item { display: inline-flex; align-items: center; gap: 6px; }
+.hero-meta-dot {
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--ink-3);
+  opacity: 0.5;
+}
+
+/* ---------- Window ---------- */
+.window {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.window-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg-sunk);
+  border-bottom: 1px solid var(--line);
+}
+.window-dots { display: flex; gap: 6px; }
+.window-dots span {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: var(--line);
+  border: 1px solid color-mix(in oklch, var(--line), var(--ink) 8%);
+}
+.window-dots span:nth-child(1) { background: oklch(0.7 0.12 30); }
+.window-dots span:nth-child(2) { background: oklch(0.78 0.13 90); }
+.window-dots span:nth-child(3) { background: oklch(0.72 0.14 150); }
+.window-title {
+  flex: 1;
+  text-align: center;
+  font-size: var(--tx-1);
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+}
+.window-actions { display: flex; align-items: center; gap: 8px; }
+.window-tag {
+  font-size: var(--tx-1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.window-tabs { display: flex; gap: 2px; }
+.window-tab {
+  background: transparent;
+  border: 0;
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: var(--tx-1);
+  color: var(--ink-3);
+}
+.window-tab.on { background: var(--bg-elev); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.copy-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-3);
+  padding: 3px 9px;
+  border-radius: 5px;
+  font-size: var(--tx-1);
+}
+.copy-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+
+.code-flush {
+  border: 0;
+  border-radius: 0;
+  background: var(--bg-elev);
+  padding: 22px 24px;
+}
+
+.window-foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-sunk);
+  flex-wrap: wrap;
+}
+.hero-tryouts { display: flex; gap: 8px; flex-wrap: wrap; }
+.tryout {
+  font-family: var(--font-mono);
+  font-size: var(--tx-1);
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  color: var(--ink-2);
+  transition: transform 80ms, color 120ms, border-color 120ms;
+}
+.tryout:hover { color: var(--ink); border-color: var(--accent); }
+.tryout:active { transform: scale(0.96); }
+.tryout.primary { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+.tryout.danger { border-color: oklch(0.7 0.18 25); color: oklch(0.6 0.18 25); }
+:root[data-theme="dark"] .tryout.danger { color: oklch(0.78 0.16 25); }
+
+.hero-soundnudge {
+  position: absolute;
+  z-index: 5;
+  bottom: 18px; left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 0;
+  font-size: var(--tx-2);
+  box-shadow: 0 8px 28px oklch(0 0 0 / 0.2);
+}
+.hero-soundnudge svg { width: 14px; height: 14px; }
+.hero-soundnudge-pulse {
+  position: relative;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 var(--accent);
+  animation: nudge-pulse 1.6s ease-out infinite;
+}
+@keyframes nudge-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--accent) 80%, transparent); }
+  100% { box-shadow: 0 0 0 12px transparent; }
+}
+
+/* ---------- Feature grid ---------- */
+.feature-grid {
+  display: grid;
+  /* 3-column rhythm — 15 cards land as a clean 5×3 block. Wider columns
+   * also let the code samples breathe (less horizontal scrolling on the
+   * narrower right-side cells than the previous 4-up layout). */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+@media (max-width: 900px) { .feature-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .feature-grid { grid-template-columns: minmax(0, 1fr); } }
+.feature {
+  background: var(--bg);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 260px;
+  /* Flex items default to min-width: auto (intrinsic), which means
+   * a wide <pre> child pushes the cell wider than its grid track →
+   * overflow visible past the card's right edge. Forcing min-width: 0
+   * lets the code block actually honor its `overflow: auto` and
+   * scroll inside the cell instead of bleeding out. */
+  min-width: 0;
+}
+.feature-head { display: flex; align-items: center; gap: 12px; }
+.feature-icon {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.feature-title { margin: 0; font-size: var(--tx-4); font-weight: 600; letter-spacing: -0.01em; }
+.feature-desc { margin: 0; color: var(--ink-2); font-size: var(--tx-2); line-height: 1.55; flex: 1; }
+.feature-code {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ink-3);
+  background: var(--code-bg);
+  padding: 12px;
+  border-radius: 6px;
+  white-space: pre;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  border: 1px solid var(--line);
+}
+/* Description text — guard against very long unbreakable tokens
+ * (rare but possible if someone pastes a URL into a feature blurb). */
+.feature-desc { overflow-wrap: anywhere; }
+
+/* ---------- Preset gallery ---------- */
+.cat-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.cat-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--tx-2);
+  font-weight: 500;
+  transition: all 120ms;
+}
+.cat-tab:hover { background: var(--bg-elev); color: var(--ink); }
+.cat-tab.on {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+.cat-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: color-mix(in oklch, currentColor 12%, transparent);
+}
+.cat-tab.on .cat-count { background: color-mix(in oklch, var(--bg) 25%, transparent); }
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px;
+}
+.preset {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  text-align: left;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition: all 140ms;
+  position: relative;
+}
+.preset:hover {
+  border-color: var(--accent-line);
+  background: color-mix(in oklch, var(--bg-elev) 92%, var(--accent));
+}
+.preset:hover .preset-icon { color: var(--accent-ink); background: var(--accent); }
+.preset.playing { border-color: var(--accent); }
+.preset.playing .preset-icon { background: var(--accent); color: var(--accent-ink); animation: bump 0.4s ease-out; }
+@keyframes bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.preset-icon {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  background: var(--bg-sunk);
+  border-radius: 8px;
+  color: var(--ink-2);
+  transition: all 140ms;
+}
+.preset-icon svg { width: 12px; height: 12px; }
+.preset-name { font-size: var(--tx-2); color: var(--ink); font-weight: 500; }
+.preset-desc { font-size: var(--tx-1); color: var(--ink-3); margin-top: 2px; }
+.preset-cat {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--bg-sunk);
+}
+
+/* ---------- Steps ---------- */
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
+.step {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 32px;
+  padding: 32px;
+  background: var(--bg);
+  align-items: start;
+  /* min-width:0 so the code block's intrinsic width doesn't push the
+   * step row past the parent .steps container's edge on mobile. */
+  min-width: 0;
+}
+.step-body { min-width: 0; }
+@media (max-width: 720px) {
+  .step { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 20px; }
+}
+.step-num {
+  font-size: var(--tx-7);
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.step-title { margin: 0 0 8px; font-size: var(--tx-5); font-weight: 600; letter-spacing: -0.015em; }
+.step-desc {
+  margin: 0 0 16px;
+  color: var(--ink-2);
+  font-size: var(--tx-3);
+  max-width: 560px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.step-code {
+  margin: 0;
+  font-size: 12px;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  padding: 14px 16px;
+  border-radius: 8px;
+  color: var(--code-ink);
+  white-space: pre;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+
+/* ---------- Themes ---------- */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+@media (max-width: 720px) { .theme-grid { grid-template-columns: minmax(0, 1fr); } }
+.theme {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.theme-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.theme-swatches { display: flex; }
+.theme-swatch {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-elev);
+  margin-left: -6px;
+}
+.theme-swatch:first-child { margin-left: 0; }
+.theme-name { font-size: var(--tx-4); font-weight: 600; }
+.theme-file { font-size: var(--tx-1); color: var(--ink-3); margin-left: auto; }
+.theme-desc { color: var(--ink-2); font-size: var(--tx-2); margin: 0; }
+.theme-bindings { display: flex; flex-direction: column; gap: 4px; }
+.theme-binding {
+  display: grid;
+  grid-template-columns: 90px 12px 1fr 16px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-sunk);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  text-align: left;
+  transition: all 120ms;
+}
+.theme-binding:hover { border-color: var(--accent-line); }
+.theme-binding-key { font-size: var(--tx-1); color: var(--ink-3); }
+.theme-binding-arrow { color: var(--ink-3); font-size: 11px; }
+.theme-binding-val { font-size: var(--tx-2); color: var(--ink); }
+.theme-binding-play { width: 12px; height: 12px; color: var(--ink-3); }
+.theme-binding:hover .theme-binding-play { color: var(--accent); }
+
+/* ---------- Install ---------- */
+.install-wrap { display: grid; grid-template-columns: 1fr 1.1fr; gap: 64px; align-items: center; }
+@media (max-width: 960px) { .install-wrap { grid-template-columns: minmax(0, 1fr); gap: 32px; } }
+.install-checks {
+  list-style: none;
+  padding: 0;
+  margin: 28px 0 0;
+  /* Plain block flow — grid layout was leaving the li's flex children
+   * inside an auto-sized track that didn't pin to the parent's width
+   * on some viewports, leaving an unexplained left indent on mobile. */
+  width: 100%;
+}
+.install-checks li + li { margin-top: 12px; }
+.install-checks li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  color: var(--ink-2);
+  font-size: var(--tx-3);
+  line-height: 1.55;
+}
+/* Keep the check icon vertically aligned to the first text line
+ * (not the whole column) when the row wraps to multiple lines. */
+.install-checks li .check { margin-top: 2px; flex-shrink: 0; }
+/* The text+code content is wrapped in <span> in JSX so each li has
+ * exactly two flex children (icon + content). Without this wrapper,
+ * mixed text nodes and inline <code> chips each became their own
+ * flex item — flex distributed them column-by-column rather than
+ * letting them flow as inline content.
+ *
+ * `:not(.check)` is critical — the <Check/> component renders as
+ * <span class="check">, so a bare `> span` selector also matched
+ * the icon and stretched it to flex: 1 (turned it into a long pill). */
+.install-checks li > span:not(.check) {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.check {
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 50%;
+}
+.check svg { width: 10px; height: 10px; }
+
+/* ---------- Roadmap ---------- */
+.roadmap {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.roadmap-hint {
+  margin: 18px auto 0;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+.road-row {
+  display: grid;
+  grid-template-columns: 90px 160px 1fr 110px;
+  gap: 20px;
+  align-items: center;
+  padding: 20px 24px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-elev);
+}
+.road-row:first-child { border-top: 0; }
+.road-items { min-width: 0; }
+@media (max-width: 1080px) {
+  .road-row { grid-template-columns: 90px 1fr 110px; }
+  .road-items { grid-column: 1 / -1; padding-left: 0; }
+}
+@media (max-width: 720px) {
+  .road-row { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .road-items { grid-column: auto; }
+}
+.road-phase { font-size: var(--tx-1); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.road-title { font-size: var(--tx-3); font-weight: 600; }
+.road-items { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--ink-2); font-size: var(--tx-2); }
+.road-items li::before { content: "·"; margin-right: 8px; color: var(--ink-3); }
+.road-items li:first-child::before { display: none; }
+.road-status { font-size: var(--tx-1); text-align: right; }
+.status-done { color: oklch(0.65 0.14 150); }
+:root[data-theme="dark"] .status-done { color: oklch(0.78 0.14 150); }
+.status-next { color: var(--accent); }
+.status-planned { color: var(--ink-3); }
+.road-planned { opacity: 0.7; }

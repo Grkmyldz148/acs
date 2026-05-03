@@ -1,0 +1,554 @@
+{
+  "Sound preset names": {
+    "scope": "acs",
+    "prefix": [
+      "click", "click-soft", "tap", "tap-tactile", "tick", "pop",
+      "bell", "bell-soft", "bell-bright", "old-bell",
+      "chime", "chime-soft", "glass", "ting", "gong",
+      "kick", "snare", "hat", "clap", "thunk", "knock", "woodblock",
+      "pluck-soft", "pluck-bright", "string",
+      "success", "complete", "confirm", "error", "denied", "prompt", "buzz",
+      "notify", "ding", "mention", "badge",
+      "modal-open", "modal-close", "drawer-open", "drawer-close",
+      "dropdown-open", "dropdown-close", "page-enter", "page-exit",
+      "toggle-on", "toggle-off",
+      "whoosh", "swoosh", "sparkle", "ping",
+      "keystroke", "carriage-return"
+    ],
+    "body": "$TM_FILENAME_BASE",
+    "description": "Built-in preset name (autocompletes the typed name)"
+  },
+
+  "@sound (single layer)": {
+    "scope": "acs",
+    "prefix": "@sound",
+    "body": [
+      "@sound ${1:my-sound} {",
+      "  ${2:body} {",
+      "    ${3:modal}: ${4:660hz};",
+      "    ratios: ${5:1, 1.5, 2.5};",
+      "    decays: ${6:0.5s, 0.25s, 0.12s};",
+      "    gain: ${7:1.0};",
+      "  }",
+      "}"
+    ],
+    "description": "Define a single-layer @sound preset"
+  },
+
+  "Layer (modal)": {
+    "scope": "acs",
+    "prefix": "modal",
+    "body": [
+      "${1:layer-name} {",
+      "  modal: ${2:880hz};",
+      "  ratios: ${3:1, 1.5, 2.5, 4};",
+      "  decays: ${4:0.6s, 0.3s, 0.15s, 0.08s};",
+      "  gains: ${5:1, 0.5, 0.3, 0.15};",
+      "  gain: ${6:1.5};",
+      "}"
+    ],
+    "description": "Modal synthesis layer"
+  },
+
+  "Layer (pluck Karplus-Strong)": {
+    "scope": "acs",
+    "prefix": "pluck",
+    "body": [
+      "${1:string} {",
+      "  pluck: ${2:220hz};",
+      "  brightness: ${3:0.7};",
+      "  decay: ${4:0.5s};",
+      "  gain: ${5:0.7};",
+      "}"
+    ],
+    "description": "Karplus-Strong pluck layer"
+  },
+
+  "Layer (osc + envelope)": {
+    "scope": "acs",
+    "prefix": "osc",
+    "body": [
+      "${1:body} {",
+      "  osc: ${2|sine,square,sawtooth,triangle|};",
+      "  freq: ${3:440hz};",
+      "  attack: ${4:1ms};",
+      "  decay: ${5:200ms};",
+      "  gain: ${6:0.5};",
+      "}"
+    ],
+    "description": "Tonal oscillator layer"
+  },
+
+  "Layer (osc + FM)": {
+    "scope": "acs",
+    "prefix": "fm",
+    "body": [
+      "${1:body} {",
+      "  osc: sine;",
+      "  freq: ${2:880hz};",
+      "  fm-mod: sine;",
+      "  fm-ratio: ${3:2.5};",
+      "  fm-depth: ${4:200};",
+      "  attack: ${5:1ms};",
+      "  decay: ${6:400ms};",
+      "  gain: ${7:0.4};",
+      "}"
+    ],
+    "description": "FM synthesis layer (bell-like)"
+  },
+
+  "Layer (noise burst)": {
+    "scope": "acs",
+    "prefix": "noise",
+    "body": [
+      "${1:body} {",
+      "  noise: ${2|white,pink|};",
+      "  filter: ${3|lowpass,highpass,bandpass|};",
+      "  cutoff: ${4:1500hz};",
+      "  q: ${5:0.7};",
+      "  attack: ${6:0.5ms};",
+      "  decay: ${7:80ms};",
+      "  gain: ${8:0.5};",
+      "}"
+    ],
+    "description": "Filtered noise burst layer"
+  },
+
+  ":root": {
+    "scope": "acs",
+    "prefix": ":root",
+    "body": [
+      ":root {",
+      "  master-volume: ${1:0.85};",
+      "  room: ${2|none,small-room,medium-room,large-hall,chamber|};",
+      "  master-eq-low: ${3:+1dB};",
+      "  master-eq-high: ${4:-1dB};",
+      "}"
+    ],
+    "description": "Global master configuration"
+  },
+
+  "@media reduced sound": {
+    "scope": "acs",
+    "prefix": "@media",
+    "body": [
+      "@media (prefers-reduced-sound: reduce) {",
+      "  :root { master-volume: 0; }",
+      "}"
+    ],
+    "description": "Accessibility reduced-sound media query"
+  },
+
+  "Bind sound to click": {
+    "scope": "acs",
+    "prefix": "sound-on-click",
+    "body": "sound-on-click: ${1|click,click-soft,tap,tap-tactile,tick,pop,bell,bell-soft,bell-bright,chime,chime-soft,glass,ting,gong,kick,snare,hat,clap,thunk,knock,woodblock,pluck-soft,pluck-bright,string,success,complete,confirm,error,denied,prompt,buzz,notify,ding,mention,badge,whoosh,swoosh,sparkle,ping,modal-open,modal-close,drawer-open,drawer-close,dropdown-open,dropdown-close,page-enter,page-exit,toggle-on,toggle-off|};",
+    "description": "Trigger a sound on click"
+  },
+
+  "Bind sound to enter": {
+    "scope": "acs",
+    "prefix": "sound-on-enter",
+    "body": "sound-on-enter: ${1|tap,tick,chime,whoosh|};",
+    "description": "Trigger a sound on hover/enter"
+  },
+
+  "Mood": {
+    "scope": "acs",
+    "prefix": "sound-mood",
+    "body": "sound-mood: ${1|warm,bright,glassy,metallic,organic,punchy,retro,airy,lofi|};",
+    "description": "Apply a mood overlay"
+  },
+
+  "Room": {
+    "scope": "acs",
+    "prefix": "room",
+    "body": "room: ${1|none,small-room,medium-room,large-hall,chamber,plate|};",
+    "description": "Set acoustic room (per-element or :root)"
+  },
+
+  "@sound-keyframes": {
+    "scope": "acs",
+    "prefix": "@sound-keyframes",
+    "body": [
+      "@sound-keyframes ${1:my-sequence} {",
+      "  0% { sound: ${2:tap}; }",
+      "  50% { sound: ${3:pop}; }",
+      "  100% { sound: ${4:bell}; }",
+      "}"
+    ],
+    "description": "Time-sequenced sound (use with sound-duration)"
+  },
+
+  "sound-sequence (inline)": {
+    "scope": "acs",
+    "prefix": "sound-sequence",
+    "body": "sound-sequence: ${1:tap} 0ms, ${2:pop} 100ms, ${3:bell} 200ms;",
+    "description": "Inline timed sequence — schedules each step"
+  },
+
+  "Volume with !raw modifier": {
+    "scope": "acs",
+    "prefix": "volume-raw",
+    "body": "volume: ${1:0.5} !raw;",
+    "description": "Volume that bypasses auto-calibration"
+  },
+
+  "velocity-filter": {
+    "scope": "acs",
+    "prefix": "velocity-filter",
+    "body": "velocity-filter: ${1|on,subtle,aggressive,off|};",
+    "description": "Soft hits darken, loud hits brighten"
+  },
+
+  "Layer (TPT SVF filter)": {
+    "scope": "acs",
+    "prefix": "tpt",
+    "body": "filter: ${1|tpt-lp,tpt-hp,tpt-bp,tpt-notch,tpt-peak|};",
+    "description": "TPT State-Variable Filter (Zavalishin)"
+  },
+
+  "@media (input-modality)": {
+    "scope": "acs",
+    "prefix": "@media-modality",
+    "body": [
+      "@media (input-modality: ${1|keyboard,mouse,touch,pen|}) {",
+      "  ${2:selector} { sound: ${3:tap}; }",
+      "}"
+    ],
+    "description": "Conditional rules per active input device"
+  },
+
+  "@sample (external audio file)": {
+    "scope": "acs",
+    "prefix": "@sample",
+    "body": "@sample ${1:my-thump} url(\"${2:sounds/thump.wav}\");",
+    "description": "Register an audio file under a name (use like a preset)"
+  },
+
+  "Layer (tones — additive sine sum)": {
+    "scope": "acs",
+    "prefix": "tones",
+    "body": [
+      "${1:layer-name} {",
+      "  tones: ${2:880hz};",
+      "  ratios: ${3:1, 2, 3};",
+      "  decays: ${4:0.6s, 0.3s, 0.18s};",
+      "  gains: ${5:1, 0.5, 0.25};",
+      "  gain: ${6:0.5};",
+      "}"
+    ],
+    "description": "Additive sine partials — clean UI tones (bell/chime/notify)"
+  },
+
+  "realtime (sub-1ms latency)": {
+    "scope": "acs",
+    "prefix": "realtime",
+    "body": "realtime: true;",
+    "description": "Route through AudioWorklet (single-mode modal/pluck or simple osc/noise only)"
+  },
+
+  "quality (CPU/quality knob)": {
+    "scope": "acs",
+    "prefix": "quality",
+    "body": "quality: ${1|low,medium,high|};",
+    "description": ":root only — caps voice pool / modal partials / reverb scale"
+  },
+
+  "sound-mood-mix": {
+    "scope": "acs",
+    "prefix": "sound-mood-mix",
+    "body": "sound-mood-mix: ${1:0.5};",
+    "description": "Wet/dry blend for sound-mood (0 = bypass, 1 = full)"
+  },
+
+  "var() — CSS-var bridge": {
+    "scope": "acs",
+    "prefix": "var",
+    "body": "var(--${1:token-name}, ${2:fallback})",
+    "description": "Reference a CSS custom property (with optional fallback)"
+  },
+
+  "@sound — bell (3-partial modal)": {
+    "scope": "acs",
+    "prefix": "@sound-bell",
+    "body": [
+      "@sound ${1:my-bell} {",
+      "  body {",
+      "    tones: ${2:880hz};",
+      "    ratios: 1, 2.76, 5.4;",
+      "    decays: 0.6s, 0.4s, 0.25s;",
+      "    gains:  1, 0.5, 0.3;",
+      "    gain: 0.4;",
+      "  }",
+      "}"
+    ],
+    "description": "Inharmonic bell — three additive sine partials with classic bell ratios"
+  },
+
+  "@sound — chime (octave + fifth)": {
+    "scope": "acs",
+    "prefix": "@sound-chime",
+    "body": [
+      "@sound ${1:my-chime} {",
+      "  body {",
+      "    tones: ${2:1046hz};",
+      "    ratios: 1, 2, 3;",
+      "    decays: 0.7s, 0.5s, 0.35s;",
+      "    gains:  1, 0.5, 0.25;",
+      "    gain: 0.32;",
+      "  }",
+      "}"
+    ],
+    "description": "Doorbell-style chime — harmonic stack (octave + fifth)"
+  },
+
+  "@sound — FM bell (inharmonic)": {
+    "scope": "acs",
+    "prefix": "@sound-fm-bell",
+    "body": [
+      "@sound ${1:fm-bell} {",
+      "  body {",
+      "    osc: sine;",
+      "    freq: ${2:880hz};",
+      "    fm-mod: sine;",
+      "    fm-ratio: 2.76;",
+      "    fm-depth: 350;",
+      "    attack: 1ms;",
+      "    decay: 600ms;",
+      "    gain: 0.35;",
+      "  }",
+      "}"
+    ],
+    "description": "FM-synthesis bell — inharmonic 2.76 ratio gives the classic 'badge' clang"
+  },
+
+  "@sound — snare (body + crack)": {
+    "scope": "acs",
+    "prefix": "@sound-snare",
+    "body": [
+      "@sound ${1:my-snare} {",
+      "  body {",
+      "    modal: ${2:200hz};",
+      "    ratios: 1, 1.6;",
+      "    decays: 0.10s, 0.05s;",
+      "    gains:  1, 0.4;",
+      "    gain: 0.5;",
+      "  }",
+      "  crack {",
+      "    noise: white;",
+      "    filter: highpass;",
+      "    cutoff: 4khz;",
+      "    attack: 0.5ms;",
+      "    decay: 80ms;",
+      "    gain: 0.4;",
+      "  }",
+      "}"
+    ],
+    "description": "Snare — modal body (low resonance) + filtered noise crack"
+  },
+
+  "@sound — kick (sub-thump)": {
+    "scope": "acs",
+    "prefix": "@sound-kick",
+    "body": [
+      "@sound ${1:my-kick} {",
+      "  body {",
+      "    osc: sine;",
+      "    freq: ${2:55hz};",
+      "    pitch-from: 200hz;",
+      "    attack: 1ms;",
+      "    decay: 250ms;",
+      "    gain: 0.7;",
+      "  }",
+      "}"
+    ],
+    "description": "Drum kick — sub-bass sine with pitch sweep down (200 → 55 Hz)"
+  },
+
+  "@sound — click (filtered noise)": {
+    "scope": "acs",
+    "prefix": "@sound-click",
+    "body": [
+      "@sound ${1:my-click} {",
+      "  burst {",
+      "    noise: white;",
+      "    filter: highpass;",
+      "    cutoff: 2500hz;",
+      "    attack: 0.5ms;",
+      "    decay: 15ms;",
+      "    gain: 0.4;",
+      "  }",
+      "}"
+    ],
+    "description": "Crisp UI click — short white-noise burst through highpass"
+  },
+
+  "@sound — fast-tap (worklet realtime)": {
+    "scope": "acs",
+    "prefix": "@sound-fast-tap",
+    "body": [
+      "@sound ${1:fast-tap} {",
+      "  body {",
+      "    osc: sine;",
+      "    freq: ${2:1200hz};",
+      "    attack: 1ms;",
+      "    decay: 25ms;",
+      "    gain: 0.3;",
+      "    realtime: true;",
+      "  }",
+      "}"
+    ],
+    "description": "Sub-1ms-latency tap routed through the AudioWorklet voice processor"
+  },
+
+  "@sound — pluck (Karplus-Strong)": {
+    "scope": "acs",
+    "prefix": "@sound-pluck",
+    "body": [
+      "@sound ${1:my-pluck} {",
+      "  string {",
+      "    pluck: ${2:440hz};",
+      "    brightness: 0.6;",
+      "    decay: 400ms;",
+      "    gain: 0.25;",
+      "  }",
+      "}"
+    ],
+    "description": "String pluck — Karplus-Strong delay-line synthesis"
+  },
+
+  "@sound — multi-step success arpeggio": {
+    "scope": "acs",
+    "prefix": "@sound-success",
+    "body": [
+      "@sound ${1:save-ok} {",
+      "  step1 { tones: 660hz;  ratios: 1; decays: 0.15s; gains: 1; gain: 0.3; start: 0ms;   }",
+      "  step2 { tones: 880hz;  ratios: 1; decays: 0.20s; gains: 1; gain: 0.3; start: 80ms;  }",
+      "  step3 { tones: 1320hz; ratios: 1; decays: 0.30s; gains: 1; gain: 0.3; start: 160ms; }",
+      "}"
+    ],
+    "description": "Three-note rising arpeggio — staggered via `start:` offsets"
+  },
+
+  "Cascade — button variants": {
+    "scope": "acs",
+    "prefix": "btn-variants",
+    "body": [
+      "button             { sound-on-click: tap-tactile; }",
+      "button.primary     { sound-on-click: pop;     pitch: +1st; }",
+      "button.confirm     { sound-on-click: success; }",
+      "button.danger      { sound-on-click: error;   volume: 0.7; }",
+      "button:disabled    { sound: none; }"
+    ],
+    "description": "Drop-in button cascade — tag selector + variants + per-element decls"
+  },
+
+  "Cascade — toast on appear": {
+    "scope": "acs",
+    "prefix": "toast-cascade",
+    "body": [
+      "[role=alert],",
+      "[data-state=success]  { sound-on-appear: success; }",
+      "[data-state=error]    { sound-on-appear: denied; }",
+      "[data-state=info]     { sound-on-appear: ding; }"
+    ],
+    "description": "Toast / alert cascade — IntersectionObserver fires on mount"
+  },
+
+  "Cascade — switch state": {
+    "scope": "acs",
+    "prefix": "switch-cascade",
+    "body": [
+      "[data-on=\"true\"]  { sound-on-click: toggle-on; }",
+      "[data-on=\"false\"] { sound-on-click: toggle-off; }"
+    ],
+    "description": "Switch / toggle cascade — attribute-driven state to sound mapping"
+  },
+
+  "Cascade — input typing": {
+    "scope": "acs",
+    "prefix": "input-cascade",
+    "body": [
+      "input:on-focus  { sound: tick; volume: 0.4; }",
+      "input:on-input  { sound: keystroke; volume: 0.35; }"
+    ],
+    "description": "Input cascade — focus tick + per-keystroke whisper"
+  },
+
+  "Cascade — dialog with room override": {
+    "scope": "acs",
+    "prefix": "dialog-cascade",
+    "body": [
+      "dialog[open] {",
+      "  sound-on-appear: modal-open;",
+      "  room: small-room;",
+      "}",
+      "dialog[open] button.confirm { sound-on-click: success; }"
+    ],
+    "description": "Dialog cascade — open chime + tighter acoustic inside the modal"
+  },
+
+  ":root config block": {
+    "scope": "acs",
+    "prefix": ":root-config",
+    "body": [
+      ":root {",
+      "  master-volume: ${1:0.85};",
+      "  room: ${2|none,small-room,medium-room,large-hall,chamber,plate|};",
+      "  sound-mood: ${3|warm,bright,glassy,metallic,organic,punchy,retro,airy,lofi|};",
+      "  master-eq-low: 0dB;",
+      "  master-eq-high: 0dB;",
+      "  quality: ${4|low,medium,high|};",
+      "}"
+    ],
+    "description": "Full :root config — master gain, room, mood, EQ, quality"
+  },
+
+  "Reduced-sound media query": {
+    "scope": "acs",
+    "prefix": "@media-reduced",
+    "body": [
+      "@media (prefers-reduced-sound: reduce) {",
+      "  :root { master-volume: 0; }",
+      "}"
+    ],
+    "description": "Mute everything when the user prefers reduced sound (a11y)"
+  },
+
+  "FM modulation params": {
+    "scope": "acs",
+    "prefix": "fm",
+    "body": [
+      "fm-mod: ${1|sine,square,sawtooth,triangle|};",
+      "fm-ratio: ${2:2.76};",
+      "fm-depth: ${3:200};"
+    ],
+    "description": "FM modulator triplet — wave / ratio / depth"
+  },
+
+  "Filter (TPT-SVF)": {
+    "scope": "acs",
+    "prefix": "tpt-filter",
+    "body": [
+      "filter: ${1|tpt-lp,tpt-hp,tpt-bp,tpt-notch,tpt-peak|};",
+      "cutoff: ${2:1500hz};",
+      "q: ${3:0.7};"
+    ],
+    "description": "TPT-SVF filter (Zavalishin) — better cutoff accuracy than RBJ biquads at high freq"
+  },
+
+  "Volume with !important": {
+    "scope": "acs",
+    "prefix": "volume-important",
+    "body": "volume: ${1:0.5} !important;",
+    "description": "Volume that wins over more-specific rules (silence subtree, override theme)"
+  },
+
+  "Pitch shift": {
+    "scope": "acs",
+    "prefix": "pitch",
+    "body": "pitch: ${1|+1st,+2st,+5st,+12st,-1st,-2st,-5st,-12st|};",
+    "description": "Pitch shift in semitones (frequency multiplier)"
+  }
+}
