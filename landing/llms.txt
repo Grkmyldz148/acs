@@ -1,0 +1,72 @@
+# ACS — Audio Cascading Style Sheets
+
+> ACS is a CSS-like declarative stylesheet language for audio. Where CSS describes how an HTML element should look, ACS describes how it should sound. Same selectors, same cascade — properties target audio (`sound`, `volume`, `pitch`, `room`, `sound-mood`). One `<link rel="audiostyle">` and your buttons sound like buttons. No event handlers, no `play()` calls. The cascade does the wiring.
+
+The runtime is a zero-dependency Web Audio engine that auto-loads any `<link rel="audiostyle">` and a built-in library of 49 calibrated presets, then attaches one document-level listener per event type. Click anywhere — sound fires through the cascade.
+
+## Quick example
+
+```css
+:root            { master-volume: 0.85; room: medium-room; }
+button           { sound-on-click: tap-tactile; }
+button.primary   { sound-on-click: pop;   pitch: +1st; }
+button.danger    { sound-on-click: error; volume: 0.7; }
+input:on-input   { sound: keystroke; }
+dialog[open]     { sound-on-appear: modal-open; room: small-room; }
+
+@media (prefers-reduced-sound: reduce) {
+  :root { master-volume: 0; }
+}
+```
+
+## Install
+
+- npm: `npm install acs-audio`
+- CDN: `<script type="module" src="https://cdn.jsdelivr.net/gh/Grkmyldz148/acs@main/poc/runtime.js"></script>`
+- VSCode/Cursor: `acs-language-0.9.0.vsix` from the GitHub Releases page
+
+## Docs
+
+- [README](https://github.com/Grkmyldz148/acs/blob/main/README.md): consolidated language reference, install instructions, examples, browser support
+- [CHANGELOG](https://github.com/Grkmyldz148/acs/blob/main/CHANGELOG.md): release notes for every phase
+- [Runtime API types](https://github.com/Grkmyldz148/acs/blob/main/types/acs.d.ts): TypeScript definitions covering `window.ACS`, helpers, devtools
+
+## Authoring features
+
+- **49 built-in presets** — `tap`, `pop`, `bell`, `success`, `notify`, `modal-open`, `keystroke`, `tick`, `error`, `denied`, etc. Calibrated post-render so `volume: 0.5` sounds equally loud across the library (4.8 dB spread).
+- **`@sound` blocks** — define custom voices using layer primitives (`modal`, `pluck`, `osc` with optional FM, `noise`, `tones`).
+- **`@sample <name> url("...")`** — register external audio files as preset names.
+- **9 mood overlays** — `warm`, `bright`, `glassy`, `metallic`, `organic`, `punchy`, `retro`, `airy`, `lofi`. Apply with `sound-mood: lofi; sound-mood-mix: 0.4;` (40 % wet).
+- **Per-element rooms** — `dry`, `small-room`, `medium-room`, `large-room`, `hall`, `plate`. Inheritable, override per element.
+- **CSS-var bridge** — `var(--token)` resolves in any ACS value.
+- **Pseudo-states** — `:on-click`, `:on-input`, `:on-focus`, `:on-appear`, `:on-hover`, `:on-keydown`.
+- **`@media (prefers-reduced-sound: reduce)`** — accessibility fallback (browsers will adopt the proposal eventually).
+- **`!important`** — override specificity when needed.
+- **8 theme packs** — `apple`, `material`, `retro`, `brutalist`, `cinematic`, `bauhaus`, `terminal`, `ambient`. Drop one in to skin an entire app.
+
+## Programmatic API
+
+```js
+window.ACS.trigger({ sound: "pop", pitch: "+2st" }, "click");
+window.ACS.setMasterConfig({ "master-volume": 0.7, room: "small-room" });
+window.ACS.devtools.mount();    // last 20 triggers + state overlay
+
+// React helper (no peer dep — hooks are injected)
+import { useCallback } from "react";
+const ding = window.ACS.helpers.useSound({ useCallback }, "ding");
+return <button onClick={ding}>Notify</button>;
+```
+
+## Architecture
+
+ACS file → parse → cascade rules → resolveFor(element, event) → flatten + inheritance → preset runner → voice graph (modal / tones / pluck / osc / noise) → optional saturation + pan → room chain (dry + convolver + wet) → master EQ → master gain → limiter → speakers.
+
+Single document-level event listener per event type — at fire time the runtime walks up from the target and resolves the cascade at each ancestor. Dynamic state (added classes, attribute changes) is always current.
+
+## Browser support
+
+Anything with the [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API): Chrome, Firefox, Safari ≥ 14, Edge. Renders silent until first user interaction (autoplay policy); the runtime auto-resumes the AudioContext on the first `pointerdown` / `keydown`.
+
+## License
+
+[MIT](https://github.com/Grkmyldz148/acs/blob/main/LICENSE).
