@@ -37,6 +37,7 @@
     "build:runtime": "node tools/bundle.mjs",
     "build:landing": "node tools/build-landing.mjs",
     "build:webview": "node tools/build-webview-picker.mjs",
+    "build:site": "npm run build && node tools/build-site.mjs",
     "test": "node tests/run-all.mjs",
     "audit": "node tools/audit.mjs",
     "lint": "node tools/lint-acs.mjs poc/*.acs",
@@ -68,7 +69,7 @@
     "type": "git",
     "url": "git+https://github.com/Grkmyldz148/acs.git"
   },
-  "homepage": "https://USER.github.io/acs",
+  "homepage": "https://audiocss.dev",
   "bugs": {
     "url": "https://github.com/Grkmyldz148/acs/issues"
   },
