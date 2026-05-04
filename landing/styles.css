@@ -85,14 +85,18 @@
 html, body {
   margin: 0;
   padding: 0;
-  /* Hard clamp on horizontal scroll. Any rogue overflowing element
-   * (canvas wider than viewport, code window, fixed tweaks panel,
-   * etc.) was making the whole page horizontally scrollable on mobile.
-   * `overflow-x: clip` is the modern equivalent of `hidden` that
-   * doesn't establish a new containing block — fewer side effects. */
-  overflow-x: clip;
-  /* Fallback for engines that don't support `clip` yet. */
+}
+/* Hard clamp on horizontal scroll — applied ONLY on <html>, not <body>.
+ * Putting `overflow-x: hidden` on <body> turns body into the containing
+ * block for `position: sticky` descendants, which silently breaks the
+ * docs sidebar / TOC. <html> as the clamp keeps the layout viewport
+ * tight while leaving body's overflow visible for sticky to attach to
+ * the window scroll instead. Modern browsers honour `clip`; the
+ * `hidden` fallback comes first so the cascade settles on `clip` where
+ * supported. */
+html {
   overflow-x: hidden;
+  overflow-x: clip;
 }
 body {
   font-family: var(--font-sans);
