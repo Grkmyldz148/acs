@@ -6,6 +6,19 @@ correspond to internal development milestones.
 
 ## [Unreleased]
 
+## [0.9.1] — 2026-05-04
+
+### Fixed
+- **npm package layout** — `dist/runtime.mjs` resolves
+  `new URL("../defaults.acs", import.meta.url)` against its own bundler
+  location, so `defaults.acs` and `worklets/click-processor.js` need to
+  live next to the runtime in `dist/`. The 0.9.0 publish only shipped
+  them under `poc/`, so consumers installing through `npm install
+  acs-audio` lost the entire 49-preset library at runtime. Bundler now
+  mirrors both into `dist/` at build time.
+
+
+
 Picker layer editor: knob-based DSL editor for the @sound block of any
 preset. Source dropdown, freq, ratios/decays/gains text inputs, FM
 modulator (osc layers), pitch-from sweep, detune, brightness (pluck),

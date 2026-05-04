@@ -13,7 +13,7 @@
  * package adds nothing to the user's lockfile.
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -146,7 +146,23 @@ writeFileSync(resolve(OUT_DIR, "runtime.cjs"), cjs);
 const parseSrc = readFileSync(resolve(ROOT, "poc/runtime/parse.js"), "utf8");
 writeFileSync(resolve(OUT_DIR, "parse.mjs"), banner + parseSrc);
 
+// runtime.mjs auto-fetches `../defaults.acs` and `./worklets/click-processor.js`
+// relative to its own URL — i.e. `dist/defaults.acs` and `dist/worklets/...`.
+// Bundlers (Vite, Webpack) hoist `node_modules/acs-audio/dist/runtime.mjs` and
+// resolve those URLs against `dist/`, so the assets must live there too. The
+// canonical sources are still `poc/defaults.acs` and `poc/runtime/worklets/`;
+// we just mirror them into `dist/` at build time so the published package is
+// drop-in for any `npm install acs-audio` consumer.
+copyFileSync(resolve(ROOT, "poc/defaults.acs"), resolve(OUT_DIR, "defaults.acs"));
+const WORKLET_OUT = resolve(OUT_DIR, "worklets");
+if (!existsSync(WORKLET_OUT)) mkdirSync(WORKLET_OUT, { recursive: true });
+copyFileSync(
+  resolve(ROOT, "poc/runtime/worklets/click-processor.js"),
+  resolve(WORKLET_OUT, "click-processor.js"),
+);
+
 console.log(
   `[bundle] wrote dist/runtime.mjs (${(esm.length / 1024).toFixed(1)} KB), ` +
-  `dist/runtime.cjs, dist/parse.mjs from ${order.length} source modules.`
+  `dist/runtime.cjs, dist/parse.mjs, dist/defaults.acs, dist/worklets/click-processor.js ` +
+  `from ${order.length} source modules.`
 );

@@ -2,15 +2,20 @@
   "name": "acs-language",
   "displayName": "ACS — Audio Cascade Sheets",
   "description": "Language support and file icon for .acs (Audio Cascade Sheets).",
-  "version": "0.9.0",
-  "publisher": "acs",
+  "version": "0.9.1",
+  "publisher": "audio-cascading-style-sheets",
   "engines": {
     "vscode": "^1.50.0"
   },
   "categories": ["Programming Languages", "Formatters"],
+  "icon": "icons/acs-128.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/acs-lang/acs"
+    "url": "https://github.com/Grkmyldz148/acs"
+  },
+  "homepage": "https://audiocss.dev",
+  "bugs": {
+    "url": "https://github.com/Grkmyldz148/acs/issues"
   },
   "license": "MIT",
   "main": "./extension.js",
