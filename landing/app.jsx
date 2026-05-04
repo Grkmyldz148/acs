@@ -67,6 +67,42 @@ function App() {
     return () => document.removeEventListener('mouseover', handler);
   }, [soundOn, tweaks.audioReactive]);
 
+  // When the home page is reached via /#components etc. the browser tries
+  // to scroll to the hash *before* React mounts the components — so it
+  // ends up at top: 0. Once we've rendered, find the hash target and
+  // scroll to it manually with the fixed-header offset baked in.
+  useEffectApp(() => {
+    if (!window.location.hash) return;
+    const id = window.location.hash.slice(1);
+    // Two rAF ticks lets components-gallery / features render before we
+    // measure offsetTop — first tick the React tree commits, second tick
+    // the layout settles.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const target = document.getElementById(id);
+        if (!target) return;
+        const headerHeight = 56;
+        const top = target.getBoundingClientRect().top + window.scrollY - headerHeight - 8;
+        window.scrollTo({ top, behavior: 'smooth' });
+      });
+    });
+  }, []);
+
+  // Global toast — sliding pill at bottom-center, fired by anything in
+  // the app via window.acsToast(message). Used by Install, Hero copy
+  // cards, components-gallery, etc. so each component doesn't have to
+  // ship its own toast UI.
+  const [toast, setToast] = useStateApp({ msg: '', show: false });
+  useEffectApp(() => {
+    let timer = null;
+    window.acsToast = (msg) => {
+      setToast({ msg, show: true });
+      clearTimeout(timer);
+      timer = setTimeout(() => setToast((t) => ({ ...t, show: false })), 2200);
+    };
+    return () => { delete window.acsToast; clearTimeout(timer); };
+  }, []);
+
   return (
     <>
       <Nav theme={theme} setTheme={setTheme} soundOn={soundOn} onToggleSound={toggleSound} />
@@ -83,6 +119,13 @@ function App() {
         <Roadmap />
       </main>
       <Footer />
+
+      <div className={`acs-global-toast ${toast.show ? 'show' : ''}`} role="status" aria-live="polite">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <path d="M3 8.5L6 11.5L13 4.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <span>{toast.msg}</span>
+      </div>
 
       <TweaksPanel title="Tweaks">
         <TweakSection title="Accent">

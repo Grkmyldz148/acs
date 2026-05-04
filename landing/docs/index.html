@@ -53,10 +53,20 @@
       <a href="https://marketplace.visualstudio.com/items?itemName=audio-cascading-style-sheets.acs-language" target="_blank" rel="noopener">VSCode</a>
       <a href="https://open-vsx.org/extension/audio-cascading-style-sheets/acs-language" target="_blank" rel="noopener">Open&nbsp;VSX</a>
       <a href="https://www.npmjs.com/package/acs-audio" target="_blank" rel="noopener">npm</a>
-      <a href="https://github.com/Grkmyldz148/acs" target="_blank" rel="noopener" aria-label="GitHub">
+    </nav>
+    <div class="docs-nav-actions">
+      <button class="docs-search-trigger" type="button" aria-label="Search docs (Cmd+K)">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+          <circle cx="7" cy="7" r="5"/>
+          <path d="M14 14L11 11" strokeLinecap="round"/>
+        </svg>
+        <span>Search</span>
+        <kbd class="docs-search-kbd">⌘K</kbd>
+      </button>
+      <a class="docs-github" href="https://github.com/Grkmyldz148/acs" target="_blank" rel="noopener" aria-label="GitHub">
         <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
       </a>
-    </nav>
+    </div>
   </div>
 </header>
 
@@ -188,6 +198,35 @@
 
 </div>
 
+<!-- ── Copy toast (slides up from bottom-center, shared by every code block) ── -->
+<div class="docs-toast" id="docs-toast" role="status" aria-live="polite">
+  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+    <path d="M3 8.5L6 11.5L13 4.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+  <span class="docs-toast-msg">Copied to clipboard</span>
+</div>
+
+<!-- ── Search modal (Cmd+K) ── -->
+<div class="docs-search-overlay" hidden>
+  <div class="docs-search-backdrop" data-close></div>
+  <div class="docs-search-panel" role="dialog" aria-modal="true" aria-label="Search documentation">
+    <div class="docs-search-input-row">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+        <circle cx="7" cy="7" r="5"/>
+        <path d="M14 14L11 11" strokeLinecap="round"/>
+      </svg>
+      <input type="text" class="docs-search-input" placeholder="Search documentation…" aria-label="Search query" autocomplete="off" spellcheck="false" />
+      <kbd class="docs-search-esc">esc</kbd>
+    </div>
+    <div class="docs-search-results" role="listbox"></div>
+    <div class="docs-search-footer">
+      <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+      <span><kbd>↵</kbd> open</span>
+      <span><kbd>esc</kbd> close</span>
+    </div>
+  </div>
+</div>
+
 <!-- ── Footer (mini, links back to home for full one) ── -->
 <footer style="border-top:1px solid var(--line-2);padding:32px 24px;text-align:center;color:var(--ink-3);font-size:var(--tx-2)">
   <p>
@@ -273,6 +312,263 @@
   const saved = localStorage.getItem('acs-theme');
   const sys = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', saved || sys);
+})();
+
+/* ─── Code-block copy buttons (auto-decorate every <pre>) ───
+ *
+ * Walks every <pre> in the docs article and wraps it in a positioned
+ * container with a hover-revealed copy button (top-right). On click:
+ *   - read the inner code text (stripped of trailing newline)
+ *   - navigator.clipboard.writeText, with execCommand fallback
+ *   - flash a single shared toast at bottom-center
+ *
+ * One toast for the whole page; we reset its show animation by
+ * removing + re-adding the class, so back-to-back copies still feel
+ * responsive.
+ */
+(function () {
+  const article = document.querySelector('.docs-article');
+  const toast   = document.getElementById('docs-toast');
+  if (!article || !toast) return;
+  const toastMsg = toast.querySelector('.docs-toast-msg');
+  let toastTimer = null;
+
+  function showToast(text) {
+    if (toastMsg) toastMsg.textContent = text;
+    toast.classList.remove('show');
+    void toast.offsetWidth;     // force reflow so the next add re-runs the animation
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1900);
+  }
+
+  async function copy(text) {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      return true;
+    } catch { return false; }
+  }
+
+  function trim(s) { return s.replace(/^\n+|\n+$/g, ''); }
+  function preview(s) {
+    const first = trim(s).split('\n')[0].trim();
+    if (first.length <= 36) return first;
+    return first.slice(0, 33) + '…';
+  }
+
+  article.querySelectorAll('pre').forEach((pre) => {
+    if (pre.parentElement?.classList.contains('docs-pre-wrap')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'docs-pre-wrap';
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.appendChild(pre);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'docs-copy-btn';
+    btn.setAttribute('aria-label', 'Copy code to clipboard');
+    btn.innerHTML = `
+      <svg class="docs-copy-icon docs-copy-icon-default" viewBox="0 0 16 16" width="14" height="14"
+           fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <rect x="4" y="4" width="9" height="10" rx="1.5"/>
+        <path d="M3 11V3a1.5 1.5 0 0 1 1.5-1.5H11" stroke-linecap="round"/>
+      </svg>
+      <svg class="docs-copy-icon docs-copy-icon-done" viewBox="0 0 16 16" width="14" height="14"
+           fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M3 8.5L6 11.5L13 4.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+    btn.addEventListener('click', async () => {
+      const text = trim(pre.innerText);
+      const ok = await copy(text);
+      if (!ok) return;
+      btn.classList.add('done');
+      showToast('Copied — ' + preview(text));
+      setTimeout(() => btn.classList.remove('done'), 1400);
+    });
+    wrap.appendChild(btn);
+  });
+})();
+
+/* ─── Search modal (Cmd+K) ───
+ *
+ * Builds a flat index from the sidebar (curated section→items map),
+ * augments it with article body text snippets so we can highlight a
+ * matched line beneath the title. Fuzzy match is intentionally simple:
+ * tokenised case-insensitive substring with a "starts-with" boost so
+ * "ins" → Install ranks above "Install".
+ */
+(function () {
+  const trigger    = document.querySelector('.docs-search-trigger');
+  const overlay    = document.querySelector('.docs-search-overlay');
+  const input      = overlay?.querySelector('.docs-search-input');
+  const resultsEl  = overlay?.querySelector('.docs-search-results');
+  const sidebar    = document.querySelector('.docs-sidebar');
+  const article    = document.querySelector('.docs-article');
+  if (!trigger || !overlay || !sidebar || !article) return;
+
+  // ── Build index ──
+  const items = [];
+  sidebar.querySelectorAll('h5').forEach((h5) => {
+    const sectionName = h5.textContent.trim();
+    const ul = h5.nextElementSibling;
+    if (!ul || ul.tagName !== 'UL') return;
+    ul.querySelectorAll('a[href^="#"]').forEach((a) => {
+      const id = a.getAttribute('href').slice(1);
+      const target = document.getElementById(id);
+      if (!target) return;
+      // Pull a short snippet from the section's first <p>.
+      const firstP = target.querySelector('p');
+      const snippet = firstP ? firstP.textContent.trim().replace(/\s+/g, ' ').slice(0, 140) : '';
+      items.push({
+        id,
+        title: a.textContent.trim(),
+        section: sectionName,
+        snippet,
+      });
+    });
+  });
+
+  // ── Match scoring ──
+  function scoreItem(item, q) {
+    if (!q) return 1;
+    const ql = q.toLowerCase();
+    const t  = item.title.toLowerCase();
+    const s  = item.section.toLowerCase();
+    const body = (item.snippet || '').toLowerCase();
+    if (t.startsWith(ql))      return 1000;
+    if (t.includes(ql))        return 800;
+    if (s.startsWith(ql))      return 500;
+    if (s.includes(ql))        return 300;
+    if (body.includes(ql))     return 200;
+    // Token-by-token fallback: every word in q must appear in title+section+body.
+    const haystack = `${t} ${s} ${body}`;
+    const tokens = ql.split(/\s+/).filter(Boolean);
+    if (tokens.every((tok) => haystack.includes(tok))) return 100;
+    return 0;
+  }
+
+  function highlight(text, q) {
+    if (!q) return text;
+    const ql = q.toLowerCase();
+    const i  = text.toLowerCase().indexOf(ql);
+    if (i < 0) return text;
+    const escape = (s) => s.replace(/[&<>]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;' })[c]);
+    return escape(text.slice(0, i)) +
+      `<mark>${escape(text.slice(i, i + q.length))}</mark>` +
+      escape(text.slice(i + q.length));
+  }
+
+  // ── Render ──
+  let active = 0;
+  function render() {
+    const q = input.value.trim();
+    let scored = items.map((it) => ({ it, s: scoreItem(it, q) })).filter((x) => x.s > 0);
+    scored.sort((a, b) => b.s - a.s);
+    if (!q) scored = scored.slice(0, 24);     // cap initial list at first 24
+    if (active >= scored.length) active = Math.max(0, scored.length - 1);
+
+    if (!scored.length) {
+      resultsEl.innerHTML = `<div class="docs-search-empty">No results for <code>${q.replace(/[<>&]/g,'')}</code></div>`;
+      return;
+    }
+
+    resultsEl.innerHTML = scored.map(({ it }, i) => `
+      <button class="docs-search-result ${i === active ? 'active' : ''}" data-id="${it.id}" data-i="${i}">
+        <span class="docs-search-hash" aria-hidden="true">#</span>
+        <span class="docs-search-body">
+          <span class="docs-search-title">${highlight(it.title, q)}</span>
+          <span class="docs-search-section">${it.section}${it.snippet ? ' · ' + highlight(it.snippet, q) : ''}</span>
+        </span>
+        <span class="docs-search-arrow" aria-hidden="true">↵</span>
+      </button>
+    `).join('');
+
+    Array.from(resultsEl.querySelectorAll('[data-id]')).forEach((btn, i) => {
+      btn.addEventListener('mousemove', () => { if (active !== i) { active = i; render(); } });
+      btn.addEventListener('click', () => { activate(scored[i].it.id); });
+    });
+  }
+
+  // ── Activation: close + scroll to anchor (with fixed-header offset) ──
+  function activate(id) {
+    close();
+    const target = document.getElementById(id);
+    if (!target) return;
+    history.replaceState(null, '', '#' + id);
+    requestAnimationFrame(() => {
+      const top = target.getBoundingClientRect().top + window.scrollY - 70;
+      window.scrollTo({ top, behavior: 'smooth' });
+    });
+  }
+
+  // ── Open / close ──
+  // Open in two steps so the modal paints first and the heavy result
+  // render happens off the critical path. The input gets focused on
+  // the same frame as the show transition; render fills in 1 frame
+  // later, giving the user something visible while the work runs.
+  function open() {
+    overlay.hidden = false;
+    input.value = '';
+    active = 0;
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => {
+      overlay.classList.add('open');
+      input.focus({ preventScroll: true });
+      requestAnimationFrame(render);
+    });
+  }
+  function close() {
+    overlay.classList.remove('open');
+    setTimeout(() => { overlay.hidden = true; }, 160);
+    document.body.style.overflow = '';
+  }
+
+  trigger.addEventListener('click', open);
+  overlay.addEventListener('click', (e) => { if (e.target.dataset.close !== undefined) close(); });
+  input.addEventListener('input', () => { active = 0; render(); });
+
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      overlay.hidden ? open() : close();
+      return;
+    }
+    if (overlay.hidden) {
+      if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        open();
+      }
+      return;
+    }
+    if (e.key === 'Escape')      { e.preventDefault(); close(); }
+    else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const total = resultsEl.querySelectorAll('[data-id]').length;
+      if (total) { active = (active + 1) % total; render(); }
+    }
+    else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const total = resultsEl.querySelectorAll('[data-id]').length;
+      if (total) { active = (active - 1 + total) % total; render(); }
+    }
+    else if (e.key === 'Enter') {
+      e.preventDefault();
+      const btn = resultsEl.querySelectorAll('[data-id]')[active];
+      if (btn) activate(btn.dataset.id);
+    }
+  });
 })();
 </script>
 

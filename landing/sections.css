@@ -234,6 +234,115 @@
 .tryout.danger { border-color: oklch(0.7 0.18 25); color: oklch(0.6 0.18 25); }
 :root[data-theme="dark"] .tryout.danger { color: oklch(0.78 0.16 25); }
 
+/* ── Hero install card — copy-to-clipboard one-shot ─────────── */
+.hero-install-card {
+  margin-top: 12px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--tx-2);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms, background-color 120ms, transform 120ms;
+}
+.hero-install-card:hover {
+  border-color: var(--accent);
+  background: var(--bg);
+}
+.hero-install-card:active { transform: scale(0.997); }
+.hero-install-card.copied {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.hero-install-prompt {
+  color: var(--accent);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.hero-install-cmd {
+  flex: 1;
+  color: var(--ink);
+  font-size: var(--tx-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hero-install-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--bg-sunk);
+  color: var(--ink-2);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  transition: background-color 120ms, color 120ms;
+}
+.hero-install-card:hover .hero-install-cta {
+  background: var(--ink);
+  color: var(--bg);
+}
+.hero-install-card.copied .hero-install-cta {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.hero-install-cta svg { width: 12px; height: 12px; }
+
+/* ── Hero toast — slides up from bottom-center on copy ───────── */
+.hero-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translate(-50%, 24px);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: 999px;
+  font-size: var(--tx-2);
+  font-weight: 500;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms cubic-bezier(0.32, 0.72, 0.32, 1),
+              transform 220ms cubic-bezier(0.32, 0.72, 0.32, 1);
+  z-index: 100;
+  white-space: nowrap;
+}
+.hero-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.hero-toast svg {
+  width: 14px;
+  height: 14px;
+  color: oklch(0.78 0.18 145);
+  flex-shrink: 0;
+}
+.hero-toast code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 12px;
+  color: inherit;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-toast { transition: opacity 120ms; }
+  .hero-toast.show { transform: translate(-50%, 0); }
+}
+
 .hero-soundnudge {
   position: absolute;
   z-index: 5;
@@ -596,3 +705,72 @@
 .status-next { color: var(--accent); }
 .status-planned { color: var(--ink-3); }
 .road-planned { opacity: 0.7; }
+
+/* ── Install: "more" link below the checks ── */
+.install-more {
+  margin-top: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-2);
+  text-decoration: none;
+  font-size: var(--tx-2);
+  font-weight: 500;
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 1px;
+  transition: color 120ms, border-color 120ms;
+}
+.install-more:hover {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+.install-more svg {
+  width: 12px; height: 12px;
+  transition: transform 140ms;
+}
+.install-more:hover svg { transform: translateX(2px); }
+
+/* ── Install copy button — copied state ── */
+.copy-btn.copied {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.copy-btn.copied svg { width: 12px; height: 12px; margin-right: 2px; }
+
+/* ── Global toast (window.acsToast) ── */
+.acs-global-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translate(-50%, 24px);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 18px;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: 999px;
+  font-size: var(--tx-2);
+  font-weight: 500;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms cubic-bezier(0.32, 0.72, 0.32, 1),
+              transform 200ms cubic-bezier(0.32, 0.72, 0.32, 1);
+  z-index: 250;
+  white-space: nowrap;
+  max-width: calc(100vw - 32px);
+}
+.acs-global-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.acs-global-toast svg {
+  color: oklch(0.78 0.18 145);
+  flex-shrink: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .acs-global-toast { transition: opacity 120ms; }
+  .acs-global-toast.show { transform: translate(-50%, 0); }
+}

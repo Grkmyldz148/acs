@@ -8,13 +8,11 @@ a `@sound` block, you describe what you want in English, and the skill
 walks a deterministic pipeline that picks a base layer, applies mood
 adjectives, and emits a calibrated, paste-ready ACS preset.
 
-The format mirrors [`@web-kits/audio`'s create-sound skill][upstream] —
-same atomic-rule pattern, same `rules/*.md` layout, same orchestrator
-in `SKILL.md`. The difference is the output format: ACS's declarative
-DSL (`@sound name { layer { source: …, decay: …, gain: … } }`) instead
-of `@web-kits`'s TypeScript `SoundDefinition`.
-
-[upstream]: https://github.com/raphaelsalaja/audio/tree/main/skills/create-sound
+The skill is built around an atomic-rule pattern: every decision the
+agent has to make (pick a base layer, apply a mood, validate a gain
+budget) is its own short markdown file under `rules/`, and `SKILL.md`
+orchestrates them. The output format is ACS's declarative DSL —
+`@sound name { layer { source: …, decay: …, gain: … } }`.
 
 ## What it does
 
@@ -89,9 +87,9 @@ ACS parser to catch syntax errors at authoring time.
 
 ## Why this format
 
-The format is deliberately copied from `@web-kits/audio` because the
-mental model — atomic decision documents, each one independently
-addressable, composed by a thin orchestrator — works well for AI agents.
+The format is deliberately built around atomic decision documents —
+each one independently addressable, composed by a thin orchestrator —
+because that mental model works well for AI agents.
 The agent doesn't need to load all 1500 lines at once; it can read the
 section of `SKILL.md` that describes the current pipeline step, find
 the relevant `rules/*.md` files referenced, and decide. Agents stay in

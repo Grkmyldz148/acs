@@ -173,3 +173,59 @@ input, textarea {
  *   .alert[data-state="error"] { sound: denied; pitch: -2st; }
  *
  *  The cascade picks the most specific match, exactly like CSS. ── */
+
+/* ── Custom @sound: tasteful directional carousel slide ──────
+ *
+ * Bandpass-filtered noise with a fast pitch sweep — the bandpass
+ * cutoff itself sweeps via `pitch-from`, producing the "whoosh"
+ * character. A high-pass click on top adds the attack transient
+ * so the slide reads as "snap into place" rather than just air.
+ *
+ * Two layers stacked additively. Total decay ~180 ms — tight
+ * enough that rapid arrow-presses don't pile up.
+ */
+@sound carousel-slide {
+  body {
+    noise: pink;
+    filter: bandpass;
+    cutoff: 1400hz;
+    q: 1.8;
+    pitch-from: 700hz to 2400hz;
+    decay: 220ms;
+    gain: 0.45;
+    drive: 0.18;
+  }
+  click {
+    noise: white;
+    filter: highpass;
+    cutoff: 5500hz;
+    decay: 12ms;
+    gain: 0.28;
+  }
+}
+
+/* Direction is encoded by inverting pitch on the trigger element.
+ * The same @sound, two opposite results — pitch-up cues "right",
+ * pitch-down cues "left". */
+.cg-carousel [data-direction="next"] { sound-on-click: carousel-slide; pitch: +2st; }
+.cg-carousel [data-direction="prev"] { sound-on-click: carousel-slide; pitch: -2st; }
+
+/* ── Mood scope demo: real cascade inheritance ────────────────
+ * sound-mood is inheritable, so wrapping a section with the mood
+ * declaration applies the filter overlay to every preset triggered
+ * inside — without re-authoring any @sound. Mix=1 (full wet) so
+ * the tonal shift is unmistakable. The buttons inside have NO JS
+ * sound calls; they fire through these data-preset bindings, and
+ * the runtime walks up to find the inherited sound-mood. */
+.cg-mood-zone[data-mood="lofi"]   { sound-mood: lofi;    sound-mood-mix: 1.0; }
+.cg-mood-zone[data-mood="glassy"] { sound-mood: glassy;  sound-mood-mix: 1.0; }
+.cg-mood-zone[data-mood="retro"]  { sound-mood: retro;   sound-mood-mix: 1.0; }
+
+.cg-mood-zone .cg-btn[data-preset="bell"]   { sound-on-click: bell;   volume: 0.7; }
+.cg-mood-zone .cg-btn[data-preset="chime"]  { sound-on-click: chime;  volume: 0.7; }
+.cg-mood-zone .cg-btn[data-preset="notify"] { sound-on-click: notify; volume: 0.7; }
+.cg-mood-zone .cg-btn[data-preset="ding"]   { sound-on-click: ding;   volume: 0.7; }
+
+/* The mood-tab buttons themselves get a soft tick — also through the
+ * cascade so the click feedback inherits the same overlay. */
+.cg-mood-tab { sound-on-click: tick; volume: 0.3; }

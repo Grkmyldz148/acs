@@ -93,10 +93,21 @@ html, body {
  * tight while leaving body's overflow visible for sticky to attach to
  * the window scroll instead. Modern browsers honour `clip`; the
  * `hidden` fallback comes first so the cascade settles on `clip` where
- * supported. */
+ * supported.
+ *
+ * scroll-padding-top: 64px keeps anchor-link jumps clear of the
+ * position:fixed nav (56 px tall + 8 px breath). scroll-behavior:
+ * smooth animates same-page anchor jumps; cross-page hash navigation
+ * is handled in app.jsx because the target may not be rendered yet
+ * when the browser does its initial scroll. */
 html {
   overflow-x: hidden;
   overflow-x: clip;
+  scroll-padding-top: 64px;
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }
 body {
   font-family: var(--font-sans);
@@ -214,24 +225,36 @@ body {
 @media (max-width: 720px) {
   /* Hide the inline nav-links — they're surfaced through the drawer instead. */
   .nav-links { display: none; }
-  /* Hide the desktop GitHub icon — drawer carries the link. */
-  .nav-github { display: none; }
+  /* Hide the desktop GitHub icon — drawer carries the link. Compound
+   * selector beats the later .icon-btn{display:grid} rule on
+   * source-order tie. */
+  .icon-btn.nav-github { display: none; }
   /* Hide the v0.9 chip next to the brand — saves ~46 px. */
   .brand > span:last-child { display: none; }
-  /* Collapse the sound toggle to its dot. */
-  .sound-toggle {
-    padding: 0;
+
+  /* Make every action-row button look identical on mobile: 32 × 32 px
+   * square with 8 px radius, content visually centred. The sound
+   * toggle's text labels (`sound on` / `sound off`) collapse so only
+   * the pulsing dot remains; the rest of the icon buttons stay icon-
+   * only. The shared border-radius keeps the row visually rhythmic
+   * instead of mixing pill + circle silhouettes. */
+  .nav-actions { gap: 6px; }
+  .nav-actions .icon-btn,
+  .nav-actions .sound-toggle {
     width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
     gap: 0;
   }
   .sound-toggle > span:not(.dot) { display: none; }
-  .nav-actions { gap: 6px; }
 
   /* Show the hamburger. Compound selector matches the desktop hide rule
    * so we don't lose to source-order ties. */
   .icon-btn.nav-burger { display: inline-flex; }
-  /* Pull the actions row to the right; spacer absorbs the rest. */
 
   /* Backdrop — full-viewport scrim that fades in. */
   .nav-backdrop {

@@ -181,6 +181,51 @@ function ThumbCommand() {
     <line x1="50" y1="78" x2="150" y2="78" />
   </Wf>;
 }
+function ThumbStepper() {
+  return <Wf>
+    {/* − [ value ] + */}
+    <rect x="34" y="40" width="22" height="22" rx="4" />
+    <line x1="40" y1="51" x2="50" y2="51" strokeWidth="2" />
+    <rect x="64" y="40" width="72" height="22" rx="4" />
+    <line x1="76" y1="51" x2="124" y2="51" strokeDasharray="2 3" />
+    <rect x="144" y="40" width="22" height="22" rx="4" />
+    <line x1="155" y1="46" x2="155" y2="56" strokeWidth="2" />
+    <line x1="150" y1="51" x2="160" y2="51" strokeWidth="2" />
+  </Wf>;
+}
+function ThumbCarousel() {
+  return <Wf>
+    {/* ‹  [slide]  › with dots beneath */}
+    <polyline points="36,50 30,50 30,50" />
+    <polyline points="40,42 32,50 40,58" />
+    <rect x="56" y="28" width="88" height="44" rx="4" />
+    <line x1="68" y1="44" x2="132" y2="44" strokeDasharray="2 3" />
+    <line x1="68" y1="56" x2="120" y2="56" strokeDasharray="2 3" />
+    <polyline points="160,42 168,50 160,58" />
+    <circle cx="86" cy="84" r="2" />
+    <circle cx="100" cy="84" r="2" fill="currentColor" />
+    <circle cx="114" cy="84" r="2" />
+  </Wf>;
+}
+function ThumbLongPress() {
+  return <Wf>
+    {/* Big circular button with progress ring */}
+    <circle cx="100" cy="50" r="22" />
+    <path d="M100 28 a22 22 0 0 1 19 11" strokeWidth="3" />
+    <circle cx="100" cy="50" r="6" fill="currentColor" />
+    <line x1="60" y1="84" x2="140" y2="84" strokeDasharray="2 3" />
+  </Wf>;
+}
+function ThumbMoodZone() {
+  return <Wf>
+    {/* Outer scope rect with three child rects + a wave squiggle banner */}
+    <rect x="22" y="22" width="156" height="56" rx="6" strokeDasharray="3 2" />
+    <rect x="34" y="42" width="34" height="22" rx="3" fill="currentColor" />
+    <rect x="74" y="42" width="34" height="22" rx="3" fill="currentColor" />
+    <rect x="114" y="42" width="34" height="22" rx="3" fill="currentColor" />
+    <path d="M28 28 Q34 25 40 28 T52 28 T64 28 T76 28" strokeWidth="1" />
+  </Wf>;
+}
 
 // ---------- Full / interactive previews ----------
 
@@ -573,6 +618,141 @@ function FullCommand() {
   );
 }
 
+/* ── Stepper ─────────────────────────────────────────────────
+ * Pitch-direction demo. The same `pop` preset plays for both ±
+ * buttons; the per-element `pitch` decl in ACS shifts the result
+ * up or down in semitones, producing an audible "increment" vs
+ * "decrement" reading without a second preset definition. */
+function FullStepper() {
+  const [n, setN] = useStateCG(8);
+  return (
+    <div className="cg-stepper">
+      <button className="cg-step-btn"
+              data-action="down"
+              onClick={() => { setN((v) => Math.max(0, v - 1)); play("pop", { pitch: "-1st" }); }}
+              aria-label="Decrement">−</button>
+      <div className="cg-step-value mono">{n}</div>
+      <button className="cg-step-btn"
+              data-action="up"
+              onClick={() => { setN((v) => v + 1); play("pop", { pitch: "+1st" }); }}
+              aria-label="Increment">+</button>
+    </div>
+  );
+}
+
+/* ── Carousel ────────────────────────────────────────────────
+ * Directional swoosh. `[data-direction="next"]` and `[data-
+ * direction="prev"]` map to the same `swoosh` preset with
+ * mirrored `pitch` — pitch-up reads as "slide right", pitch-
+ * down as "slide left". Showcases attribute-driven nuance. */
+function FullCarousel() {
+  const slides = ["Hero", "Features", "Pricing", "Reviews"];
+  const [idx, setIdx] = useStateCG(0);
+  // No play() call — the cascade rule in landing.acs binds
+  // .cg-carousel [data-direction] to the custom carousel-slide @sound.
+  // Letting the click event bubble through the runtime is the point of
+  // this demo: zero JS sound wiring for cards.
+  return (
+    <div className="cg-carousel">
+      <button className="cg-car-arrow" data-direction="prev"
+              onClick={() => setIdx((i) => (i - 1 + slides.length) % slides.length)}
+              aria-label="Previous">‹</button>
+      <div className="cg-car-stage" key={idx}>
+        <span className="cg-car-label mono">slide {idx + 1} / {slides.length}</span>
+        <span className="cg-car-title">{slides[idx]}</span>
+      </div>
+      <button className="cg-car-arrow" data-direction="next"
+              onClick={() => setIdx((i) => (i + 1) % slides.length)}
+              aria-label="Next">›</button>
+      <div className="cg-car-dots">
+        {slides.map((_, i) => (
+          <span key={i} className={`cg-car-dot ${i === idx ? "on" : ""}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Long press ──────────────────────────────────────────────
+ * Press-and-hold gesture. Two distinct phases, each gets its
+ * own ACS rule keyed by `[data-pressing]`: a low tone while
+ * held, and a confirm sound when the threshold (700 ms) hits.
+ * Releasing early plays nothing — like a real hold-to-confirm
+ * action button. */
+function FullLongPress() {
+  const [pressing, setPressing] = useStateCG(false);
+  const [done, setDone] = useStateCG(false);
+  const ref = useRefCG({ timer: null, low: null });
+  const start = () => {
+    if (done) return;
+    setPressing(true);
+    if (window.ACS?.isEnabled?.()) {
+      ref.current.low = window.ACS.trigger({ sound: "tick", volume: "0.4", pitch: "-2st" }, "click");
+    }
+    ref.current.timer = setTimeout(() => {
+      setPressing(false); setDone(true);
+      play("success");
+      setTimeout(() => setDone(false), 1600);
+    }, 700);
+  };
+  const cancel = () => {
+    setPressing(false);
+    clearTimeout(ref.current.timer);
+  };
+  return (
+    <div className="cg-press">
+      <button
+        className={`cg-press-btn ${pressing ? "pressing" : ""} ${done ? "done" : ""}`}
+        data-pressing={pressing ? "true" : "false"}
+        onMouseDown={start} onMouseUp={cancel} onMouseLeave={cancel}
+        onTouchStart={start} onTouchEnd={cancel}>
+        <span className="cg-press-ring" />
+        <span className="cg-press-label">{done ? "✓ confirmed" : pressing ? "hold…" : "press to confirm"}</span>
+      </button>
+      <p className="cg-press-hint mono">hold 700 ms · release early to cancel</p>
+    </div>
+  );
+}
+
+/* ── Mood zone ───────────────────────────────────────────────
+ * Inheritance scope. `sound-mood` is an inheritable property —
+ * setting it once on a wrapper applies the runtime overlay
+ * filter to every preset triggered inside, until a child rule
+ * resets it. Toggle the mood and re-tap the buttons to hear
+ * the same `pop` preset filtered through three different
+ * tonal characters (lofi, glassy, retro) without authoring a
+ * single new @sound block. */
+function FullMoodZone() {
+  const moods = ["none", "lofi", "glassy", "retro"];
+  const [mood, setMood] = useStateCG("lofi");
+  // No JS sound calls on the preset buttons — each has a data-preset
+  // attribute that landing.acs binds to sound-on-click. The click
+  // event bubbles through the runtime's document-level listener, which
+  // walks up to the [data-mood] wrapper and inherits sound-mood. That
+  // is the actual cascade in action; previously we used the play()
+  // helper which bypasses the DOM walk and stripped the inherited
+  // mood, making the demo look broken.
+  return (
+    <div className={`cg-mood-zone mood-${mood}`} data-mood={mood}>
+      <div className="cg-mood-tabs">
+        {moods.map((m) => (
+          <button key={m} className={`cg-mood-tab ${m === mood ? "on" : ""}`}
+                  onClick={() => setMood(m)}>
+            {m}
+          </button>
+        ))}
+      </div>
+      <div className="cg-mood-row">
+        <button className="cg-btn" data-preset="bell">bell</button>
+        <button className="cg-btn" data-preset="chime">chime</button>
+        <button className="cg-btn" data-preset="notify">notify</button>
+        <button className="cg-btn" data-preset="ding">ding</button>
+      </div>
+      <p className="cg-mood-hint mono">// the [data-mood] wrapper applies sound-mood through the cascade</p>
+    </div>
+  );
+}
+
 // ---------- Component manifest ----------
 
 const COMPONENTS = [
@@ -779,6 +959,71 @@ play("complete", { volume: 0.7 });  // 100% reached`,
 [role=listbox] [role=option] {
   sound-on-click: tap-tactile;
 }`,
+  },
+  {
+    id: "stepper",
+    label: "Stepper",
+    note: "NUMERIC",
+    pattern: "[data-action] → directional pitch",
+    Thumb: ThumbStepper,
+    Full: FullStepper,
+    acs: `/* The same preset, two opposite results. Pitch is
+   per-element, so an attribute selector keys direction
+   without authoring two presets. Up = +1st, down = -1st;
+   the ear hears "incremented" vs "decremented". */
+[data-action="up"]   { sound-on-click: pop; pitch: +1st; }
+[data-action="down"] { sound-on-click: pop; pitch: -1st; }`,
+  },
+  {
+    id: "carousel",
+    label: "Carousel",
+    note: "@SOUND",
+    pattern: "Custom @sound + directional pitch",
+    Thumb: ThumbCarousel,
+    Full: FullCarousel,
+    acs: `/* Custom @sound — none of the 49 built-ins quite fit a
+   slide transition, so we author one. Pink-noise body
+   with a bandpass cutoff sweep for the "whoosh", plus a
+   high-pass click on top for the snap-into-place feel. */
+@sound carousel-slide {
+  body  { noise: pink;  filter: bandpass; cutoff: 1400hz; q: 1.8;
+          pitch-from: 700hz to 2400hz; decay: 220ms; gain: 0.45; drive: 0.18; }
+  click { noise: white; filter: highpass; cutoff: 5500hz; decay: 12ms; gain: 0.28; }
+}
+
+/* One @sound, two directions — pitch flips on the trigger. */
+[data-direction="next"] { sound-on-click: carousel-slide; pitch: +2st; }
+[data-direction="prev"] { sound-on-click: carousel-slide; pitch: -2st; }`,
+  },
+  {
+    id: "longpress",
+    label: "Hold to confirm",
+    note: "GESTURE",
+    pattern: "[data-pressing] state-cycle",
+    Thumb: ThumbLongPress,
+    Full: FullLongPress,
+    acs: `/* Press-and-hold splits into two phases. While the
+   button is in [data-pressing="true"] state, a low
+   sustain plays. The component fires the success preset
+   itself once the threshold timer elapses. Releasing
+   early just resets — no confirmation sound at all. */
+[data-pressing="true"]  { sound: tick; pitch: -2st; volume: 0.4; }
+[data-pressing="false"] { sound: none; }`,
+  },
+  {
+    id: "mood-zone",
+    label: "Mood scope",
+    note: "INHERITANCE",
+    pattern: "sound-mood on a wrapping [data-mood]",
+    Thumb: ThumbMoodZone,
+    Full: FullMoodZone,
+    acs: `/* sound-mood is an inheritable property — declare it once
+   on a wrapper and every preset triggered inside is filtered
+   through the runtime mood overlay. The buttons below all
+   trigger the SAME built-in presets; only the mood changes. */
+[data-mood="lofi"]   { sound-mood: lofi;    sound-mood-mix: 1.0; }
+[data-mood="glassy"] { sound-mood: glassy;  sound-mood-mix: 1.0; }
+[data-mood="retro"]  { sound-mood: retro;   sound-mood-mix: 1.0; }`,
   },
 ];
 

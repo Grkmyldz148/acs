@@ -1,0 +1,90 @@
+name: Mirror create-acs-sound skill
+
+# Whenever the skill source under `skills/create-acs-sound/` changes
+# on `main`, push a snapshot to `Grkmyldz148/acs-skills` (root).
+# That mirror repo is what users install via:
+#   npx skills add Grkmyldz148/acs-skills
+#
+# The workflow pushes via SSH using a deploy key whose private half is
+# stored as the `MIRROR_SSH_KEY` secret on this repo. The public half
+# is registered (read-write) on the mirror repo's deploy keys page.
+# No PAT, no token rotation, scope is exactly one repo.
+#
+# History on the mirror is intentionally a single snapshot per push —
+# we don't try to reproduce the source repo's commit graph. Tags and
+# old commits stay intact in the source; the mirror is just the latest
+# tree at all times.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "skills/create-acs-sound/**"
+      - ".github/workflows/mirror-skill.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: mirror-skill
+  cancel-in-progress: true
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.MIRROR_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Mirror skill folder to acs-skills
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          WORK=$(mktemp -d)
+          git clone --depth=1 git@github.com:Grkmyldz148/acs-skills.git "$WORK"
+          cd "$WORK"
+
+          # Wipe everything except the .git directory, then sync the
+          # skill folder's contents to the repo root. Anything the
+          # source no longer ships (deleted rules, deleted scripts)
+          # disappears from the mirror at the same time.
+          find . -mindepth 1 -maxdepth 1 -not -name ".git" -exec rm -rf {} +
+          cp -R "$GITHUB_WORKSPACE/skills/create-acs-sound/." ./
+
+          # Drop a tiny pointer back to the source so curious users
+          # know where to file issues / PRs.
+          cat > .mirror-source.md <<EOF
+          # Mirror
+
+          This repository is auto-generated from
+          [\`Grkmyldz148/acs\`](https://github.com/Grkmyldz148/acs)
+          at path \`skills/create-acs-sound/\`.
+
+          **Do not commit changes here.** Open PRs against the source
+          repo; the next push to \`main\` syncs them over.
+
+          Source commit: \`$SOURCE_SHA\`
+          EOF
+
+          git config user.name  "acs-skill-mirror[bot]"
+          git config user.email "acs-skill-mirror@audiocss.dev"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to mirror."
+            exit 0
+          fi
+          git commit -m "Mirror Grkmyldz148/acs@${SOURCE_SHA::7}"
+          git push origin HEAD:main

@@ -1,7 +1,7 @@
 /* lib.mjs — shared helpers for the create-acs-sound skill build pipeline.
  *
- * No external deps. Pure ESM. Mirrors the @web-kits/audio create-sound skill
- * lib.mjs in spirit, adapted for ACS's @sound DSL output.
+ * No external deps. Pure ESM. Frontmatter parser + a lightweight ACS
+ * sanity check for example blocks.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";

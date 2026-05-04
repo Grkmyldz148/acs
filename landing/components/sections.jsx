@@ -160,10 +160,27 @@ window.ThemePacks = function ThemePacks({ soundOn, requestSound }) {
 // ---------- Install ----------
 window.Install = function Install() {
   const [tab, setTab] = useStateT('npm');
+  const [copied, setCopied] = useStateT(false);
   const snippets = {
     npm: `npm install acs-audio\n# or\npnpm add acs-audio`,
     cdn: `<link rel="audiostyle" href="my-style.acs" />\n<script type="module"\n        src="https://cdn.jsdelivr.net/npm/acs-audio/dist/runtime.mjs">\n</script>`,
     bun: `bun add acs-audio`,
+  };
+  const copy = async () => {
+    const text = snippets[tab];
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+      }
+      setCopied(true);
+      window.acsToast?.('Copied — ' + text.split('\n')[0]);
+      setTimeout(() => setCopied(false), 1400);
+    } catch {}
   };
   return (
     <section className="section" id="install">
@@ -186,6 +203,10 @@ window.Install = function Install() {
             <li><Check/><span><code className="mono">window.ACS.helpers</code> — programmatic <code className="mono">play()</code> + React hook</span></li>
             <li><Check/><span>TypeScript types + VSCode extension w/ live linter</span></li>
           </ul>
+          <a className="install-more" href="/docs/#install">
+            <span>Read the full install guide</span>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </a>
         </div>
         <div className="install-right">
           <div className="window">
@@ -196,7 +217,14 @@ window.Install = function Install() {
                 ))}
               </div>
               <div className="window-actions">
-                <button className="copy-btn mono" onClick={() => navigator.clipboard?.writeText(snippets[tab])}>copy</button>
+                <button className={`copy-btn mono ${copied ? 'copied' : ''}`} onClick={copy} aria-label="Copy install command">
+                  {copied ? (
+                    <>
+                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 8.5L6 11.5L13 4.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      copied
+                    </>
+                  ) : 'copy'}
+                </button>
               </div>
             </div>
             <pre className="code code-flush mono">{snippets[tab]}</pre>

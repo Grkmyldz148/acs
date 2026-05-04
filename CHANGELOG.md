@@ -6,6 +6,53 @@ correspond to internal development milestones.
 
 ## [Unreleased]
 
+## [0.9.4] — 2026-05-04
+
+### Added
+- **Components gallery** gains four new ACS edge-case demos: Stepper
+  (pitch direction), Carousel (custom @sound + directional pitch),
+  Hold-to-confirm (gesture state cycle), Mood scope (genuine cascade
+  inheritance via [data-mood]).
+- **Custom `@sound carousel-slide`** in `landing.acs` — pink-noise
+  body with a bandpass cutoff sweep + high-pass click.
+- **Sound-mood character expansion** — every mood profile now layers
+  on character-changing nodes that filters alone can't produce:
+  `bitcrush` (retro 4-bit, lofi 6-bit), `ringmod` (metallic, 287 Hz
+  60 % wet), `noise` floor (lofi cassette pink hiss), plus
+  considerably more aggressive filter+saturation values.
+- **Docs search modal** with Cmd+K / `/` shortcuts, fuzzy match
+  across sidebar items + section snippets, keyboard nav.
+- **Auto copy buttons** on every `<pre>` in the docs article — hover-
+  revealed top-right, shared bottom-center toast.
+- **Global toast** (`window.acsToast`) used by Install copy, Hero
+  copy card, and any future single-shot confirmation surface.
+- **Mobile hamburger drawer** with full-bleed overlay, escapes the
+  nav stacking context, body-scroll locked while open.
+- **Hide-on-scroll header** — iOS-Safari-style, position fixed,
+  ref-based DOM class toggle (no per-frame React render).
+- **`Grkmyldz148/acs-skills` mirror repo** with GitHub Actions
+  auto-sync from `skills/create-acs-sound/`. Users install via
+  `npx skills add Grkmyldz148/acs-skills` (no path).
+- **1200×630 spec-correct OG card** at `landing/og-image.png`.
+
+### Fixed
+- **Mood inheritance demo** — preset buttons now have `data-preset`
+  attributes bound via cascade in `landing.acs`; the previous JS
+  `play()` helper bypassed the DOM walk and stripped the inherited
+  `sound-mood`. Now the mood actually applies through the cascade.
+- **Carousel sound** — replaced `swoosh` preset call with the new
+  custom `@sound carousel-slide` triggered through cascade.
+- **Sticky sidebar / TOC** in docs — `body { overflow-x: hidden }`
+  was making body the containing block for `position: sticky`
+  descendants, silently downgrading them to static. Moved the
+  horizontal-scroll clamp to `<html>` only.
+- **CTA buttons** trimmed from 36 → 32 px height to match the rest
+  of the action-row vocabulary; npm button added.
+- **AudioContext lazy-creation** — `bindAll()` now stashes `:root`
+  master decls instead of eagerly calling `ensureCtx()`. The audio
+  context builds at first user-driven trigger; pending master decls
+  flush at that point. Eliminates Chrome's autoplay-policy warning.
+
 ## [0.9.3] — 2026-05-04
 
 ### Fixed
@@ -28,8 +75,8 @@ correspond to internal development milestones.
 - **VSCode Marketplace publish** — extension now searchable as **ACS**
   in VSCode's extension panel. Same package on Open VSX (Cursor /
   VSCodium / Theia / Gitpod).
-- **`skills/create-acs-sound/`** — Claude / Cursor agent skill mirroring
-  `@web-kits/audio`'s `create-sound`. 48 atomic rules across pipeline /
+- **`skills/create-acs-sound/`** — Claude / Cursor agent skill that
+  composes 48 atomic rules across pipeline /
   event / mood / layer / effect / interpret / validate categories,
   `src/build.mjs` regenerates `SKILL.md` from rules, lightweight
   validator (`src/validate.mjs`) round-trips every example through an

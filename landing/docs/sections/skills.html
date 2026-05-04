@@ -15,12 +15,29 @@
         <li><strong>Round-trip render</strong> — The skill renders the result to a WAV preview and validates within tolerance bands (gain budget, frequency bounds, duration cap).</li>
       </ul>
 
-      <h3>Install for Claude Code / Cursor agents</h3>
+      <h3>Install</h3>
+      <p>
+        One command via the
+        <a href="https://www.npmjs.com/package/skills" target="_blank" rel="noopener"><code>skills</code></a>
+        CLI (vercel-labs) — supports Claude Code, Cursor, Codex,
+        OpenCode, Gemini CLI, GitHub Copilot, Warp, Windsurf, and 50+ other agent runtimes:
+      </p>
+      <pre><code>npx skills add Grkmyldz148/acs-skills</code></pre>
+      <p>The CLI prompts you to pick which agent(s) to install for, then drops the skill into their conventional path (e.g. <code>.claude/skills/create-acs-sound/</code> for Claude Code, <code>.cursor/skills/...</code> for Cursor, etc.).</p>
+      <p style="font-size:12px;color:var(--ink-3)">
+        <code>Grkmyldz148/acs-skills</code> is an auto-mirror of the
+        <a href="https://github.com/Grkmyldz148/acs/tree/main/skills/create-acs-sound" target="_blank" rel="noopener">skill source</a>
+        in the monorepo — a GitHub Action pushes the snapshot on every change to <code>main</code>.
+      </p>
+
+      <h4>Manual install (fallback)</h4>
       <pre><code># clone the repo
 git clone https://github.com/Grkmyldz148/acs.git
-# point your agent runtime at:
+# copy the skill into your agent's skills directory:
+cp -r acs/skills/create-acs-sound ~/.claude/skills/
+# or reference SKILL.md directly:
 acs/skills/create-acs-sound/SKILL.md</code></pre>
-      <p>The skill is a directory of <code>rules/*.md</code> atomic decision documents plus pipeline orchestration in <code>SKILL.md</code>. Compatible with the @web-kits/audio skill format.</p>
+      <p>The skill is a directory of <code>rules/*.md</code> atomic decision documents plus pipeline orchestration in <code>SKILL.md</code>. Compatible with the vercel-labs <code>skills</code> CLI ecosystem (Claude Code, Cursor, Codex, OpenCode, and 50+ others).</p>
 
       <h3>Pipeline</h3>
       <pre><code>1. pipeline-detect-input    → prompt | audio | both

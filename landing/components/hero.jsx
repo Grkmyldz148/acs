@@ -136,9 +136,32 @@ dialog[open]     { room: small-room; }
 }`;
 
 window.Hero = function Hero({ soundOn, requestSound }) {
+  const [copied, setCopied] = useState(false);
   const play = (name) => {
     if (!soundOn) { requestSound(); return; }
     window.ACS.play(name);
+  };
+  const copyInstall = async () => {
+    const text = "npm install acs-audio";
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // Fallback for non-secure contexts (file://, plain http on some browsers).
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setCopied(true);
+      if (soundOn) window.ACS.play("success");
+      window.acsToast?.("Copied — npm install acs-audio");
+      setTimeout(() => setCopied(false), 2200);
+    } catch {}
   };
   return (
     <section className="hero" id="top">
@@ -179,7 +202,7 @@ window.Hero = function Hero({ soundOn, requestSound }) {
           </div>
           <div className="hero-meta">
             <span className="hero-meta-item">
-              <kbd className="kbd">npm i acs</kbd>
+              <kbd className="kbd">npm i acs-audio</kbd>
             </span>
             <span className="hero-meta-dot"></span>
             <span className="hero-meta-item mono">~14kb gzipped</span>
@@ -212,6 +235,36 @@ window.Hero = function Hero({ soundOn, requestSound }) {
               </div>
             </div>
           </div>
+
+          {/* Copy-to-clipboard install card. Sits flush below the code
+              window and acts as the "fast path" for copying the install
+              command. Click → clipboard write + transient toast. */}
+          <button
+            className={`hero-install-card ${copied ? 'copied' : ''}`}
+            onClick={copyInstall}
+            aria-label="Copy install command"
+          >
+            <span className="hero-install-prompt mono">$</span>
+            <code className="hero-install-cmd mono">npm install acs-audio</code>
+            <span className="hero-install-cta">
+              {copied ? (
+                <>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 8.5L6 11.5L13 4.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  copied
+                </>
+              ) : (
+                <>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <rect x="4" y="4" width="9" height="10" rx="1.5"/>
+                    <path d="M3 11V3a1.5 1.5 0 0 1 1.5-1.5H11" strokeLinecap="round"/>
+                  </svg>
+                  copy
+                </>
+              )}
+            </span>
+          </button>
         </div>
       </div>
 

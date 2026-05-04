@@ -212,6 +212,33 @@ Adds language support for `.acs`:
 
 ---
 
+## AI agent skill
+
+For Claude Code / Cursor / Codex / OpenCode / 50+ agent runtimes, ACS
+ships a `create-acs-sound` skill that turns a natural-language prompt
+or an audio sample into a paste-ready ACS `@sound` block.
+
+```bash
+npx skills add Grkmyldz148/acs-skills
+```
+
+Uses the [`skills`](https://www.npmjs.com/package/skills) CLI
+(vercel-labs). The agent runtime is picked interactively; the skill
+lands in the conventional path (e.g. `.claude/skills/create-acs-sound/`
+for Claude Code).
+
+The `Grkmyldz148/acs-skills` repo is an auto-generated mirror of the
+[`skills/create-acs-sound/`](skills/create-acs-sound/) directory in
+this monorepo — pushed by GitHub Actions on every change. Open PRs
+against this repo; the mirror catches up automatically.
+
+48 atomic rule documents under `rules/` (events, moods, layers,
+effects, pipelines, validators, audio interpretation) composed by
+`SKILL.md`. See [`skills/create-acs-sound/`](skills/create-acs-sound/)
+for the full source.
+
+---
+
 ## Programmatic API
 
 Most use is declarative — these are escape hatches.

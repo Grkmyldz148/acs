@@ -1,11 +1,6 @@
 ---
 name: create-acs-sound
-description: >-
-  Generate an ACS @sound block (Audio Cascading Style Sheets DSL) from any
-  input — a natural-language prompt, an audio file the user shares, or both.
-  Use when the user says "create a sound", "/create-acs-sound", "design a
-  sound for X", shares a WAV/MP3, or asks to reverse-engineer a sample.
-  Optionally renders a WAV preview and round-trip-validates the result.
+description: Generate an ACS @sound block from a natural-language prompt, an audio file, or both. Use when the user says "create a sound", "/create-acs-sound", "design a sound for X", shares a WAV/MP3, or asks to reverse-engineer a sample. Optionally renders a WAV preview and round-trip-validates the result.
 ---
 
 # Create ACS Sound
