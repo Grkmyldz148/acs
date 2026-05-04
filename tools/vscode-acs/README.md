@@ -1,19 +1,36 @@
 # ACS — VSCode Language Support
 
-Minimal VSCode extension that registers `.acs` files as their own
-language with syntax highlighting and a custom file icon.
+Language support for `.acs` (Audio Cascading Style Sheets) — declarative
+audio for the web. Same selectors, same cascade as CSS, properties
+target sound. See [audiocss.dev](https://audiocss.dev) for the full
+project, [audiocss.dev/docs](https://audiocss.dev/docs/) for documentation.
 
-## Install
+## Install — official marketplaces
+
+| Editor                        | Source                                                                                          | One-click |
+| ----------------------------- | ----------------------------------------------------------------------------------------------- | --------- |
+| VSCode                        | [Marketplace](https://marketplace.visualstudio.com/items?itemName=audio-cascading-style-sheets.acs-language) | search "ACS" in the Extensions panel |
+| Cursor / VSCodium / Theia     | [Open VSX](https://open-vsx.org/extension/audio-cascading-style-sheets/acs-language)            | same — search "ACS"                  |
+| CLI (any of the above)        | `code --install-extension audio-cascading-style-sheets.acs-language`                            |                                       |
+
+Or pull a `.vsix` from
+[Releases](https://github.com/Grkmyldz148/acs/releases) and install
+manually:
+
+```bash
+code --install-extension acs-language-0.9.2.vsix
+cursor --install-extension acs-language-0.9.2.vsix
+```
+
+## Install — from source (contributors)
 
 ```bash
 cd tools/vscode-acs && ./install.sh
 ```
 
 The script packages the extension into a `.vsix` and installs it via
-each editor's CLI (`code` for VSCode, `cursor` for Cursor). This is the
-**only** install path that works on modern VSCode/Cursor — copying
-folders into `~/.{vscode,cursor}/extensions/` no longer auto-loads the
-extension because `extensions.json` won't be updated.
+each editor's CLI (`code` for VSCode, `cursor` for Cursor). Use this
+path when developing the extension locally.
 
 If a CLI isn't on your PATH, the script tells you exactly which command
 palette action to run inside the editor (`Shell Command: Install 'code'
@@ -148,3 +165,8 @@ runtime DSP (modal IIR, Karplus-Strong pluck, FM osc, filtered
 noise) sample-accurately, but room reverb is not applied in
 preview — that happens at runtime and depends on the final
 stylesheet's `:root` config.
+
+---
+
+[audiocss.dev](https://audiocss.dev) · MIT · authored by
+[Görkem Yıldız](https://gorkemyildiz.com)

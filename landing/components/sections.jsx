@@ -283,17 +283,20 @@ window.Footer = function Footer() {
           <div>
             <h4>Docs</h4>
             <ul>
-              <li><a href="https://github.com/Grkmyldz148/acs#quick-start" target="_blank" rel="noopener">Quick start</a></li>
-              <li><a href="https://github.com/Grkmyldz148/acs#examples" target="_blank" rel="noopener">Examples</a></li>
-              <li><a href="#presets">Preset library</a></li>
+              <li><a href="/docs/">Documentation</a></li>
+              <li><a href="/docs/#getting-started">Getting started</a></li>
+              <li><a href="/docs/#concepts">Concepts</a></li>
+              <li><a href="/docs/#extension">VSCode extension</a></li>
+              <li><a href="/docs/#skills">Skills (AI agents)</a></li>
               <li><a href="https://github.com/Grkmyldz148/acs/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a></li>
-              <li><a href="https://github.com/Grkmyldz148/acs/blob/main/types/acs.d.ts" target="_blank" rel="noopener">Runtime API</a></li>
             </ul>
           </div>
           <div>
             <h4>Tools</h4>
             <ul>
-              <li><a href="https://github.com/Grkmyldz148/acs/releases" target="_blank" rel="noopener">VSCode extension (.vsix)</a></li>
+              <li><a href="https://marketplace.visualstudio.com/items?itemName=audio-cascading-style-sheets.acs-language" target="_blank" rel="noopener">VSCode Marketplace</a></li>
+              <li><a href="https://open-vsx.org/extension/audio-cascading-style-sheets/acs-language" target="_blank" rel="noopener">Open VSX (Cursor)</a></li>
+              <li><a href="https://www.npmjs.com/package/acs-audio" target="_blank" rel="noopener">npm package</a></li>
               <li><a href="#components">Components gallery</a></li>
               <li><a href="acs-logo.svg" download>Brand mark (SVG)</a></li>
             </ul>
@@ -303,13 +306,17 @@ window.Footer = function Footer() {
             <ul>
               <li><a href="https://github.com/Grkmyldz148/acs" target="_blank" rel="noopener">GitHub</a></li>
               <li><a href="https://github.com/Grkmyldz148/acs/issues" target="_blank" rel="noopener">Issues</a></li>
-              <li><a href="#roadmap">Roadmap</a></li>
               <li><a href="https://github.com/Grkmyldz148/acs/discussions" target="_blank" rel="noopener">Discussions</a></li>
+              <li><a href="https://gorkemyildiz.com" target="_blank" rel="noopener">Author — gorkemyildiz.com</a></li>
             </ul>
           </div>
         </div>
         <div className="footer-bottom">
-          <span>MIT · v0.9 · {new Date().getFullYear()}</span>
+          <span>MIT · v0.9.2 · {new Date().getFullYear()}</span>
+          <span>
+            Color system in the helm-lab perceptual space —{' '}
+            <a href="https://helmlab.space/docs/" target="_blank" rel="noopener" style={{color:'inherit', textDecoration:'underline', textDecorationColor:'var(--line)'}}>helmlab.space</a>
+          </span>
           <span>Built with the Web Audio API</span>
         </div>
       </div>

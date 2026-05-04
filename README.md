@@ -8,10 +8,12 @@
 properties target sound.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.9.0-black.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.9.2-black.svg)](CHANGELOG.md)
 [![No deps](https://img.shields.io/badge/dependencies-zero-22c55e.svg)](package.json)
+[![VSCode Marketplace](https://img.shields.io/badge/VSCode-extension-0066b8.svg)](https://marketplace.visualstudio.com/items?itemName=audio-cascading-style-sheets.acs-language)
+[![Open VSX](https://img.shields.io/badge/Open_VSX-extension-c160ef.svg)](https://open-vsx.org/extension/audio-cascading-style-sheets/acs-language)
 
-[Quick start](#quick-start) · [Install](#install) · [Examples](#examples) · [VSCode extension](#vscode-extension) · [Browser support](#browser-support)
+[**audiocss.dev**](https://audiocss.dev) · [Docs](https://audiocss.dev/docs/) · [Quick start](#quick-start) · [Install](#install) · [Examples](#examples) · [VSCode extension](#vscode-extension) · [Browser support](#browser-support)
 
 </div>
 
@@ -191,14 +193,22 @@ Adds language support for `.acs`:
 - 30+ snippets (`@sound-bell`, `@sound-snare`, `btn-variants`,
   `toast-cascade`, `:root-config`, …)
 
-**Install:** download the latest `acs-language-X.Y.Z.vsix` from
-[Releases](https://github.com/Grkmyldz148/acs/releases) and run:
+**Install** — pick a marketplace:
 
-```bash
-code --install-extension acs-language-0.9.0.vsix
-# or for Cursor:
-cursor --install-extension acs-language-0.9.0.vsix
-```
+- **VSCode** → search `ACS` in the Extensions panel, or:
+  https://marketplace.visualstudio.com/items?itemName=audio-cascading-style-sheets.acs-language
+- **Cursor / VSCodium / Theia / Gitpod** (Open VSX) →
+  https://open-vsx.org/extension/audio-cascading-style-sheets/acs-language
+- **CLI:**
+  ```bash
+  code --install-extension audio-cascading-style-sheets.acs-language
+  cursor --install-extension audio-cascading-style-sheets.acs-language
+  ```
+- **Manual `.vsix`** → download from
+  [Releases](https://github.com/Grkmyldz148/acs/releases) and run:
+  ```bash
+  code --install-extension acs-language-0.9.2.vsix
+  ```
 
 ---
 
@@ -316,3 +326,14 @@ The audit must pass before shipping any change to the runtime.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+---
+
+<div align="center">
+
+**[audiocss.dev](https://audiocss.dev)** · authored by [Görkem Yıldız](https://gorkemyildiz.com)
+
+Color system designed in the helm-lab perceptual color space —
+[helmlab.space/docs](https://helmlab.space/docs/)
+
+</div>

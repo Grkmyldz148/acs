@@ -1,0 +1,208 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "slug": "effect-bandpass-noise-swoosh",
+      "category": "effect",
+      "impact": "MEDIUM",
+      "prompt": "swoosh whoosh slide transition",
+      "expected_acs": "@sound my-swoosh {\n  body {\n    noise: white;\n    filter: bandpass; cutoff: 1500hz; q: 1.5;\n    pitch-from: 800hz to 3000hz;\n    decay: 250ms;\n    gain: 0.35;\n  }\n}"
+    },
+    {
+      "slug": "effect-bitcrush-lofi",
+      "category": "effect",
+      "impact": "MEDIUM",
+      "prompt": "bitcrush lofi crushed retro 8-bit",
+      "expected_acs": "/* Best as runtime overlay — true bitcrush isn't a per-layer DSL key: */\n.game-ui { sound-mood: lofi; sound-mood-mix: 0.6; }\n\n/* Manual approximation if you need it baked into one preset: */\n@sound my-crushed {\n  body {\n    osc: square;            /* square inherently has more aliasing-friendly harmonics */\n    freq: 880hz;\n    detune: 5;              /* slight pitch instability */\n    drive: 0.4;             /* harmonic distortion approximates quantization */\n    filter: lowpass; cutoff: 4000hz;\n    decay: 100ms;\n    gain: 0.3;\n  }\n}"
+    },
+    {
+      "slug": "effect-fm-bell",
+      "category": "effect",
+      "impact": "MEDIUM-HIGH",
+      "prompt": "bell metallic chime fm modulation",
+      "expected_acs": "@sound my-fm-bell {\n  body {\n    osc: sine;\n    freq: 880hz;\n    fm: { ratio: 1.5, depth: 80 };    /* subtle inharmonic shimmer */\n    decay: 0.5s;\n    gain: 0.32;\n  }\n}"
+    },
+    {
+      "slug": "effect-lowpass-warmth",
+      "category": "effect",
+      "impact": "HIGH",
+      "prompt": "warm warmer mellow soft muffled",
+      "expected_acs": "@sound my-warm {\n  body {\n    tones: 660hz, 990hz;\n    decays: 0.5s, 0.35s;\n    filter: lowpass; cutoff: 2500hz;     /* warmth */\n    gain: 0.32;\n  }\n}"
+    },
+    {
+      "slug": "effect-reverb-tail",
+      "category": "effect",
+      "impact": "HIGH",
+      "prompt": "reverb echo tail room space",
+      "expected_acs": "/* Reverb is applied via the cascade, not inside the @sound: */\n@sound my-bell { body { tones: 880hz, 1320hz; decays: 0.6s, 0.4s; gain: 0.32; } }\n\ndialog[open]               { sound-on-appear: my-bell; room: small-room; }\n.ambient-section button    { sound-on-click: my-bell; room: medium-room; }"
+    },
+    {
+      "slug": "event-click",
+      "category": "event",
+      "impact": "HIGH",
+      "prompt": "click button press",
+      "expected_acs": "@sound my-click {\n  body { osc: sine; freq: 1300hz; fm: { ratio: 0.5, depth: 60 }; decay: 12ms; gain: 0.22; }\n}"
+    },
+    {
+      "slug": "event-complete",
+      "category": "event",
+      "impact": "MEDIUM-HIGH",
+      "prompt": "complete unlock achievement level-up confetti finished",
+      "expected_acs": "@sound my-complete {\n  n1 { tones: 660hz;  decay: 200ms; gain: 0.25; }\n  n2 { tones: 880hz;  start: 90ms;  decay: 220ms; gain: 0.25; }\n  n3 { tones: 1320hz; start: 180ms; decay: 280ms; gain: 0.25; }\n}"
+    },
+    {
+      "slug": "event-error",
+      "category": "event",
+      "impact": "HIGH",
+      "prompt": "error fail wrong invalid denied delete destroy",
+      "expected_acs": "@sound my-error {\n  body  { osc: sawtooth; freq: 440hz; pitch-from: 440hz to 220hz; decay: 250ms; gain: 0.25; }\n  rasp  { noise: white; filter: bandpass; cutoff: 600hz; q: 4; decay: 180ms; gain: 0.15; }\n}"
+    },
+    {
+      "slug": "event-modal-close",
+      "category": "event",
+      "impact": "HIGH",
+      "prompt": "modal dialog close dismiss out hide collapse cancel",
+      "expected_acs": "@sound my-modal-close {\n  body { osc: sine; freq: 660hz; pitch-from: 660hz to 440hz; decay: 0.3s; gain: 0.22; }\n}"
+    },
+    {
+      "slug": "event-modal-open",
+      "category": "event",
+      "impact": "HIGH",
+      "prompt": "modal dialog popup drawer sheet open appear show expand",
+      "expected_acs": "@sound my-modal-open {\n  body { osc: sine; freq: 440hz; pitch-from: 440hz to 660hz; decay: 0.4s; gain: 0.25; }\n}\n/* Apply at the trigger element:  dialog[open] { sound-on-appear: my-modal-open; room: small-room; } */"
+    },
+    {
+      "slug": "event-notification",
+      "category": "event",
+      "impact": "HIGH",
+      "prompt": "notification alert ding bell mention badge incoming",
+      "expected_acs": "@sound my-notify {\n  body { tones: 880hz, 1320hz; decays: 0.5s, 0.35s; gain: 0.32; }\n  ping { osc: sine; freq: 1760hz; start: 60ms; decay: 0.25s; gain: 0.18; }\n}"
+    },
+    {
+      "slug": "event-success",
+      "category": "event",
+      "impact": "HIGH",
+      "prompt": "success complete confirm done win achievement",
+      "expected_acs": "@sound my-success {\n  body  { tones: 880hz, 1108hz; decay: 0.5s; gain: 0.3; }\n  sweet { tones: 1320hz; start: 80ms; decay: 0.4s; gain: 0.25; }\n}"
+    },
+    {
+      "slug": "event-swoosh",
+      "category": "event",
+      "impact": "MEDIUM",
+      "prompt": "swoosh slide transition page tab whoosh",
+      "expected_acs": "@sound my-swoosh {\n  body {\n    noise: white;\n    filter: bandpass; cutoff: 1500hz; q: 1.5;\n    pitch-from: 800hz to 3000hz;\n    decay: 250ms;\n    gain: 0.35;\n  }\n}"
+    },
+    {
+      "slug": "event-tap",
+      "category": "event",
+      "impact": "HIGH",
+      "prompt": "tap touch press button",
+      "expected_acs": "@sound my-tap {\n  body  { tones: 1.4khz; decay: 50ms; gain: 0.4; }\n  click { noise: white; filter: highpass; cutoff: 4khz; decay: 8ms; gain: 0.3; }\n}"
+    },
+    {
+      "slug": "event-tick",
+      "category": "event",
+      "impact": "HIGH",
+      "prompt": "tick scroll snap focus hover",
+      "expected_acs": "@sound my-tick {\n  body { osc: sine; freq: 2400hz; decay: 6ms; gain: 0.12; }\n}"
+    },
+    {
+      "slug": "event-toggle",
+      "category": "event",
+      "impact": "MEDIUM-HIGH",
+      "prompt": "toggle switch on off check uncheck",
+      "expected_acs": "@sound my-toggle-on  { body { tones: 880hz;  decay: 80ms; gain: 0.3; } }\n@sound my-toggle-off { body { tones: 660hz;  decay: 80ms; gain: 0.3; } }\n/* In your stylesheet:\n *   [role=\"switch\"]:on-click                          { sound: my-toggle-on; }\n *   [role=\"switch\"][aria-checked=\"true\"]:on-click     { sound: my-toggle-off; }\n */"
+    },
+    {
+      "slug": "event-whoosh",
+      "category": "event",
+      "impact": "MEDIUM",
+      "prompt": "whoosh dramatic reveal hero animation",
+      "expected_acs": "@sound my-whoosh {\n  body {\n    noise: pink;\n    filter: bandpass; cutoff: 1200hz; q: 1.2;\n    pitch-from: 200hz to 4000hz;\n    decay: 600ms;\n    gain: 0.4;\n  }\n}"
+    },
+    {
+      "slug": "layer-ascending-chord",
+      "category": "layer",
+      "impact": "MEDIUM-HIGH",
+      "prompt": "success complete achievement level-up chord triumph",
+      "expected_acs": "@sound my-success {\n  n1 { tones: 660hz;  decay: 250ms; gain: 0.22; }\n  n2 { tones: 880hz;  start: 80ms;  decay: 300ms; gain: 0.22; }\n  n3 { tones: 1320hz; start: 160ms; decay: 350ms; gain: 0.22; }\n}"
+    },
+    {
+      "slug": "layer-click-plus-body",
+      "category": "layer",
+      "impact": "HIGH",
+      "prompt": "tap satisfying tactile button responsive press",
+      "expected_acs": "@sound my-tap {\n  body  { tones: 1.4khz; decay: 50ms; gain: 0.4; }\n  click { noise: white; filter: highpass; cutoff: 4khz; decay: 8ms; gain: 0.3; }\n}"
+    },
+    {
+      "slug": "layer-octave-pair",
+      "category": "layer",
+      "impact": "MEDIUM-HIGH",
+      "prompt": "toggle switch on off paired state",
+      "expected_acs": "@sound my-toggle-on {\n  low  { tones: 660hz;  decay: 80ms; gain: 0.25; }\n  high { tones: 1320hz; start: 30ms; decay: 60ms; gain: 0.2; }\n}"
+    },
+    {
+      "slug": "layer-single",
+      "category": "layer",
+      "impact": "HIGH",
+      "prompt": "click tap tick hover focus single simple",
+      "expected_acs": "@sound my-single {\n  body { osc: sine; freq: 1300hz; decay: 12ms; gain: 0.22; }\n}"
+    },
+    {
+      "slug": "mood-bright",
+      "category": "mood",
+      "impact": "HIGH",
+      "prompt": "bright brighter crisp shiny sparkle",
+      "expected_acs": "@sound my-bright-tap {\n  body { osc: triangle; freq: 1800hz; decay: 60ms; gain: 0.3; }\n  /* No filter — bright sounds want all the high content */\n}\n/* OR */\n.bright-zone { sound-mood: bright; }"
+    },
+    {
+      "slug": "mood-glassy",
+      "category": "mood",
+      "impact": "MEDIUM-HIGH",
+      "prompt": "glassy crystal glass icy",
+      "expected_acs": "@sound my-glass-tap {\n  body { tones: 2400hz, 4800hz; decays: 0.3s, 0.18s; gain: 0.3; }\n}\n/* Or runtime overlay: */\n.lab-tools { sound-mood: glassy; sound-mood-mix: 0.5; }"
+    },
+    {
+      "slug": "mood-lofi",
+      "category": "mood",
+      "impact": "HIGH",
+      "prompt": "lofi lo-fi cassette tape vintage muffled",
+      "expected_acs": "/* Path 1 — runtime overlay (preferred for global aesthetic): */\n.lofi-app { sound-mood: lofi; sound-mood-mix: 0.7; }\n\n/* Path 2 — bake into a single @sound: */\n@sound my-lofi-tap {\n  body {\n    tones: 720hz;\n    filter: lowpass; cutoff: 1800hz;\n    detune: 8;            /* tape wobble approximation */\n    decay: 60ms;\n    gain: 0.35;\n  }\n}"
+    },
+    {
+      "slug": "mood-metallic",
+      "category": "mood",
+      "impact": "MEDIUM",
+      "prompt": "metallic robot pipe industrial",
+      "expected_acs": "/* Best as runtime overlay — the comb filter is hard to bake into @sound: */\n.industrial { sound-mood: metallic; }\n@sound my-base { body { osc: triangle; freq: 880hz; decay: 0.4s; gain: 0.3; } }"
+    },
+    {
+      "slug": "mood-organic",
+      "category": "mood",
+      "impact": "MEDIUM",
+      "prompt": "organic breath alive natural soft",
+      "expected_acs": ".nature-app { sound-mood: organic; }\n@sound my-tone { body { tones: 440hz, 660hz; decays: 0.5s, 0.35s; gain: 0.3; } }"
+    },
+    {
+      "slug": "mood-punchy",
+      "category": "mood",
+      "impact": "HIGH",
+      "prompt": "punchy tight snappy crisp punchier",
+      "expected_acs": "/* Bake as envelope shape: */\n@sound my-punchy-tap {\n  body { tones: 1.4khz; attack: 0; decay: 35ms; gain: 0.4; }\n}\n/* Or overlay: */\n.actions { sound-mood: punchy; }"
+    },
+    {
+      "slug": "mood-retro",
+      "category": "mood",
+      "impact": "MEDIUM",
+      "prompt": "retro 8-bit arcade chiptune vintage",
+      "expected_acs": ".game { sound-mood: retro; }\n@sound my-blip { body { osc: square; freq: 880hz; decay: 80ms; gain: 0.3; } }"
+    },
+    {
+      "slug": "mood-warm",
+      "category": "mood",
+      "impact": "HIGH",
+      "prompt": "warm warmer mellow soft cozy",
+      "expected_acs": "/* Bake into @sound: */\n@sound my-warm-bell {\n  body { tones: 660hz, 990hz; decays: 0.6s, 0.4s;\n         filter: lowpass; cutoff: 2500hz; gain: 0.4; }\n}\n/* OR apply at element: */\n.warm-app { sound-mood: warm; }"
+    }
+  ]
+}

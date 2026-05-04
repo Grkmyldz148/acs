@@ -6,6 +6,32 @@ correspond to internal development milestones.
 
 ## [Unreleased]
 
+## [0.9.2] — 2026-05-04
+
+### Added
+- **`audiocss.dev`** — public landing site live, with full developer
+  documentation at `/docs/`. Sticky sidebar nav, on-page TOC, zinc
+  design tokens, eats-its-own-dog-food sound design.
+- **VSCode Marketplace publish** — extension now searchable as **ACS**
+  in VSCode's extension panel. Same package on Open VSX (Cursor /
+  VSCodium / Theia / Gitpod).
+- **`skills/create-acs-sound/`** — Claude / Cursor agent skill mirroring
+  `@web-kits/audio`'s `create-sound`. 48 atomic rules across pipeline /
+  event / mood / layer / effect / interpret / validate categories,
+  `src/build.mjs` regenerates `SKILL.md` from rules, lightweight
+  validator (`src/validate.mjs`) round-trips every example through an
+  ACS sanity check.
+- **Helm-lab color palette** — landing CSS rebuilt around perceptually
+  uniform monochrome (chroma 0) with a single saturated accent.
+  Credit + link in the footer.
+- **`gorkemyildiz.com` author attribution** in landing footer + READMEs.
+
+### Changed
+- 512 px transparent publisher icon for the VSCode/Open VSX listings
+  (was 128 px scaled-up bitmap).
+- README VSCode-extension section now links the actual marketplace
+  listings instead of pointing only at the GitHub `.vsix`.
+
 ## [0.9.1] — 2026-05-04
 
 ### Fixed

@@ -1,0 +1,13 @@
+{
+  "name": "@audiocss/skill-create-acs-sound",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AI agent skill: generate an ACS @sound block from a prompt or audio file.",
+  "scripts": {
+    "build": "node src/build.mjs",
+    "validate": "node src/validate.mjs",
+    "extract-tests": "node src/extract-tests.mjs",
+    "dev": "node src/build.mjs && node src/validate.mjs"
+  }
+}

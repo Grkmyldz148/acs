@@ -1,0 +1,964 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ACS — Documentation</title>
+<meta name="description" content="Full documentation for ACS — Audio Cascading Style Sheets. Install, authoring guide, language reference, programmatic API, VSCode extension, AI agent skills." />
+<link rel="canonical" href="https://audiocss.dev/docs/" />
+
+<!-- OG -->
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://audiocss.dev/docs/" />
+<meta property="og:title" content="ACS — Documentation" />
+<meta property="og:description" content="Complete reference for the ACS declarative audio language: install, language spec, concepts, tooling, custom melodies, AI agent skills." />
+<meta property="og:image" content="https://audiocss.dev/acs-logo.svg" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="ACS Documentation" />
+<meta name="twitter:description" content="Declarative audio for the web — full reference." />
+<meta name="twitter:image" content="https://audiocss.dev/acs-logo.svg" />
+
+<link rel="icon" type="image/svg+xml" href="/acs-logo.svg" />
+<link rel="apple-touch-icon" href="/acs-logo.svg" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" />
+
+<link rel="stylesheet" href="/styles.css" />
+<link rel="stylesheet" href="/sections.css" />
+<link rel="stylesheet" href="/extras.css" />
+<link rel="stylesheet" href="docs.css" />
+
+<!-- Eat our own dog food: docs page is sonified too. -->
+<link rel="audiostyle" href="/landing.acs" />
+</head>
+<body>
+
+<header class="nav" style="position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);background:color-mix(in srgb, var(--bg) 92%, transparent);border-bottom:1px solid var(--line-2)">
+  <div class="wrap nav-inner" style="max-width:1280px">
+    <a href="/" class="brand" style="display:flex;align-items:center;gap:8px;text-decoration:none">
+      <img src="/acs-logo.svg" alt="ACS" width="28" height="28" />
+      <span style="color:var(--ink);font-weight:600">ACS</span>
+      <span style="color:var(--ink-3);font-weight:400;font-size:var(--tx-2);margin-left:4px">Docs</span>
+    </a>
+    <nav class="nav-links" style="display:flex;gap:18px;font-size:var(--tx-2)">
+      <a href="/" style="color:var(--ink-2);text-decoration:none">Home</a>
+      <a href="/docs/" style="color:var(--ink);text-decoration:none;font-weight:550">Docs</a>
+      <a href="/#components" style="color:var(--ink-2);text-decoration:none">Components</a>
+      <a href="https://github.com/Grkmyldz148/acs" target="_blank" rel="noopener" style="color:var(--ink-2);text-decoration:none">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="docs-shell">
+
+  <!-- ─────── Sidebar ─────── -->
+  <aside class="docs-sidebar">
+    <h5>Overview</h5>
+    <ul>
+      <li><a href="#getting-started">Getting started</a></li>
+      <li><a href="#install">Install</a></li>
+      <li><a href="#first-stylesheet">Your first stylesheet</a></li>
+      <li><a href="#how-it-works">How it works</a></li>
+    </ul>
+
+    <h5>Concepts</h5>
+    <ul>
+      <li><a href="#concepts">Overview</a></li>
+      <li><a href="#properties">Properties</a></li>
+      <li><a href="#cascade">Cascade &amp; selectors</a></li>
+      <li><a href="#sources">Layer sources</a></li>
+      <li><a href="#sound-blocks">@sound blocks</a></li>
+      <li><a href="#sample-rule">@sample at-rule</a></li>
+      <li><a href="#moods">Mood overlays</a></li>
+      <li><a href="#rooms">Rooms (reverb)</a></li>
+      <li><a href="#css-vars">CSS-var bridge</a></li>
+      <li><a href="#media-queries">@media &amp; accessibility</a></li>
+    </ul>
+
+    <h5>Tooling</h5>
+    <ul>
+      <li><a href="#extension">VSCode &amp; Cursor extension</a></li>
+      <li><a href="#picker">Sound picker</a></li>
+      <li><a href="#cli">CLI tools</a></li>
+      <li><a href="#skills">Skills (AI agents)</a></li>
+    </ul>
+
+    <h5>API</h5>
+    <ul>
+      <li><a href="#api">Programmatic API</a></li>
+      <li><a href="#devtools">Devtools overlay</a></li>
+      <li><a href="#helpers">Framework helpers</a></li>
+    </ul>
+
+    <h5>Authoring</h5>
+    <ul>
+      <li><a href="#custom-melodies">Custom melodies</a></li>
+      <li><a href="#layer-keys">Layer keys reference</a></li>
+      <li><a href="#presets">Preset library (49)</a></li>
+      <li><a href="#themes">Theme packs (8)</a></li>
+    </ul>
+
+    <h5>Reference</h5>
+    <ul>
+      <li><a href="#browser-support">Browser support</a></li>
+      <li><a href="#troubleshooting">Troubleshooting</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+  </aside>
+
+  <!-- ─────── Article ─────── -->
+  <article class="docs-article">
+
+    <!-- ════════ GETTING STARTED ════════ -->
+    <section id="getting-started">
+      <h1>ACS Documentation</h1>
+      <p>
+        <strong>ACS</strong> (Audio Cascading Style Sheets) is a CSS-like declarative
+        stylesheet language for audio. Where CSS describes how an HTML element should
+        <em>look</em>, ACS describes how it should <em>sound</em>. Same selectors, same
+        cascade, same specificity rules — but properties target audio: <code>sound</code>,
+        <code>volume</code>, <code>pitch</code>, <code>room</code>, <code>sound-mood</code>.
+      </p>
+      <p>
+        One <code>&lt;link rel="audiostyle"&gt;</code>, one <code>&lt;script&gt;</code>,
+        and your buttons sound like buttons. No event handlers, no <code>play()</code>
+        calls. The cascade does the wiring.
+      </p>
+      <p>
+        Everything is declarative: rules live in <code>.acs</code> files, the runtime
+        attaches <em>one</em> document-level listener per event type, and at fire time it
+        walks up from the click target resolving the cascade at each ancestor — so dynamic
+        state (added classes, attribute changes) is always current.
+      </p>
+    </section>
+
+    <!-- ════════ INSTALL ════════ -->
+    <section id="install">
+      <h2>Install</h2>
+      <p>Pick whichever distribution channel fits your stack — there is no build step required.</p>
+
+      <h3>1 · Browser via CDN <small style="color:var(--ink-3);font-weight:400">(zero install)</small></h3>
+      <pre><code>&lt;link rel="audiostyle" href="my-style.acs" /&gt;
+&lt;script type="module"
+        src="https://cdn.jsdelivr.net/gh/Grkmyldz148/acs@main/poc/runtime.js"&gt;&lt;/script&gt;</code></pre>
+      <p>jsDelivr auto-mirrors the GitHub repo. For pinned versions use <code>@v0.9.2</code> instead of <code>@main</code>.</p>
+
+      <h3>2 · npm</h3>
+      <pre><code>npm install acs-audio</code></pre>
+      <p>Then in any entry file:</p>
+      <pre><code>import "acs-audio";   // side-effect import — auto-binds &lt;link rel="audiostyle"&gt;</code></pre>
+      <p>The runtime is framework-agnostic: works with React, Vue, Svelte, plain HTML, etc. TypeScript types ship in the package.</p>
+
+      <h3>3 · Self-host</h3>
+      <p>
+        Download <code>dist/runtime.mjs</code> from
+        <a href="https://github.com/Grkmyldz148/acs/releases" target="_blank" rel="noopener">Releases</a>
+        and serve it next to your app. The runtime auto-loads <code>defaults.acs</code>
+        (49 calibrated built-in presets) from the same directory, so keep it co-located.
+      </p>
+
+      <h3>4 · VSCode / Cursor extension</h3>
+      <p>
+        Search <strong>"ACS"</strong> in the extensions panel
+        (<span class="kbd">⌘</span> <span class="kbd">⇧</span> <span class="kbd">X</span>),
+        or install via CLI:
+      </p>
+      <pre><code>code --install-extension audio-cascading-style-sheets.acs-language
+# Cursor / VSCodium read from Open VSX:
+cursor --install-extension audio-cascading-style-sheets.acs-language</code></pre>
+      <p>
+        Provides syntax highlighting, outline, folding, hover docs, live linter with
+        fuzzy-match hints (<code>did you mean "master-volume"?</code>), audition CodeLens,
+        sound picker webview with knob-based layer editor, and 30+ snippets.
+      </p>
+    </section>
+
+    <!-- ════════ FIRST STYLESHEET ════════ -->
+    <section id="first-stylesheet">
+      <h2>Your first stylesheet</h2>
+      <p>Create <code>my-style.acs</code> next to your <code>index.html</code>:</p>
+      <pre><code>:root            { master-volume: 0.85; room: medium-room; }
+
+button           { sound-on-click: tap-tactile; }
+button.primary   { sound-on-click: pop;     pitch: +1st; }
+button.danger    { sound-on-click: error;   volume: 0.7; }
+input:on-focus   { sound: tick; volume: 0.4; }
+input:on-input   { sound: click-soft; }
+[role=alert]     { sound-on-appear: notify; }
+dialog[open]     { sound-on-appear: modal-open; room: small-room; }
+
+@media (prefers-reduced-sound: reduce) {
+  :root { master-volume: 0; }
+}</code></pre>
+
+      <p>Link it from your HTML:</p>
+      <pre><code>&lt;link rel="audiostyle" href="my-style.acs" /&gt;
+&lt;script type="module" src="https://cdn.jsdelivr.net/gh/Grkmyldz148/acs@main/poc/runtime.js"&gt;&lt;/script&gt;</code></pre>
+
+      <p>That's it. Click any button — the runtime resolved the cascade, looked up the preset, played a sound.</p>
+
+      <div class="docs-note">
+        <strong>Autoplay note.</strong> Browsers block <code>AudioContext</code>
+        until the user interacts. ACS auto-resumes on the first
+        <code>pointerdown</code> / <code>keydown</code>. The first click of a session
+        unlocks audio for everything that follows.
+      </div>
+    </section>
+
+    <!-- ════════ HOW IT WORKS ════════ -->
+    <section id="how-it-works">
+      <h2>How it works</h2>
+      <p>The runtime is a tiny browser-side parser plus a Web Audio engine:</p>
+      <pre><code>.acs files
+   → parse — brace-aware CSS-like parser, handles @media nesting
+   → split: :root → master config, @sound → custom presets, rest → resolver
+   → buildBindings — produces resolver(el) → { click[], enter[], focus[], input[] }
+   ↓
+ONE document-level listener per event type. At fire time:
+   walk up from event.target,
+   call resolver(ancestor) at each step (dynamic state always current),
+   flatten matching rules,
+   apply inheritance for inherited props,
+   trigger preset with merged decls
+   ↓
+preset runner → voice graph (modal / tones / pluck / osc / noise)
+   → optional saturation + pan
+   → room chain (dry + convolver + wet)
+   → master EQ → master gain → limiter → speakers</code></pre>
+      <p>
+        Calibration runs once at startup: every preset is offline-rendered, K-weighted RMS
+        is measured, and a per-preset multiplier is baked so <code>volume: 0.5</code> sounds
+        equally loud whether the preset is a tap or a gong. Post-cal spread across all 49
+        built-in presets is <strong>4.8 dB</strong> — well under the ITU-R BS.1770 broadcast
+        tolerance.
+      </p>
+    </section>
+
+    <!-- ════════ CONCEPTS ════════ -->
+    <section id="concepts">
+      <h2>Concepts</h2>
+      <p>
+        ACS is structured like CSS. If you can read a CSS file, you can read ACS. Below
+        is the full mental model — each subsection is a concept, each concept is a single
+        ACS file you could write end-to-end.
+      </p>
+    </section>
+
+    <!-- ════════ PROPERTIES ════════ -->
+    <section id="properties">
+      <h3>Properties</h3>
+      <p>
+        ACS properties are <em>kebab-case</em>, just like CSS. Three categories: per-event
+        triggers, per-element modifiers, and root-level master config.
+      </p>
+
+      <h4>Per-event triggers</h4>
+      <table>
+        <tr><th>Property</th><th>Fires when</th><th>Example</th></tr>
+        <tr><td><code>sound-on-click</code></td><td>Click bubbles to this element</td><td><code>tap-tactile</code></td></tr>
+        <tr><td><code>sound-on-enter</code></td><td><code>pointerenter</code> (hover-style)</td><td><code>tick</code></td></tr>
+        <tr><td><code>sound-on-focus</code></td><td><code>focusin</code></td><td><code>tick</code></td></tr>
+        <tr><td><code>sound-on-input</code></td><td>Form <code>input</code> event</td><td><code>click-soft</code></td></tr>
+        <tr><td><code>sound-on-appear</code></td><td>Element added to DOM (MutationObserver)</td><td><code>notify</code></td></tr>
+        <tr><td><code>sound-on-leave</code></td><td>Element removed from DOM</td><td><code>modal-close</code></td></tr>
+        <tr><td><code>sound</code></td><td>Generic — used inside a state pseudo-class like <code>:on-click</code>, <code>:on-input</code></td><td><code>pop</code></td></tr>
+      </table>
+
+      <h4>Per-element modifiers (inheritable)</h4>
+      <table>
+        <tr><th>Property</th><th>Default</th><th>Range / values</th></tr>
+        <tr><td><code>volume</code></td><td><code>1</code></td><td><code>0..1</code> · or <code>X !raw</code> to bypass calibration</td></tr>
+        <tr><td><code>pitch</code></td><td><code>0</code></td><td>Semitones, e.g. <code>+1st</code>, <code>-3st</code></td></tr>
+        <tr><td><code>room</code></td><td><code>dry</code></td><td><code>dry · small-room · medium-room · large-room · hall · plate</code></td></tr>
+        <tr><td><code>sound-mood</code></td><td>—</td><td>9 overlays (see <a href="#moods">Moods</a>)</td></tr>
+        <tr><td><code>sound-mood-mix</code></td><td><code>1</code></td><td><code>0..1</code> wet/dry blend</td></tr>
+        <tr><td><code>pan</code></td><td><code>0</code></td><td><code>-1</code> (left) → <code>1</code> (right)</td></tr>
+      </table>
+
+      <h4>Root-only (master)</h4>
+      <table>
+        <tr><th>Property</th><th>Effect</th></tr>
+        <tr><td><code>master-volume</code></td><td>Global gain (post-limiter input)</td></tr>
+        <tr><td><code>master-eq</code></td><td>Tone tilt at master bus</td></tr>
+        <tr><td><code>quality</code></td><td><code>low | medium | high</code> — caps voice pool, modal partials, reverb tail</td></tr>
+      </table>
+    </section>
+
+    <!-- ════════ CASCADE ════════ -->
+    <section id="cascade">
+      <h3>Cascade &amp; selectors</h3>
+      <p>
+        Specificity is computed exactly like CSS:
+        <code>(inline=irrelevant, ids, classes/attrs/pseudo-classes, types/pseudo-elements)</code>.
+        More specific wins; <code>!important</code> overrides; later wins on tie.
+      </p>
+
+      <table>
+        <tr><th>Selector</th><th>Specificity</th><th>Example</th></tr>
+        <tr><td>type</td><td>0,0,1</td><td><code>button</code></td></tr>
+        <tr><td>class</td><td>0,1,0</td><td><code>.primary</code></td></tr>
+        <tr><td>attribute</td><td>0,1,0</td><td><code>[data-variant="ghost"]</code></td></tr>
+        <tr><td>id</td><td>1,0,0</td><td><code>#cta</code></td></tr>
+        <tr><td>compound</td><td>sum</td><td><code>button.primary[disabled]</code> = 0,2,1</td></tr>
+        <tr><td>descendant</td><td>sum</td><td><code>dialog[open] button</code> = 0,1,2</td></tr>
+        <tr><td>universal</td><td>0,0,0</td><td><code>*</code></td></tr>
+        <tr><td>pseudo-state</td><td>0,1,0</td><td><code>:on-click</code>, <code>:on-input</code></td></tr>
+      </table>
+
+      <p>
+        Inheritance: <code>sound-mood</code>, <code>sound-mood-mix</code>, <code>volume</code>,
+        <code>pitch</code>, <code>room</code>, <code>pan</code> all inherit. Set
+        <code>sound-mood: lofi</code> on <code>body</code> and the entire app gets a
+        muffled overlay until you override on a child.
+      </p>
+    </section>
+
+    <!-- ════════ SOURCES ════════ -->
+    <section id="sources">
+      <h3>Layer sources</h3>
+      <p>
+        Every <code>@sound</code> is built from one or more <strong>layers</strong>. A layer
+        is a single voice graph — pick one of these source primitives, configure it, the
+        runtime renders it through saturation → pan → room → master.
+      </p>
+
+      <h4>Layer source types</h4>
+      <table>
+        <tr><th>Source key</th><th>Meaning</th><th>Best for</th></tr>
+        <tr><td><code>modal</code></td><td>Modal IIR resonator (frequency + ratios + decays)</td><td>Bells, gongs, struck objects</td></tr>
+        <tr><td><code>tones</code></td><td>Additive sine bank — comma-separated frequencies</td><td>Chords, bell-like clusters, UI dings</td></tr>
+        <tr><td><code>osc</code></td><td>Single oscillator (<code>sine | triangle | square | sawtooth</code>) with optional <code>fm</code></td><td>Synth tones, FM bells, sweeps</td></tr>
+        <tr><td><code>pluck</code></td><td>Karplus-Strong plucked string</td><td>Guitar/harp-like accents</td></tr>
+        <tr><td><code>noise</code></td><td>Filtered noise (<code>white | pink | brown</code>)</td><td>Snares, claps, breath, swooshes</td></tr>
+      </table>
+
+      <h4>Concrete examples</h4>
+      <pre><code>@sound my-bell {
+  body {
+    tones: 880hz, 1320hz, 2200hz;     /* additive */
+    decays: 0.6s, 0.4s, 0.25s;
+    gain: 0.4;
+  }
+}
+
+@sound my-pluck {
+  body { pluck: 440hz; brightness: 0.7; decay: 1.2s; gain: 0.5; }
+}
+
+@sound my-snare {
+  body  { noise: white; filter: bandpass; cutoff: 2khz; q: 2; decay: 80ms; gain: 0.6; }
+  snap  { osc: sine;    freq: 200hz;     decay: 30ms;  gain: 0.3; }
+}</code></pre>
+      <p>Multiple layers <strong>stack additively</strong> — both fire simultaneously and the runtime sums them.</p>
+    </section>
+
+    <!-- ════════ @SOUND BLOCKS ════════ -->
+    <section id="sound-blocks">
+      <h3>@sound blocks</h3>
+      <p>
+        <code>@sound &lt;name&gt; { ... }</code> registers a custom preset by name. Once
+        registered, any selector can use it via <code>sound: my-name</code>,
+        <code>sound-on-click: my-name</code>, etc.
+      </p>
+      <pre><code>@sound bubble {
+  body { osc: sine; freq: 540hz; pitch-from: 540hz to 880hz; decay: 80ms; gain: 0.5; }
+  pop  { noise: white; filter: highpass; cutoff: 4khz; decay: 12ms; gain: 0.2; }
+}
+
+button.tooltip-trigger:on-hover { sound: bubble; pitch: +2st; }</code></pre>
+
+      <p>
+        Re-defining a preset name overrides the built-in. So
+        <code>@sound tap { ... }</code> in your stylesheet replaces the calibrated <code>tap</code>.
+        The 49 built-ins are loaded first, your stylesheet last — last wins.
+      </p>
+    </section>
+
+    <!-- ════════ @SAMPLE ════════ -->
+    <section id="sample-rule">
+      <h3>@sample at-rule</h3>
+      <p>
+        Bring your own audio files. Body-less; registers a URL under a preset name. The
+        file is fetched + cached on first trigger.
+      </p>
+      <pre><code>@sample chime  url("/sfx/chime.wav");
+@sample crunch url("/sfx/crunch.mp3");
+
+button[data-action="confirm"] { sound-on-click: chime; }
+button[data-action="delete"]  { sound-on-click: crunch; volume: 0.7; }</code></pre>
+      <p>
+        Sample volume is normalized through the same calibration pipeline as procedural
+        presets (first-trigger latency: ~30 ms while it caches).
+      </p>
+    </section>
+
+    <!-- ════════ MOODS ════════ -->
+    <section id="moods">
+      <h3>Mood overlays</h3>
+      <p>
+        A <code>sound-mood</code> is an inheritable filter that paints over <em>any</em>
+        sound triggered on the element or its descendants. Nine built-in moods ship; mix
+        wet/dry with <code>sound-mood-mix</code>.
+      </p>
+      <table>
+        <tr><th>Mood</th><th>Effect</th></tr>
+        <tr><td><code>warm</code></td><td>Soft lowpass + gentle saturation</td></tr>
+        <tr><td><code>bright</code></td><td>High-shelf boost + lowpass relief</td></tr>
+        <tr><td><code>glassy</code></td><td>Resonant peak around 4–6 kHz</td></tr>
+        <tr><td><code>metallic</code></td><td>Comb filter at audible delays</td></tr>
+        <tr><td><code>organic</code></td><td>Slow LFO on cutoff + mild detune</td></tr>
+        <tr><td><code>punchy</code></td><td>Transient enhancer + tight gate</td></tr>
+        <tr><td><code>retro</code></td><td>Bandpass + bitcrush</td></tr>
+        <tr><td><code>airy</code></td><td>Subtle high-shelf + reverb send</td></tr>
+        <tr><td><code>lofi</code></td><td>Lowpass + sample-rate reduction + wow/flutter</td></tr>
+      </table>
+      <pre><code>.retro-app { sound-mood: lofi; }
+.lab        { sound-mood: glassy; sound-mood-mix: 0.4; }   /* 40% wet */</code></pre>
+    </section>
+
+    <!-- ════════ ROOMS ════════ -->
+    <section id="rooms">
+      <h3>Rooms (reverb)</h3>
+      <p>
+        Each element resolves <em>one</em> room — the cascaded <code>room</code> value.
+        The runtime maintains lazy convolver chains keyed by room name; first use
+        instantiates, subsequent triggers reuse.
+      </p>
+      <table>
+        <tr><th>Room</th><th>Tail (s)</th><th>Use case</th></tr>
+        <tr><td><code>dry</code></td><td>0</td><td>Default; bypasses convolver</td></tr>
+        <tr><td><code>small-room</code></td><td>0.4</td><td>UI taps, modals, intimate alerts</td></tr>
+        <tr><td><code>medium-room</code></td><td>0.9</td><td>Default for most apps</td></tr>
+        <tr><td><code>large-room</code></td><td>1.6</td><td>Concert / cinematic feel</td></tr>
+        <tr><td><code>hall</code></td><td>2.8</td><td>Long, lush, ambient</td></tr>
+        <tr><td><code>plate</code></td><td>1.2</td><td>Dattorro plate — classic studio reverb</td></tr>
+      </table>
+    </section>
+
+    <!-- ════════ CSS-VAR BRIDGE ════════ -->
+    <section id="css-vars">
+      <h3>CSS-var bridge</h3>
+      <p>
+        Any ACS value can read a CSS custom property via <code>var(--token)</code>. The
+        runtime resolves against <code>getComputedStyle(documentElement)</code> at
+        trigger time — so dark/light theme switches are picked up live.
+      </p>
+      <pre><code>:root          { --beep: 880hz; }
+button.primary { sound: my-tone; }
+
+@sound my-tone {
+  body { tones: var(--beep); decay: 120ms; }
+}</code></pre>
+      <p>String declarations (<code>sound</code>, <code>room</code>, <code>mood</code>) and numeric ones (<code>volume</code>, <code>pitch</code>, frequencies) all resolve through the same bridge.</p>
+    </section>
+
+    <!-- ════════ MEDIA + A11Y ════════ -->
+    <section id="media-queries">
+      <h3>@media &amp; accessibility</h3>
+      <p>ACS supports the same <code>@media</code> nesting as CSS, with two ACS-specific media features:</p>
+
+      <pre><code>@media (prefers-reduced-sound: reduce) { :root { master-volume: 0; } }
+@media (input-modality: keyboard)      { button:on-focus { sound: tick; } }</code></pre>
+
+      <p>
+        <code>prefers-reduced-sound</code> is still a CSS proposal — the runtime
+        evaluates it gracefully (always <code>false</code>) until browsers adopt it. Your
+        stylesheet stays correct; users with screen readers / reduced-motion preferences
+        won't hear extras when the media query lands.
+      </p>
+    </section>
+
+    <!-- ════════ EXTENSION ════════ -->
+    <section id="extension">
+      <h2>VSCode &amp; Cursor extension</h2>
+      <p>
+        Installs from both major marketplaces. Same package ID
+        (<code>audio-cascading-style-sheets.acs-language</code>),
+        same version everywhere.
+      </p>
+      <ul>
+        <li><strong>VSCode Marketplace</strong> — <a href="https://marketplace.visualstudio.com/items?itemName=audio-cascading-style-sheets.acs-language" target="_blank" rel="noopener">marketplace listing</a></li>
+        <li><strong>Open VSX</strong> (Cursor / VSCodium / Theia / Gitpod) — <a href="https://open-vsx.org/extension/audio-cascading-style-sheets/acs-language" target="_blank" rel="noopener">open-vsx listing</a></li>
+        <li><strong>Manual</strong> <code>.vsix</code> from <a href="https://github.com/Grkmyldz148/acs/releases" target="_blank" rel="noopener">GitHub Releases</a></li>
+      </ul>
+
+      <h3>Features</h3>
+      <ul>
+        <li>TextMate grammar — strings, numbers, properties, at-rules, selectors all coloured.</li>
+        <li>Document outline (<code>DocumentSymbolProvider</code>) — every <code>@sound</code> appears in the outline panel.</li>
+        <li>Folding ranges for <code>@sound</code> bodies, <code>@media</code> blocks.</li>
+        <li>Hover docs for every property, preset, room, mood.</li>
+        <li>Live linter — <em>"unknown property 'master-volum' — did you mean 'master-volume'?"</em></li>
+        <li>▶ <strong>Audition</strong> CodeLens — click above any <code>@sound</code> to hear it.</li>
+        <li>🔊 <strong>Open in Picker</strong> CodeLens — opens the interactive layer editor.</li>
+        <li>30+ snippets covering bell / FM-bell / snare / kick / pluck / fast-tap recipes plus cascade blocks for buttons / toasts / switches / inputs / dialogs.</li>
+      </ul>
+    </section>
+
+    <!-- ════════ PICKER ════════ -->
+    <section id="picker">
+      <h3>Sound picker</h3>
+      <p>
+        The picker is a webview shipped inside the extension. Two modes:
+      </p>
+      <ol>
+        <li><strong>Browser</strong> — intent-based gallery with hover-preview, keyboard nav, ASCII waveform thumbs.</li>
+        <li><strong>Layer editor</strong> — knob-based DSL editor for the <code>@sound</code> block of any preset. Source dropdown, freq, ratios/decays/gains text inputs, FM modulator, pitch-from sweep, detune, brightness (pluck), filter + cutoff, attack/decay, gain/drive/pan/start. Drag-to-reorder layers; live waveform; Reset to original; <strong>Copy as <code>@sound</code></strong> for paste-ready output.</li>
+      </ol>
+      <p>
+        Open via the editor title-bar 🔊 icon while in an <code>.acs</code> file, or run
+        <strong>"ACS: Open Sound Picker"</strong> from the command palette.
+      </p>
+    </section>
+
+    <!-- ════════ CLI ════════ -->
+    <section id="cli">
+      <h3>CLI tools</h3>
+      <p>Three Node scripts ship with the npm package — pure ESM, no transpile.</p>
+
+      <h4>Lint</h4>
+      <pre><code>npx acs-audio/lint poc/*.acs
+# or
+node node_modules/acs-audio/tools/lint-acs.mjs my-style.acs</code></pre>
+      <p>Validates property names, preset references, mood names, room names. Fuzzy-match suggestions for typos.</p>
+
+      <h4>Format</h4>
+      <pre><code>node node_modules/acs-audio/tools/format.mjs my-style.acs</code></pre>
+      <p>Pretty-prints in-place. Aligns properties, normalizes whitespace, sorts <code>@sound</code> blocks alphabetically by preset name (optional).</p>
+
+      <h4>Compile</h4>
+      <pre><code>node node_modules/acs-audio/tools/compile-acs.mjs --pretty --out style.json my-style.acs</code></pre>
+      <p>Pre-parses to a JSON AST. Useful for build-time inlining or shipping a minified runtime that skips the parser.</p>
+    </section>
+
+    <!-- ════════ SKILLS ════════ -->
+    <section id="skills">
+      <h2>Skills (AI agents)</h2>
+      <p>
+        ACS ships a Claude / Cursor "skill" that lets an AI agent design a sound for you
+        from a natural-language prompt or by reverse-engineering an audio file. The skill
+        sits in <code>skills/create-acs-sound/</code> in the repo.
+      </p>
+
+      <h3>What it does</h3>
+      <ul>
+        <li><strong>Prompt input</strong> — "Give me a soft pop that's brighter than the default" → emits a calibrated <code>@sound</code> block.</li>
+        <li><strong>Audio input</strong> — Drop a <code>.wav</code>, the skill measures source/envelope/effects and reverse-engineers a matching <code>@sound</code>.</li>
+        <li><strong>Mixed</strong> — Audio + qualifier ("warmer", "punchier") refines the measured definition.</li>
+        <li><strong>Round-trip render</strong> — The skill renders the result to a WAV preview and validates within tolerance bands (gain budget, frequency bounds, duration cap).</li>
+      </ul>
+
+      <h3>Install for Claude Code / Cursor agents</h3>
+      <pre><code># clone the repo
+git clone https://github.com/Grkmyldz148/acs.git
+# point your agent runtime at:
+acs/skills/create-acs-sound/SKILL.md</code></pre>
+      <p>The skill is a directory of <code>rules/*.md</code> atomic decision documents plus pipeline orchestration in <code>SKILL.md</code>. Compatible with the @web-kits/audio skill format.</p>
+
+      <h3>Pipeline</h3>
+      <pre><code>1. pipeline-detect-input    → prompt | audio | both
+2. pipeline-pick-base-layer → match event-class tokens (event-click, event-tap, …)
+3. pipeline-apply-mood      → adjective tokens mutate source/filter/effects
+4. pipeline-decide-layering → 1, 2, or 3 layers based on event class
+5. pipeline-emit-and-render → emit @sound, optional WAV preview, validate</code></pre>
+
+      <h3>Authoring your own skill</h3>
+      <p>
+        Each rule is a markdown file with frontmatter declaring its category
+        (<code>event</code>, <code>layer</code>, <code>mood</code>, <code>effect</code>,
+        <code>pipeline</code>, <code>validate</code>, <code>interpret</code>) and a body
+        containing the rule's logic + an example <code>@sound</code> block. Run
+        <code>node src/build.mjs</code> to compile <code>SKILL.md</code> from the rules.
+      </p>
+      <p>See the <a href="https://github.com/Grkmyldz148/acs/tree/main/skills/create-acs-sound" target="_blank" rel="noopener">skills directory in the repo</a> for the full source.</p>
+    </section>
+
+    <!-- ════════ API ════════ -->
+    <section id="api">
+      <h2>Programmatic API</h2>
+      <p>Most use is declarative — these are escape hatches.</p>
+
+      <h3>Trigger directly</h3>
+      <pre><code>window.ACS.trigger({ sound: "pop", pitch: "+2st", volume: 0.7 }, "click");</code></pre>
+
+      <h3>Set master config</h3>
+      <pre><code>window.ACS.setMasterConfig({
+  "master-volume": 0.7,
+  room: "small-room",
+  quality: "high",
+});</code></pre>
+
+      <h3>Watch a stylesheet</h3>
+      <pre><code>window.ACS.watch("/style.acs", { interval: 1000 });
+// re-fetches + re-binds on changes — useful in dev</code></pre>
+
+      <h3>Subscribe to triggers</h3>
+      <pre><code>const unsubscribe = window.ACS.onTrigger(({ preset, decls, eventKey, target }) => {
+  console.log(preset, eventKey, target);
+});</code></pre>
+    </section>
+
+    <!-- ════════ DEVTOOLS ════════ -->
+    <section id="devtools">
+      <h3>Devtools overlay</h3>
+      <pre><code>window.ACS.devtools.mount();
+// fixed-position panel: last 20 triggers + preset / source / factor / mood / room
+window.ACS.devtools.unmount();</code></pre>
+      <p>The overlay subscribes via <code>onTrigger</code>, so the cost when not mounted is zero.</p>
+    </section>
+
+    <!-- ════════ HELPERS ════════ -->
+    <section id="helpers">
+      <h3>Framework helpers</h3>
+      <p>
+        <code>window.ACS.helpers.useSound</code> takes a hooks injection so the runtime
+        has no React peer dep. Works with any hook-shaped library.
+      </p>
+      <pre><code>import { useCallback } from "react";
+
+const ding = window.ACS.helpers.useSound({ useCallback }, "ding");
+&lt;button onClick={ding}&gt;Notify&lt;/button&gt;</code></pre>
+      <p>Other helpers:</p>
+      <pre><code>window.ACS.helpers.play("pop", { pitch: "+1st" });
+window.ACS.helpers.attach(myButton, "ding", "click");</code></pre>
+    </section>
+
+    <!-- ════════ CUSTOM MELODIES ════════ -->
+    <section id="custom-melodies">
+      <h2>Custom melodies — deep dive</h2>
+      <p>
+        This section is for authors who want to write <code>@sound</code> blocks from
+        scratch instead of using the 49 built-ins. The mental model is the same one used
+        by the <a href="#skills">create-acs-sound skill</a> — read it once and you'll
+        understand both.
+      </p>
+
+      <h3>Step 1 — Pick an archetype</h3>
+      <table>
+        <tr><th>You want</th><th>Use</th></tr>
+        <tr><td>Bell-like ding</td><td><code>tones: f1, f2, f3</code> with descending decays</td></tr>
+        <tr><td>Wood / drum knock</td><td><code>modal: f, ratios: 1 r2 r3, decays: d1 d2 d3</code></td></tr>
+        <tr><td>Plucked string</td><td><code>pluck: f, brightness: 0..1, decay: t</code></td></tr>
+        <tr><td>Filtered noise (snare/clap/breath)</td><td><code>noise: white, filter: bandpass, cutoff: f, q: q</code></td></tr>
+        <tr><td>FM bell</td><td><code>osc: sine, freq: f, fm: { ratio: r, depth: d }</code></td></tr>
+      </table>
+
+      <h3>Step 2 — Author the body layer</h3>
+      <pre><code>@sound my-sound {
+  body {
+    /* source key */
+    tones: 880hz, 1320hz, 2200hz;
+
+    /* envelope */
+    decays: 0.6s, 0.4s, 0.25s;        /* per-tone if multi */
+    attack: 4ms;                       /* default 0 */
+
+    /* level */
+    gain: 0.4;                         /* before calibration */
+  }
+}</code></pre>
+
+      <h3>Step 3 — Stack a click layer</h3>
+      <p>Most "satisfying" UI sounds are <strong>body + click</strong>. The body gives the tonal identity; the click gives the sharp transient.</p>
+      <pre><code>@sound my-tap {
+  body  { tones: 1.4khz; decay: 50ms; gain: 0.4; }
+  click { noise: white; filter: highpass; cutoff: 4khz; decay: 8ms; gain: 0.3; }
+}</code></pre>
+
+      <h3>Step 4 — Validate</h3>
+      <ul>
+        <li><strong>Gain budget</strong>: sum of layer <code>gain</code> values should be ≤ 1.</li>
+        <li><strong>Frequency bounds</strong>: keep fundamentals between 80 Hz – 8 kHz for UI sounds.</li>
+        <li><strong>Duration cap</strong>: tail under 0.5 s for taps, under 1.5 s for toasts/notifications.</li>
+        <li><strong>Run the linter</strong> — <code>npx acs-audio/lint your-style.acs</code>.</li>
+        <li><strong>Audition</strong> — ▶ CodeLens above the <code>@sound</code> block in VSCode.</li>
+      </ul>
+
+      <h3>Step 5 — Calibrate (optional, advanced)</h3>
+      <p>
+        ACS's calibration pipeline assigns each preset a <code>BAKED_FACTOR</code> so
+        <code>volume: 0.5</code> sounds equally loud across the library. For your own
+        presets the runtime calibrates on-the-fly at first trigger, but you can pre-bake:
+      </p>
+      <pre><code>node node_modules/acs-audio/analyzer/defaults-loudness.mjs --bake my-style.acs</code></pre>
+      <p>This writes a JSON sidecar with K-weighted RMS measurements; the runtime reads it on load and applies the factor before <code>volume</code>.</p>
+    </section>
+
+    <!-- ════════ LAYER KEYS ════════ -->
+    <section id="layer-keys">
+      <h3>Layer keys reference</h3>
+      <p>Complete list of keys you can put inside any layer block.</p>
+
+      <h4>Source (pick one)</h4>
+      <table>
+        <tr><th>Key</th><th>Value</th><th>Notes</th></tr>
+        <tr><td><code>tones</code></td><td>Comma-separated frequencies</td><td>Additive sine bank</td></tr>
+        <tr><td><code>modal</code></td><td>Frequency</td><td>Pair with <code>ratios</code>, <code>decays</code>, <code>gains</code></td></tr>
+        <tr><td><code>osc</code></td><td><code>sine | triangle | square | sawtooth</code></td><td>Pair with <code>freq</code></td></tr>
+        <tr><td><code>pluck</code></td><td>Frequency</td><td>Pair with <code>brightness</code>, <code>decay</code></td></tr>
+        <tr><td><code>noise</code></td><td><code>white | pink | brown</code></td><td>Pair with <code>filter</code></td></tr>
+      </table>
+
+      <h4>Modulation / shaping</h4>
+      <table>
+        <tr><th>Key</th><th>Value</th><th>Applies to</th></tr>
+        <tr><td><code>fm</code></td><td><code>{ ratio, depth }</code></td><td>osc</td></tr>
+        <tr><td><code>pitch-from</code></td><td><code>start to end</code></td><td>Sweep</td></tr>
+        <tr><td><code>detune</code></td><td>Cents</td><td>osc</td></tr>
+        <tr><td><code>filter</code></td><td><code>lowpass | highpass | bandpass | tpt-*</code></td><td>noise / osc</td></tr>
+        <tr><td><code>cutoff</code></td><td>Frequency</td><td>filter</td></tr>
+        <tr><td><code>q</code></td><td>Number</td><td>filter (resonance)</td></tr>
+      </table>
+
+      <h4>Envelope</h4>
+      <table>
+        <tr><th>Key</th><th>Value</th></tr>
+        <tr><td><code>attack</code></td><td>ms / s</td></tr>
+        <tr><td><code>decay</code></td><td>ms / s</td></tr>
+        <tr><td><code>release</code></td><td>ms / s</td></tr>
+        <tr><td><code>decays</code></td><td>Comma-separated (per partial)</td></tr>
+      </table>
+
+      <h4>Output</h4>
+      <table>
+        <tr><th>Key</th><th>Value</th></tr>
+        <tr><td><code>gain</code></td><td><code>0..1</code></td></tr>
+        <tr><td><code>drive</code></td><td><code>0..1</code> (saturation)</td></tr>
+        <tr><td><code>pan</code></td><td><code>-1..1</code></td></tr>
+        <tr><td><code>start</code></td><td>Offset (ms / s) — delays this layer</td></tr>
+        <tr><td><code>realtime</code></td><td><code>true</code> — route through AudioWorklet for sub-1ms latency</td></tr>
+      </table>
+    </section>
+
+    <!-- ════════ PRESETS ════════ -->
+    <section id="presets">
+      <h3>Built-in preset library (49)</h3>
+      <p>
+        Auto-loaded as <code>defaults.acs</code>. All calibrated; cross-preset spread 4.8 dB.
+        Override any by re-defining <code>@sound &lt;name&gt;</code> in your stylesheet.
+      </p>
+
+      <h4>UI taps &amp; clicks</h4>
+      <p><code>tap</code> · <code>tap-tactile</code> · <code>click</code> · <code>click-soft</code> · <code>tick</code> · <code>pop</code> · <code>thunk</code> · <code>woodblock</code></p>
+
+      <h4>Bells &amp; pings</h4>
+      <p><code>bell</code> · <code>bell-soft</code> · <code>bell-bright</code> · <code>chime</code> · <code>chime-soft</code> · <code>ding</code> · <code>ping</code> · <code>ting</code></p>
+
+      <h4>Drums &amp; percussion</h4>
+      <p><code>kick</code> · <code>snare</code> · <code>hat</code> · <code>clap</code></p>
+
+      <h4>States &amp; flow</h4>
+      <p><code>success</code> · <code>complete</code> · <code>confirm</code> · <code>error</code> · <code>denied</code> · <code>buzz</code> · <code>notify</code> · <code>mention</code> · <code>badge</code> · <code>prompt</code></p>
+
+      <h4>Modals &amp; menus</h4>
+      <p><code>modal-open</code> · <code>modal-close</code> · <code>drawer-open</code> · <code>drawer-close</code> · <code>dropdown-open</code> · <code>dropdown-close</code> · <code>page-enter</code> · <code>page-exit</code></p>
+
+      <h4>Toggles &amp; transitions</h4>
+      <p><code>toggle-on</code> · <code>toggle-off</code> · <code>swoosh</code> · <code>whoosh</code> · <code>carriage-return</code></p>
+
+      <h4>Texture &amp; ambient</h4>
+      <p><code>glass</code> · <code>gong</code> · <code>string</code> · <code>sparkle</code> · <code>pluck-soft</code> · <code>pluck-bright</code></p>
+    </section>
+
+    <!-- ════════ THEMES ════════ -->
+    <section id="themes">
+      <h3>Theme packs (8)</h3>
+      <p>Drop-in stylesheets that re-bind the entire UI vocabulary.</p>
+      <table>
+        <tr><th>Theme</th><th>Vibe</th></tr>
+        <tr><td><code>apple.acs</code></td><td>Restrained UI taps, modal-open like macOS</td></tr>
+        <tr><td><code>material.acs</code></td><td>Punchy, slightly tonal, ripple-style</td></tr>
+        <tr><td><code>retro.acs</code></td><td>8-bit blips, CRT-flavored</td></tr>
+        <tr><td><code>brutalist.acs</code></td><td>Industrial thunks, no decorum</td></tr>
+        <tr><td><code>cinematic.acs</code></td><td>Long tails, sub-rumbles</td></tr>
+        <tr><td><code>bauhaus.acs</code></td><td>Clean tones, primary-color UI mapped to fundamentals</td></tr>
+        <tr><td><code>terminal.acs</code></td><td>Dry typewriter clacks + carriage returns</td></tr>
+        <tr><td><code>ambient.acs</code></td><td>Diffused chimes, all-medium-room</td></tr>
+      </table>
+      <pre><code>&lt;link rel="audiostyle" href="https://cdn.jsdelivr.net/gh/Grkmyldz148/acs@main/poc/themes/apple.acs" /&gt;</code></pre>
+    </section>
+
+    <!-- ════════ BROWSER SUPPORT ════════ -->
+    <section id="browser-support">
+      <h2>Browser support</h2>
+      <p>
+        Anything with the
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API" target="_blank" rel="noopener">Web Audio API</a> —
+        Chrome, Firefox, Safari ≥ 14, Edge.
+      </p>
+      <table>
+        <tr><th>Feature</th><th>Chrome</th><th>Firefox</th><th>Safari</th><th>Edge</th></tr>
+        <tr><td>Core (<code>&lt;link rel=audiostyle&gt;</code> + cascade)</td><td>✅</td><td>✅</td><td>✅ 14+</td><td>✅</td></tr>
+        <tr><td>AudioWorklet (<code>realtime: true</code>)</td><td>✅</td><td>✅</td><td>✅ 14.1+</td><td>✅</td></tr>
+        <tr><td><code>prefers-reduced-sound</code> (proposal)</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td><code>var(--token)</code> resolution</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      </table>
+    </section>
+
+    <!-- ════════ TROUBLESHOOTING ════════ -->
+    <section id="troubleshooting">
+      <h2>Troubleshooting</h2>
+
+      <h4>Nothing plays on first interaction</h4>
+      <p>Browsers block <code>AudioContext</code> until user gesture. The runtime auto-resumes on <code>pointerdown</code> / <code>keydown</code>; the <em>first</em> click of the session may be silent if it lands before the resume callback. Open devtools, check <code>window.ACS.audioContext.state</code> — should be <code>"running"</code> after one interaction.</p>
+
+      <h4>Some buttons silent, others not</h4>
+      <p>Cascade specificity: a more-specific selector with an unknown preset name silently overrides a working base rule. Run the linter — <code>npx acs-audio/lint my-style.acs</code> — it catches typo'd preset names.</p>
+
+      <h4>Sounds clipping / too loud</h4>
+      <p>Lower <code>master-volume</code> on <code>:root</code>. The limiter prevents distortion but won't make peaks pleasant. If a <em>specific</em> preset is too loud, override its baked factor via <code>volume: X !raw</code>.</p>
+
+      <h4>Worklet errors in console</h4>
+      <p>The runtime falls back to the main thread automatically. Set <code>realtime: false</code> on offending layers to suppress the warning, or open an issue with your browser/version.</p>
+
+      <h4>Stylesheet edits don't refresh</h4>
+      <p>The runtime fetches once. In dev, opt-in to live-reload: <code>window.ACS.watch("/my-style.acs", { interval: 1000 })</code>.</p>
+    </section>
+
+    <!-- ════════ FAQ ════════ -->
+    <section id="faq">
+      <h2>FAQ</h2>
+
+      <h4>Does ACS depend on PostCSS?</h4>
+      <p>No. ACS is a separate language with its own parser. <code>.acs</code> files are
+        served as-is and parsed in the browser by the runtime. There's no build step,
+        no preprocessor, no relationship to CSS tooling.</p>
+
+      <h4>Can I use it with React / Vue / Svelte?</h4>
+      <p>Yes — the runtime is framework-agnostic. <code>npm install acs-audio</code>, then
+        <code>import "acs-audio"</code> once at the entry point. Selectors target DOM
+        elements regardless of which framework rendered them.</p>
+
+      <h4>Does it work with server-side rendering?</h4>
+      <p>The runtime is browser-only — it imports cleanly under SSR (no top-level DOM
+        access) but does its work after hydration. Add <code>&lt;link rel="audiostyle"&gt;</code>
+        in your document head and the runtime takes over once the page is interactive.</p>
+
+      <h4>Is there a way to disable all sounds at runtime?</h4>
+      <p>Yes — <code>window.ACS.setEnabled(false)</code> mutes everything without
+        unmounting. <code>setEnabled(true)</code> resumes. Or via stylesheet:
+        <code>:root { master-volume: 0; }</code>.</p>
+
+      <h4>Why "cascading style sheets" for audio?</h4>
+      <p>Because the cascade is the right abstraction. UI sound design is a cross-cutting
+        concern — buttons sound a certain way, primary buttons louder, primary buttons
+        inside dialogs softer. CSS is exactly the language for "rules that compose
+        through specificity and inheritance." Re-using its mental model (and its tooling
+        — see the VSCode extension) lets authors transfer 95% of what they already know.</p>
+
+      <h4>Can I mix .acs files from multiple sources?</h4>
+      <p>Yes. The runtime loads <code>defaults.acs</code> first (built-in presets), then
+        every <code>&lt;link rel="audiostyle"&gt;</code> in document order. Later wins on
+        ties; specificity wins always. You can drop a theme pack and override just the
+        bits you want in your own file.</p>
+
+      <h4>How do I attribute the project?</h4>
+      <p>MIT license, attribution welcome but not required. If you do credit, link to
+        <a href="https://audiocss.dev" target="_blank" rel="noopener">audiocss.dev</a>
+        or <a href="https://github.com/Grkmyldz148/acs" target="_blank" rel="noopener">github.com/Grkmyldz148/acs</a>.</p>
+    </section>
+
+  </article>
+
+  <!-- ─────── TOC ─────── -->
+  <aside class="docs-toc" aria-label="Table of contents">
+    <h6>On this page</h6>
+    <ul id="toc-list">
+      <!-- generated by client-side script below -->
+    </ul>
+  </aside>
+
+</div>
+
+<!-- ── Footer (mini, links back to home for full one) ── -->
+<footer style="border-top:1px solid var(--line-2);padding:32px 24px;text-align:center;color:var(--ink-3);font-size:var(--tx-2)">
+  <p>
+    MIT · v0.9.2 ·
+    <a href="https://gorkemyildiz.com" target="_blank" rel="noopener" style="color:inherit">gorkemyildiz.com</a> ·
+    Color system in the helm-lab perceptual space —
+    <a href="https://helmlab.space/docs/" target="_blank" rel="noopener" style="color:inherit">helmlab.space</a>
+  </p>
+  <p>
+    <a href="/" style="color:var(--ink-2)">audiocss.dev</a> ·
+    <a href="https://github.com/Grkmyldz148/acs" target="_blank" rel="noopener" style="color:var(--ink-2)">GitHub</a> ·
+    <a href="https://www.npmjs.com/package/acs-audio" target="_blank" rel="noopener" style="color:var(--ink-2)">npm</a>
+  </p>
+</footer>
+
+<script>
+// ─── Build TOC from h2/h3 in the article ───
+(function () {
+  const article = document.querySelector('.docs-article');
+  const tocRoot = document.getElementById('toc-list');
+  if (!article || !tocRoot) return;
+
+  const heads = article.querySelectorAll('h2, h3');
+  const tree = [];
+  let currentH2 = null;
+
+  heads.forEach((h) => {
+    const id = h.parentElement.id || h.id;
+    if (!id) return;
+    const text = h.textContent.replace(/[¶#]/g, '').trim();
+    if (h.tagName === 'H2') {
+      currentH2 = { id, text, children: [] };
+      tree.push(currentH2);
+    } else if (currentH2) {
+      currentH2.children.push({ id, text });
+    }
+  });
+
+  tree.forEach((node) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<a href="#${node.id}">${node.text}</a>`;
+    if (node.children.length) {
+      const sub = document.createElement('ul');
+      node.children.forEach((c) => {
+        const cli = document.createElement('li');
+        cli.innerHTML = `<a href="#${c.id}">${c.text}</a>`;
+        sub.appendChild(cli);
+      });
+      li.appendChild(sub);
+    }
+    tocRoot.appendChild(li);
+  });
+
+  // ─── Active section highlighting ───
+  const sections = Array.from(article.querySelectorAll('section[id]'));
+  const tocLinks = tocRoot.querySelectorAll('a');
+  const sidebarLinks = document.querySelectorAll('.docs-sidebar a');
+
+  const setActive = (id) => {
+    tocLinks.forEach((a) => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+    });
+    sidebarLinks.forEach((a) => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+    });
+  };
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const visible = entries.filter((e) => e.isIntersecting);
+      if (visible.length) {
+        visible.sort((a, b) => a.target.offsetTop - b.target.offsetTop);
+        setActive(visible[0].target.id);
+      }
+    },
+    { rootMargin: '-80px 0px -60% 0px', threshold: 0 }
+  );
+  sections.forEach((s) => observer.observe(s));
+})();
+
+// ─── Theme: read from localStorage / honor system ───
+(function () {
+  const saved = localStorage.getItem('acs-theme');
+  const sys = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', saved || sys);
+})();
+</script>
+
+</body>
+</html>

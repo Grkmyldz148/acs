@@ -30,37 +30,44 @@
   color-scheme: light dark;
 }
 
+/* Palette derived in the helm-lab perceptual color space (helmlab.space).
+ * Pure neutral monochrome — chroma = 0 across the entire grey scale,
+ * with perceptually uniform lightness stepping. The single saturated
+ * accent (--accent above) is the only chroma in the system, which
+ * keeps the visual identity disciplined and readable across both
+ * themes without retuning per-element hues. */
+
 /* Light theme */
 :root[data-theme="light"] {
-  --bg: oklch(0.985 0.003 220);
-  --bg-elev: oklch(1 0 0);
-  --bg-sunk: oklch(0.965 0.004 220);
-  --ink: oklch(0.18 0.01 240);
-  --ink-2: oklch(0.38 0.01 240);
-  --ink-3: oklch(0.55 0.01 240);
-  --line: oklch(0.9 0.005 240);
-  --line-2: oklch(0.94 0.004 240);
-  --code-bg: oklch(0.97 0.005 240);
-  --code-ink: oklch(0.22 0.01 240);
+  --bg:        oklch(0.985 0 0);
+  --bg-elev:   oklch(1     0 0);
+  --bg-sunk:   oklch(0.97  0 0);
+  --ink:       oklch(0.145 0 0);
+  --ink-2:     oklch(0.37  0 0);
+  --ink-3:     oklch(0.556 0 0);
+  --line:      oklch(0.92  0 0);
+  --line-2:    oklch(0.95  0 0);
+  --code-bg:   oklch(0.97  0 0);
+  --code-ink:  oklch(0.205 0 0);
   --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.04);
-  --shadow: 0 1px 2px oklch(0 0 0 / 0.04), 0 8px 24px oklch(0 0 0 / 0.06);
+  --shadow:    0 1px 2px oklch(0 0 0 / 0.04), 0 8px 24px oklch(0 0 0 / 0.06);
   --grid-line: oklch(0 0 0 / 0.04);
 }
 
 /* Dark theme */
 :root[data-theme="dark"] {
-  --bg: oklch(0.16 0.01 240);
-  --bg-elev: oklch(0.2 0.012 240);
-  --bg-sunk: oklch(0.13 0.01 240);
-  --ink: oklch(0.96 0.005 240);
-  --ink-2: oklch(0.74 0.008 240);
-  --ink-3: oklch(0.55 0.01 240);
-  --line: oklch(0.27 0.012 240);
-  --line-2: oklch(0.23 0.012 240);
-  --code-bg: oklch(0.18 0.012 240);
-  --code-ink: oklch(0.92 0.005 240);
+  --bg:        oklch(0.145 0 0);
+  --bg-elev:   oklch(0.205 0 0);
+  --bg-sunk:   oklch(0.115 0 0);
+  --ink:       oklch(0.985 0 0);
+  --ink-2:     oklch(0.708 0 0);
+  --ink-3:     oklch(0.556 0 0);
+  --line:      oklch(1     0 0 / 0.06);
+  --line-2:    oklch(1     0 0 / 0.04);
+  --code-bg:   oklch(0.205 0 0);
+  --code-ink:  oklch(0.985 0 0);
   --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.4);
-  --shadow: 0 1px 2px oklch(0 0 0 / 0.4), 0 12px 32px oklch(0 0 0 / 0.35);
+  --shadow:    0 1px 2px oklch(0 0 0 / 0.4), 0 12px 32px oklch(0 0 0 / 0.35);
   --grid-line: oklch(1 0 0 / 0.05);
   --accent-ink: oklch(0.16 0.04 var(--accent-h));
 }
