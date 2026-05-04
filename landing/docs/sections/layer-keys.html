@@ -1,0 +1,45 @@
+
+    <section id="layer-keys">
+      <h3>Layer keys reference</h3>
+      <p>Complete list of keys you can put inside any layer block.</p>
+
+      <h4>Source (pick one)</h4>
+      <table>
+        <tr><th>Key</th><th>Value</th><th>Notes</th></tr>
+        <tr><td><code>tones</code></td><td>Comma-separated frequencies</td><td>Additive sine bank</td></tr>
+        <tr><td><code>modal</code></td><td>Frequency</td><td>Pair with <code>ratios</code>, <code>decays</code>, <code>gains</code></td></tr>
+        <tr><td><code>osc</code></td><td><code>sine | triangle | square | sawtooth</code></td><td>Pair with <code>freq</code></td></tr>
+        <tr><td><code>pluck</code></td><td>Frequency</td><td>Pair with <code>brightness</code>, <code>decay</code></td></tr>
+        <tr><td><code>noise</code></td><td><code>white | pink | brown</code></td><td>Pair with <code>filter</code></td></tr>
+      </table>
+
+      <h4>Modulation / shaping</h4>
+      <table>
+        <tr><th>Key</th><th>Value</th><th>Applies to</th></tr>
+        <tr><td><code>fm</code></td><td><code>{ ratio, depth }</code></td><td>osc</td></tr>
+        <tr><td><code>pitch-from</code></td><td><code>start to end</code></td><td>Sweep</td></tr>
+        <tr><td><code>detune</code></td><td>Cents</td><td>osc</td></tr>
+        <tr><td><code>filter</code></td><td><code>lowpass | highpass | bandpass | tpt-*</code></td><td>noise / osc</td></tr>
+        <tr><td><code>cutoff</code></td><td>Frequency</td><td>filter</td></tr>
+        <tr><td><code>q</code></td><td>Number</td><td>filter (resonance)</td></tr>
+      </table>
+
+      <h4>Envelope</h4>
+      <table>
+        <tr><th>Key</th><th>Value</th></tr>
+        <tr><td><code>attack</code></td><td>ms / s</td></tr>
+        <tr><td><code>decay</code></td><td>ms / s</td></tr>
+        <tr><td><code>release</code></td><td>ms / s</td></tr>
+        <tr><td><code>decays</code></td><td>Comma-separated (per partial)</td></tr>
+      </table>
+
+      <h4>Output</h4>
+      <table>
+        <tr><th>Key</th><th>Value</th></tr>
+        <tr><td><code>gain</code></td><td><code>0..1</code></td></tr>
+        <tr><td><code>drive</code></td><td><code>0..1</code> (saturation)</td></tr>
+        <tr><td><code>pan</code></td><td><code>-1..1</code></td></tr>
+        <tr><td><code>start</code></td><td>Offset (ms / s) — delays this layer</td></tr>
+        <tr><td><code>realtime</code></td><td><code>true</code> — route through AudioWorklet for sub-1ms latency</td></tr>
+      </table>
+    </section>

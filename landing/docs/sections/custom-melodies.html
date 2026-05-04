@@ -1,0 +1,60 @@
+
+    <section id="custom-melodies">
+      <h2>Custom melodies — deep dive</h2>
+      <p>
+        This section is for authors who want to write <code>@sound</code> blocks from
+        scratch instead of using the 49 built-ins. The mental model is the same one used
+        by the <a href="#skills">create-acs-sound skill</a> — read it once and you'll
+        understand both.
+      </p>
+
+      <h3>Step 1 — Pick an archetype</h3>
+      <table>
+        <tr><th>You want</th><th>Use</th></tr>
+        <tr><td>Bell-like ding</td><td><code>tones: f1, f2, f3</code> with descending decays</td></tr>
+        <tr><td>Wood / drum knock</td><td><code>modal: f, ratios: 1 r2 r3, decays: d1 d2 d3</code></td></tr>
+        <tr><td>Plucked string</td><td><code>pluck: f, brightness: 0..1, decay: t</code></td></tr>
+        <tr><td>Filtered noise (snare/clap/breath)</td><td><code>noise: white, filter: bandpass, cutoff: f, q: q</code></td></tr>
+        <tr><td>FM bell</td><td><code>osc: sine, freq: f, fm: { ratio: r, depth: d }</code></td></tr>
+      </table>
+
+      <h3>Step 2 — Author the body layer</h3>
+      <pre><code>@sound my-sound {
+  body {
+    /* source key */
+    tones: 880hz, 1320hz, 2200hz;
+
+    /* envelope */
+    decays: 0.6s, 0.4s, 0.25s;        /* per-tone if multi */
+    attack: 4ms;                       /* default 0 */
+
+    /* level */
+    gain: 0.4;                         /* before calibration */
+  }
+}</code></pre>
+
+      <h3>Step 3 — Stack a click layer</h3>
+      <p>Most "satisfying" UI sounds are <strong>body + click</strong>. The body gives the tonal identity; the click gives the sharp transient.</p>
+      <pre><code>@sound my-tap {
+  body  { tones: 1.4khz; decay: 50ms; gain: 0.4; }
+  click { noise: white; filter: highpass; cutoff: 4khz; decay: 8ms; gain: 0.3; }
+}</code></pre>
+
+      <h3>Step 4 — Validate</h3>
+      <ul>
+        <li><strong>Gain budget</strong>: sum of layer <code>gain</code> values should be ≤ 1.</li>
+        <li><strong>Frequency bounds</strong>: keep fundamentals between 80 Hz – 8 kHz for UI sounds.</li>
+        <li><strong>Duration cap</strong>: tail under 0.5 s for taps, under 1.5 s for toasts/notifications.</li>
+        <li><strong>Run the linter</strong> — <code>npx acs-audio/lint your-style.acs</code>.</li>
+        <li><strong>Audition</strong> — ▶ CodeLens above the <code>@sound</code> block in VSCode.</li>
+      </ul>
+
+      <h3>Step 5 — Calibrate (optional, advanced)</h3>
+      <p>
+        ACS's calibration pipeline assigns each preset a <code>BAKED_FACTOR</code> so
+        <code>volume: 0.5</code> sounds equally loud across the library. For your own
+        presets the runtime calibrates on-the-fly at first trigger, but you can pre-bake:
+      </p>
+      <pre><code>node node_modules/acs-audio/analyzer/defaults-loudness.mjs --bake my-style.acs</code></pre>
+      <p>This writes a JSON sidecar with K-weighted RMS measurements; the runtime reads it on load and applies the factor before <code>volume</code>.</p>
+    </section>

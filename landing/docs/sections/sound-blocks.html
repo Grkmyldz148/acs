@@ -1,0 +1,21 @@
+
+    <section id="sound-blocks">
+      <h3>@sound blocks</h3>
+      <p>
+        <code>@sound &lt;name&gt; { ... }</code> registers a custom preset by name. Once
+        registered, any selector can use it via <code>sound: my-name</code>,
+        <code>sound-on-click: my-name</code>, etc.
+      </p>
+      <pre><code>@sound bubble {
+  body { osc: sine; freq: 540hz; pitch-from: 540hz to 880hz; decay: 80ms; gain: 0.5; }
+  pop  { noise: white; filter: highpass; cutoff: 4khz; decay: 12ms; gain: 0.2; }
+}
+
+button.tooltip-trigger:on-hover { sound: bubble; pitch: +2st; }</code></pre>
+
+      <p>
+        Re-defining a preset name overrides the built-in. So
+        <code>@sound tap { ... }</code> in your stylesheet replaces the calibrated <code>tap</code>.
+        The 49 built-ins are loaded first, your stylesheet last — last wins.
+      </p>
+    </section>

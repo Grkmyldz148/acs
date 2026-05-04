@@ -117,13 +117,13 @@ input, textarea {
 }
 
 /* ── Window-chrome dots (the macOS-style red/yellow/green) ─────── */
-.window-dots > * {
+.window-dots span {
   sound-on-click: click;
   volume: 0.5;
 }
 
 /* ── Tabs ──────────────────────────────────────────────────────── */
-.cat-tabs button, .rw-tabs button, .window-tabs > * {
+.cat-tabs button, .rw-tabs button, .window-tabs button {
   sound-on-click: toggle-on;
 }
 

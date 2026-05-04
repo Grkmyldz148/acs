@@ -1,0 +1,24 @@
+
+    <section id="api">
+      <h2>Programmatic API</h2>
+      <p>Most use is declarative — these are escape hatches.</p>
+
+      <h3>Trigger directly</h3>
+      <pre><code>window.ACS.trigger({ sound: "pop", pitch: "+2st", volume: 0.7 }, "click");</code></pre>
+
+      <h3>Set master config</h3>
+      <pre><code>window.ACS.setMasterConfig({
+  "master-volume": 0.7,
+  room: "small-room",
+  quality: "high",
+});</code></pre>
+
+      <h3>Watch a stylesheet</h3>
+      <pre><code>window.ACS.watch("/style.acs", { interval: 1000 });
+// re-fetches + re-binds on changes — useful in dev</code></pre>
+
+      <h3>Subscribe to triggers</h3>
+      <pre><code>const unsubscribe = window.ACS.onTrigger(({ preset, decls, eventKey, target }) => {
+  console.log(preset, eventKey, target);
+});</code></pre>
+    </section>

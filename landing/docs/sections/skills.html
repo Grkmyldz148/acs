@@ -1,0 +1,41 @@
+
+    <section id="skills">
+      <h2>Skills (AI agents)</h2>
+      <p>
+        ACS ships a Claude / Cursor "skill" that lets an AI agent design a sound for you
+        from a natural-language prompt or by reverse-engineering an audio file. The skill
+        sits in <code>skills/create-acs-sound/</code> in the repo.
+      </p>
+
+      <h3>What it does</h3>
+      <ul>
+        <li><strong>Prompt input</strong> — "Give me a soft pop that's brighter than the default" → emits a calibrated <code>@sound</code> block.</li>
+        <li><strong>Audio input</strong> — Drop a <code>.wav</code>, the skill measures source/envelope/effects and reverse-engineers a matching <code>@sound</code>.</li>
+        <li><strong>Mixed</strong> — Audio + qualifier ("warmer", "punchier") refines the measured definition.</li>
+        <li><strong>Round-trip render</strong> — The skill renders the result to a WAV preview and validates within tolerance bands (gain budget, frequency bounds, duration cap).</li>
+      </ul>
+
+      <h3>Install for Claude Code / Cursor agents</h3>
+      <pre><code># clone the repo
+git clone https://github.com/Grkmyldz148/acs.git
+# point your agent runtime at:
+acs/skills/create-acs-sound/SKILL.md</code></pre>
+      <p>The skill is a directory of <code>rules/*.md</code> atomic decision documents plus pipeline orchestration in <code>SKILL.md</code>. Compatible with the @web-kits/audio skill format.</p>
+
+      <h3>Pipeline</h3>
+      <pre><code>1. pipeline-detect-input    → prompt | audio | both
+2. pipeline-pick-base-layer → match event-class tokens (event-click, event-tap, …)
+3. pipeline-apply-mood      → adjective tokens mutate source/filter/effects
+4. pipeline-decide-layering → 1, 2, or 3 layers based on event class
+5. pipeline-emit-and-render → emit @sound, optional WAV preview, validate</code></pre>
+
+      <h3>Authoring your own skill</h3>
+      <p>
+        Each rule is a markdown file with frontmatter declaring its category
+        (<code>event</code>, <code>layer</code>, <code>mood</code>, <code>effect</code>,
+        <code>pipeline</code>, <code>validate</code>, <code>interpret</code>) and a body
+        containing the rule's logic + an example <code>@sound</code> block. Run
+        <code>node src/build.mjs</code> to compile <code>SKILL.md</code> from the rules.
+      </p>
+      <p>See the <a href="https://github.com/Grkmyldz148/acs/tree/main/skills/create-acs-sound" target="_blank" rel="noopener">skills directory in the repo</a> for the full source.</p>
+    </section>

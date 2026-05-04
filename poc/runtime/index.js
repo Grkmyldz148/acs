@@ -331,7 +331,10 @@ export function bindAll(rules, root = document) {
   }
 
   if (Object.keys(rootDecls).length) {
-    ensureCtx();
+    // Don't ensureCtx() here — that creates the AudioContext before any
+    // user gesture and triggers Chrome's autoplay-policy warning.
+    // configureMaster() stashes decls when ctx is missing and the
+    // runtime flushes them at first real trigger.
     configureMaster(rootDecls);
     // Forward inheritable properties (mood/pitch/pan/velocity-filter/etc.)
     // from :root to a synthetic body rule — configureMaster only handles

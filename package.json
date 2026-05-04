@@ -1,6 +1,6 @@
 {
   "name": "acs-audio",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "Audio Cascading Style Sheets — declarative audio for the web. Same selectors and cascade as CSS, properties target sound (sound, volume, pitch, room, sound-mood).",
   "type": "module",
   "main": "./dist/runtime.cjs",
@@ -33,9 +33,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "node tools/bundle.mjs && node tools/build-landing.mjs",
+    "build": "node tools/bundle.mjs && node tools/build-palette.mjs && node tools/build-landing.mjs",
     "build:runtime": "node tools/bundle.mjs",
     "build:landing": "node tools/build-landing.mjs",
+    "build:palette": "node tools/build-palette.mjs",
     "build:webview": "node tools/build-webview-picker.mjs",
     "build:site": "npm run build && node tools/build-site.mjs",
     "test": "node tests/run-all.mjs",
@@ -74,6 +75,10 @@
     "url": "https://github.com/Grkmyldz148/acs/issues"
   },
   "devDependencies": {
-    "esbuild": "^0.28.0"
+    "esbuild": "^0.28.0",
+    "helmlab": "^0.11.9",
+    "postcss": "^8.5.13",
+    "postcss-cli": "^11.0.1",
+    "postcss-helmlab": "^0.2.0"
   }
 }

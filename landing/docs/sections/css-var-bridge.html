@@ -1,0 +1,16 @@
+
+    <section id="css-vars">
+      <h3>CSS-var bridge</h3>
+      <p>
+        Any ACS value can read a CSS custom property via <code>var(--token)</code>. The
+        runtime resolves against <code>getComputedStyle(documentElement)</code> at
+        trigger time — so dark/light theme switches are picked up live.
+      </p>
+      <pre><code>:root          { --beep: 880hz; }
+button.primary { sound: my-tone; }
+
+@sound my-tone {
+  body { tones: var(--beep); decay: 120ms; }
+}</code></pre>
+      <p>String declarations (<code>sound</code>, <code>room</code>, <code>mood</code>) and numeric ones (<code>volume</code>, <code>pitch</code>, frequencies) all resolve through the same bridge.</p>
+    </section>

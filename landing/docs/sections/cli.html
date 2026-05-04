@@ -1,0 +1,19 @@
+
+    <section id="cli">
+      <h3>CLI tools</h3>
+      <p>Three Node scripts ship with the npm package — pure ESM, no transpile.</p>
+
+      <h4>Lint</h4>
+      <pre><code>npx acs-audio/lint poc/*.acs
+# or
+node node_modules/acs-audio/tools/lint-acs.mjs my-style.acs</code></pre>
+      <p>Validates property names, preset references, mood names, room names. Fuzzy-match suggestions for typos.</p>
+
+      <h4>Format</h4>
+      <pre><code>node node_modules/acs-audio/tools/format.mjs my-style.acs</code></pre>
+      <p>Pretty-prints in-place. Aligns properties, normalizes whitespace, sorts <code>@sound</code> blocks alphabetically by preset name (optional).</p>
+
+      <h4>Compile</h4>
+      <pre><code>node node_modules/acs-audio/tools/compile-acs.mjs --pretty --out style.json my-style.acs</code></pre>
+      <p>Pre-parses to a JSON AST. Useful for build-time inlining or shipping a minified runtime that skips the parser.</p>
+    </section>

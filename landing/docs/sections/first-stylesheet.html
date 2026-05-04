@@ -1,0 +1,31 @@
+
+    <section id="first-stylesheet">
+      <h2>Your first stylesheet</h2>
+      <p>Create <code>my-style.acs</code> next to your <code>index.html</code>:</p>
+      <pre><code>:root            { master-volume: 0.85; room: medium-room; }
+
+button           { sound-on-click: tap-tactile; }
+button.primary   { sound-on-click: pop;     pitch: +1st; }
+button.danger    { sound-on-click: error;   volume: 0.7; }
+input:on-focus   { sound: tick; volume: 0.4; }
+input:on-input   { sound: click-soft; }
+[role=alert]     { sound-on-appear: notify; }
+dialog[open]     { sound-on-appear: modal-open; room: small-room; }
+
+@media (prefers-reduced-sound: reduce) {
+  :root { master-volume: 0; }
+}</code></pre>
+
+      <p>Link it from your HTML:</p>
+      <pre><code>&lt;link rel="audiostyle" href="my-style.acs" /&gt;
+&lt;script type="module" src="https://cdn.jsdelivr.net/gh/Grkmyldz148/acs@main/poc/runtime.js"&gt;&lt;/script&gt;</code></pre>
+
+      <p>That's it. Click any button — the runtime resolved the cascade, looked up the preset, played a sound.</p>
+
+      <div class="docs-note">
+        <strong>Autoplay note.</strong> Browsers block <code>AudioContext</code>
+        until the user interacts. ACS auto-resumes on the first
+        <code>pointerdown</code> / <code>keydown</code>. The first click of a session
+        unlocks audio for everything that follows.
+      </div>
+    </section>

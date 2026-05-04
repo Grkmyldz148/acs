@@ -1,0 +1,15 @@
+
+    <section id="helpers">
+      <h3>Framework helpers</h3>
+      <p>
+        <code>window.ACS.helpers.useSound</code> takes a hooks injection so the runtime
+        has no React peer dep. Works with any hook-shaped library.
+      </p>
+      <pre><code>import { useCallback } from "react";
+
+const ding = window.ACS.helpers.useSound({ useCallback }, "ding");
+&lt;button onClick={ding}&gt;Notify&lt;/button&gt;</code></pre>
+      <p>Other helpers:</p>
+      <pre><code>window.ACS.helpers.play("pop", { pitch: "+1st" });
+window.ACS.helpers.attach(myButton, "ding", "click");</code></pre>
+    </section>

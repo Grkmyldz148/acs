@@ -315,7 +315,7 @@ window.Footer = function Footer() {
           <span>MIT · v0.9.2 · {new Date().getFullYear()}</span>
           <span>
             Color system in the helm-lab perceptual space —{' '}
-            <a href="https://helmlab.space/docs/" target="_blank" rel="noopener" style={{color:'inherit', textDecoration:'underline', textDecorationColor:'var(--line)'}}>helmlab.space</a>
+            <a href="https://helmlab.space//" target="_blank" rel="noopener" style={{color:'inherit', textDecoration:'underline', textDecorationColor:'var(--line)'}}>helmlab.space</a>
           </span>
           <span>Built with the Web Audio API</span>
         </div>

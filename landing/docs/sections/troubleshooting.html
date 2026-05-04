@@ -1,0 +1,19 @@
+
+    <section id="troubleshooting">
+      <h2>Troubleshooting</h2>
+
+      <h4>Nothing plays on first interaction</h4>
+      <p>Browsers block <code>AudioContext</code> until user gesture. The runtime auto-resumes on <code>pointerdown</code> / <code>keydown</code>; the <em>first</em> click of the session may be silent if it lands before the resume callback. Open devtools, check <code>window.ACS.audioContext.state</code> — should be <code>"running"</code> after one interaction.</p>
+
+      <h4>Some buttons silent, others not</h4>
+      <p>Cascade specificity: a more-specific selector with an unknown preset name silently overrides a working base rule. Run the linter — <code>npx acs-audio/lint my-style.acs</code> — it catches typo'd preset names.</p>
+
+      <h4>Sounds clipping / too loud</h4>
+      <p>Lower <code>master-volume</code> on <code>:root</code>. The limiter prevents distortion but won't make peaks pleasant. If a <em>specific</em> preset is too loud, override its baked factor via <code>volume: X !raw</code>.</p>
+
+      <h4>Worklet errors in console</h4>
+      <p>The runtime falls back to the main thread automatically. Set <code>realtime: false</code> on offending layers to suppress the warning, or open an issue with your browser/version.</p>
+
+      <h4>Stylesheet edits don't refresh</h4>
+      <p>The runtime fetches once. In dev, opt-in to live-reload: <code>window.ACS.watch("/my-style.acs", { interval: 1000 })</code>.</p>
+    </section>

@@ -334,6 +334,6 @@ MIT — see [LICENSE](LICENSE).
 **[audiocss.dev](https://audiocss.dev)** · authored by [Görkem Yıldız](https://gorkemyildiz.com)
 
 Color system designed in the helm-lab perceptual color space —
-[helmlab.space/docs](https://helmlab.space/docs/)
+[helmlab.space/docs](https://helmlab.space//)
 
 </div>

@@ -1,0 +1,28 @@
+
+    <section id="cascade">
+      <h3>Cascade &amp; selectors</h3>
+      <p>
+        Specificity is computed exactly like CSS:
+        <code>(inline=irrelevant, ids, classes/attrs/pseudo-classes, types/pseudo-elements)</code>.
+        More specific wins; <code>!important</code> overrides; later wins on tie.
+      </p>
+
+      <table>
+        <tr><th>Selector</th><th>Specificity</th><th>Example</th></tr>
+        <tr><td>type</td><td>0,0,1</td><td><code>button</code></td></tr>
+        <tr><td>class</td><td>0,1,0</td><td><code>.primary</code></td></tr>
+        <tr><td>attribute</td><td>0,1,0</td><td><code>[data-variant="ghost"]</code></td></tr>
+        <tr><td>id</td><td>1,0,0</td><td><code>#cta</code></td></tr>
+        <tr><td>compound</td><td>sum</td><td><code>button.primary[disabled]</code> = 0,2,1</td></tr>
+        <tr><td>descendant</td><td>sum</td><td><code>dialog[open] button</code> = 0,1,2</td></tr>
+        <tr><td>universal</td><td>0,0,0</td><td><code>*</code></td></tr>
+        <tr><td>pseudo-state</td><td>0,1,0</td><td><code>:on-click</code>, <code>:on-input</code></td></tr>
+      </table>
+
+      <p>
+        Inheritance: <code>sound-mood</code>, <code>sound-mood-mix</code>, <code>volume</code>,
+        <code>pitch</code>, <code>room</code>, <code>pan</code> all inherit. Set
+        <code>sound-mood: lofi</code> on <code>body</code> and the entire app gets a
+        muffled overlay until you override on a child.
+      </p>
+    </section>

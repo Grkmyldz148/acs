@@ -1,0 +1,38 @@
+
+    <section id="sources">
+      <h3>Layer sources</h3>
+      <p>
+        Every <code>@sound</code> is built from one or more <strong>layers</strong>. A layer
+        is a single voice graph — pick one of these source primitives, configure it, the
+        runtime renders it through saturation → pan → room → master.
+      </p>
+
+      <h4>Layer source types</h4>
+      <table>
+        <tr><th>Source key</th><th>Meaning</th><th>Best for</th></tr>
+        <tr><td><code>modal</code></td><td>Modal IIR resonator (frequency + ratios + decays)</td><td>Bells, gongs, struck objects</td></tr>
+        <tr><td><code>tones</code></td><td>Additive sine bank — comma-separated frequencies</td><td>Chords, bell-like clusters, UI dings</td></tr>
+        <tr><td><code>osc</code></td><td>Single oscillator (<code>sine | triangle | square | sawtooth</code>) with optional <code>fm</code></td><td>Synth tones, FM bells, sweeps</td></tr>
+        <tr><td><code>pluck</code></td><td>Karplus-Strong plucked string</td><td>Guitar/harp-like accents</td></tr>
+        <tr><td><code>noise</code></td><td>Filtered noise (<code>white | pink | brown</code>)</td><td>Snares, claps, breath, swooshes</td></tr>
+      </table>
+
+      <h4>Concrete examples</h4>
+      <pre><code>@sound my-bell {
+  body {
+    tones: 880hz, 1320hz, 2200hz;     /* additive */
+    decays: 0.6s, 0.4s, 0.25s;
+    gain: 0.4;
+  }
+}
+
+@sound my-pluck {
+  body { pluck: 440hz; brightness: 0.7; decay: 1.2s; gain: 0.5; }
+}
+
+@sound my-snare {
+  body  { noise: white; filter: bandpass; cutoff: 2khz; q: 2; decay: 80ms; gain: 0.6; }
+  snap  { osc: sine;    freq: 200hz;     decay: 30ms;  gain: 0.3; }
+}</code></pre>
+      <p>Multiple layers <strong>stack additively</strong> — both fire simultaneously and the runtime sums them.</p>
+    </section>

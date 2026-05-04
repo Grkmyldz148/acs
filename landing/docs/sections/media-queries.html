@@ -1,0 +1,15 @@
+
+    <section id="media-queries">
+      <h3>@media &amp; accessibility</h3>
+      <p>ACS supports the same <code>@media</code> nesting as CSS, with two ACS-specific media features:</p>
+
+      <pre><code>@media (prefers-reduced-sound: reduce) { :root { master-volume: 0; } }
+@media (input-modality: keyboard)      { button:on-focus { sound: tick; } }</code></pre>
+
+      <p>
+        <code>prefers-reduced-sound</code> is still a CSS proposal — the runtime
+        evaluates it gracefully (always <code>false</code>) until browsers adopt it. Your
+        stylesheet stays correct; users with screen readers / reduced-motion preferences
+        won't hear extras when the media query lands.
+      </p>
+    </section>

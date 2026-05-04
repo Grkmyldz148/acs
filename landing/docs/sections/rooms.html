@@ -1,0 +1,18 @@
+
+    <section id="rooms">
+      <h3>Rooms (reverb)</h3>
+      <p>
+        Each element resolves <em>one</em> room — the cascaded <code>room</code> value.
+        The runtime maintains lazy convolver chains keyed by room name; first use
+        instantiates, subsequent triggers reuse.
+      </p>
+      <table>
+        <tr><th>Room</th><th>Tail (s)</th><th>Use case</th></tr>
+        <tr><td><code>dry</code></td><td>0</td><td>Default; bypasses convolver</td></tr>
+        <tr><td><code>small-room</code></td><td>0.4</td><td>UI taps, modals, intimate alerts</td></tr>
+        <tr><td><code>medium-room</code></td><td>0.9</td><td>Default for most apps</td></tr>
+        <tr><td><code>large-room</code></td><td>1.6</td><td>Concert / cinematic feel</td></tr>
+        <tr><td><code>hall</code></td><td>2.8</td><td>Long, lush, ambient</td></tr>
+        <tr><td><code>plate</code></td><td>1.2</td><td>Dattorro plate — classic studio reverb</td></tr>
+      </table>
+    </section>

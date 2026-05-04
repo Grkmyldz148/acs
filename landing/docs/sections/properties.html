@@ -1,0 +1,39 @@
+
+    <section id="properties">
+      <h3>Properties</h3>
+      <p>
+        ACS properties are <em>kebab-case</em>, just like CSS. Three categories: per-event
+        triggers, per-element modifiers, and root-level master config.
+      </p>
+
+      <h4>Per-event triggers</h4>
+      <table>
+        <tr><th>Property</th><th>Fires when</th><th>Example</th></tr>
+        <tr><td><code>sound-on-click</code></td><td>Click bubbles to this element</td><td><code>tap-tactile</code></td></tr>
+        <tr><td><code>sound-on-enter</code></td><td><code>pointerenter</code> (hover-style)</td><td><code>tick</code></td></tr>
+        <tr><td><code>sound-on-focus</code></td><td><code>focusin</code></td><td><code>tick</code></td></tr>
+        <tr><td><code>sound-on-input</code></td><td>Form <code>input</code> event</td><td><code>click-soft</code></td></tr>
+        <tr><td><code>sound-on-appear</code></td><td>Element added to DOM (MutationObserver)</td><td><code>notify</code></td></tr>
+        <tr><td><code>sound-on-leave</code></td><td>Element removed from DOM</td><td><code>modal-close</code></td></tr>
+        <tr><td><code>sound</code></td><td>Generic — used inside a state pseudo-class like <code>:on-click</code>, <code>:on-input</code></td><td><code>pop</code></td></tr>
+      </table>
+
+      <h4>Per-element modifiers (inheritable)</h4>
+      <table>
+        <tr><th>Property</th><th>Default</th><th>Range / values</th></tr>
+        <tr><td><code>volume</code></td><td><code>1</code></td><td><code>0..1</code> · or <code>X !raw</code> to bypass calibration</td></tr>
+        <tr><td><code>pitch</code></td><td><code>0</code></td><td>Semitones, e.g. <code>+1st</code>, <code>-3st</code></td></tr>
+        <tr><td><code>room</code></td><td><code>dry</code></td><td><code>dry · small-room · medium-room · large-room · hall · plate</code></td></tr>
+        <tr><td><code>sound-mood</code></td><td>—</td><td>9 overlays (see <a href="#moods">Moods</a>)</td></tr>
+        <tr><td><code>sound-mood-mix</code></td><td><code>1</code></td><td><code>0..1</code> wet/dry blend</td></tr>
+        <tr><td><code>pan</code></td><td><code>0</code></td><td><code>-1</code> (left) → <code>1</code> (right)</td></tr>
+      </table>
+
+      <h4>Root-only (master)</h4>
+      <table>
+        <tr><th>Property</th><th>Effect</th></tr>
+        <tr><td><code>master-volume</code></td><td>Global gain (post-limiter input)</td></tr>
+        <tr><td><code>master-eq</code></td><td>Tone tilt at master bus</td></tr>
+        <tr><td><code>quality</code></td><td><code>low | medium | high</code> — caps voice pool, modal partials, reverb tail</td></tr>
+      </table>
+    </section>

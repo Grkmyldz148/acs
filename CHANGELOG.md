@@ -6,6 +6,19 @@ correspond to internal development milestones.
 
 ## [Unreleased]
 
+## [0.9.3] — 2026-05-04
+
+### Fixed
+- **AudioContext autoplay warning** — `bindAll` no longer eagerly creates
+  the AudioContext at parse time. The runtime now stashes `:root` master
+  decls and flushes them on the first real user-driven trigger, side-
+  stepping Chrome's autoplay-policy console warning that fired on every
+  page load.
+- **`>`, `+`, `~` selector handling** — when an unsupported combinator
+  appears in an `.acs` rule, the runtime warns and treats it as
+  descendant. Updated `landing.acs` to use the supported descendant
+  syntax instead of the silently-broadened `>`.
+
 ## [0.9.2] — 2026-05-04
 
 ### Added

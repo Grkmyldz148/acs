@@ -1,0 +1,17 @@
+
+    <section id="sample-rule">
+      <h3>@sample at-rule</h3>
+      <p>
+        Bring your own audio files. Body-less; registers a URL under a preset name. The
+        file is fetched + cached on first trigger.
+      </p>
+      <pre><code>@sample chime  url("/sfx/chime.wav");
+@sample crunch url("/sfx/crunch.mp3");
+
+button[data-action="confirm"] { sound-on-click: chime; }
+button[data-action="delete"]  { sound-on-click: crunch; volume: 0.7; }</code></pre>
+      <p>
+        Sample volume is normalized through the same calibration pipeline as procedural
+        presets (first-trigger latency: ~30 ms while it caches).
+      </p>
+    </section>

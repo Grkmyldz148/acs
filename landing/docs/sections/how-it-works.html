@@ -1,0 +1,28 @@
+
+    <section id="how-it-works">
+      <h2>How it works</h2>
+      <p>The runtime is a tiny browser-side parser plus a Web Audio engine:</p>
+      <pre><code>.acs files
+   → parse — brace-aware CSS-like parser, handles @media nesting
+   → split: :root → master config, @sound → custom presets, rest → resolver
+   → buildBindings — produces resolver(el) → { click[], enter[], focus[], input[] }
+   ↓
+ONE document-level listener per event type. At fire time:
+   walk up from event.target,
+   call resolver(ancestor) at each step (dynamic state always current),
+   flatten matching rules,
+   apply inheritance for inherited props,
+   trigger preset with merged decls
+   ↓
+preset runner → voice graph (modal / tones / pluck / osc / noise)
+   → optional saturation + pan
+   → room chain (dry + convolver + wet)
+   → master EQ → master gain → limiter → speakers</code></pre>
+      <p>
+        Calibration runs once at startup: every preset is offline-rendered, K-weighted RMS
+        is measured, and a per-preset multiplier is baked so <code>volume: 0.5</code> sounds
+        equally loud whether the preset is a tap or a gong. Post-cal spread across all 49
+        built-in presets is <strong>4.8 dB</strong> — well under the ITU-R BS.1770 broadcast
+        tolerance.
+      </p>
+    </section>

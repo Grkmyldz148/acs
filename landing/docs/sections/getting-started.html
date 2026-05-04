@@ -1,0 +1,22 @@
+
+    <section id="getting-started">
+      <h1>ACS Documentation</h1>
+      <p>
+        <strong>ACS</strong> (Audio Cascading Style Sheets) is a CSS-like declarative
+        stylesheet language for audio. Where CSS describes how an HTML element should
+        <em>look</em>, ACS describes how it should <em>sound</em>. Same selectors, same
+        cascade, same specificity rules — but properties target audio: <code>sound</code>,
+        <code>volume</code>, <code>pitch</code>, <code>room</code>, <code>sound-mood</code>.
+      </p>
+      <p>
+        One <code>&lt;link rel="audiostyle"&gt;</code>, one <code>&lt;script&gt;</code>,
+        and your buttons sound like buttons. No event handlers, no <code>play()</code>
+        calls. The cascade does the wiring.
+      </p>
+      <p>
+        Everything is declarative: rules live in <code>.acs</code> files, the runtime
+        attaches <em>one</em> document-level listener per event type, and at fire time it
+        walks up from the click target resolving the cascade at each ancestor — so dynamic
+        state (added classes, attribute changes) is always current.
+      </p>
+    </section>

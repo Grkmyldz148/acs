@@ -167,7 +167,15 @@ window.Hero = function Hero({ soundOn, requestSound }) {
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round"/></svg>
               Install in 30 seconds
             </a>
-            <a href="#presets" className="btn btn-ghost">Browse 49 presets</a>
+            <a href="/docs/" className="btn btn-ghost">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 2.5h7a2 2 0 0 1 2 2V13H4.5A1.5 1.5 0 0 1 3 11.5v-9zM5 5.5h5M5 8h5M5 10.5h3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Docs
+            </a>
+            <a href="https://www.npmjs.com/package/acs-audio" target="_blank" rel="noopener" className="btn btn-ghost">
+              <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 4h16v8H8v1H4v-1H0V4zm1 7h2V6h2v5h1V5H1v6zm5-6v7h2v-1h2V5H6zm2 1h1v3H8V6zm3-1v6h2V6h1v5h1V6h1V5h-5z"/></svg>
+              npm
+            </a>
+            <a href="#presets" className="btn btn-ghost">49 presets</a>
           </div>
           <div className="hero-meta">
             <span className="hero-meta-item">

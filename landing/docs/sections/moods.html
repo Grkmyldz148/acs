@@ -1,0 +1,23 @@
+
+    <section id="moods">
+      <h3>Mood overlays</h3>
+      <p>
+        A <code>sound-mood</code> is an inheritable filter that paints over <em>any</em>
+        sound triggered on the element or its descendants. Nine built-in moods ship; mix
+        wet/dry with <code>sound-mood-mix</code>.
+      </p>
+      <table>
+        <tr><th>Mood</th><th>Effect</th></tr>
+        <tr><td><code>warm</code></td><td>Soft lowpass + gentle saturation</td></tr>
+        <tr><td><code>bright</code></td><td>High-shelf boost + lowpass relief</td></tr>
+        <tr><td><code>glassy</code></td><td>Resonant peak around 4–6 kHz</td></tr>
+        <tr><td><code>metallic</code></td><td>Comb filter at audible delays</td></tr>
+        <tr><td><code>organic</code></td><td>Slow LFO on cutoff + mild detune</td></tr>
+        <tr><td><code>punchy</code></td><td>Transient enhancer + tight gate</td></tr>
+        <tr><td><code>retro</code></td><td>Bandpass + bitcrush</td></tr>
+        <tr><td><code>airy</code></td><td>Subtle high-shelf + reverb send</td></tr>
+        <tr><td><code>lofi</code></td><td>Lowpass + sample-rate reduction + wow/flutter</td></tr>
+      </table>
+      <pre><code>.retro-app { sound-mood: lofi; }
+.lab        { sound-mood: glassy; sound-mood-mix: 0.4; }   /* 40% wet */</code></pre>
+    </section>

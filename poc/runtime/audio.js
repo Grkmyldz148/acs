@@ -49,6 +49,12 @@ export function getMaster() {
 }
 
 let workletReady = null;
+// Stash for :root master decls applied before the AudioContext exists.
+// Browsers warn (and sometimes block) AudioContext creation prior to a
+// user gesture. We defer the actual ctx creation until ensureCtx() is
+// first called from a real user-driven path (trigger, picker preview),
+// then flush the stash. See `configureMaster()` below.
+let pendingMaster = null;
 
 export function ensureCtx() {
   if (!ctx) {
@@ -68,6 +74,12 @@ export function ensureCtx() {
       workletReady = ctx.audioWorklet.addModule(url)
         .then(() => { workletReady.__ready = true; })
         .catch(() => null);
+    }
+    // Flush any :root master decls captured before ctx existed.
+    if (pendingMaster) {
+      const decls = pendingMaster;
+      pendingMaster = null;
+      applyMaster(decls);
     }
   }
   if (ctx.state === "suspended") ctx.resume();
@@ -439,7 +451,17 @@ export function getDest(roomName) {
 }
 
 export function configureMaster(rootDecls) {
-  if (!ctx) ensureCtx();
+  // No ctx yet → stash and bail. ensureCtx() will flush this once a
+  // real user gesture has unlocked Web Audio. Calling new
+  // AudioContext() here would log a noisy autoplay-policy warning.
+  if (!ctx) {
+    pendingMaster = rootDecls;
+    return;
+  }
+  applyMaster(rootDecls);
+}
+
+function applyMaster(rootDecls) {
   // String-typed master decls (room, quality) must go through the var()
   // resolver — numeric ones already do via parseDb / parseFloat below.
   const room = resolveVar(rootDecls["room"]);

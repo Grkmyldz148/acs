@@ -1,0 +1,80 @@
+
+    <section id="install">
+      <h2>Install</h2>
+      <p>Pick whichever distribution channel fits your stack — there is no build step required.</p>
+
+      <h3>1 · Browser via CDN <small style="color:var(--ink-3);font-weight:400">(zero install)</small></h3>
+      <pre><code>&lt;link rel="audiostyle" href="my-style.acs" /&gt;
+&lt;script type="module"
+        src="https://cdn.jsdelivr.net/gh/Grkmyldz148/acs@main/poc/runtime.js"&gt;&lt;/script&gt;</code></pre>
+      <p>jsDelivr auto-mirrors the GitHub repo. For pinned versions use <code>@v0.9.2</code> instead of <code>@main</code>.</p>
+
+      <h3>2 · npm</h3>
+      <pre><code>npm install acs-audio</code></pre>
+      <p>Then in any entry file:</p>
+      <pre><code>import "acs-audio";   // side-effect import — auto-binds &lt;link rel="audiostyle"&gt;</code></pre>
+      <p>The runtime is framework-agnostic: works with React, Vue, Svelte, plain HTML, etc. TypeScript types ship in the package.</p>
+
+      <h3>3 · Self-host</h3>
+      <p>
+        Download <code>dist/runtime.mjs</code> from the
+        <a href="https://github.com/Grkmyldz148/acs/releases" target="_blank" rel="noopener">GitHub Releases</a>
+        page and serve it next to your app. The runtime auto-loads <code>defaults.acs</code>
+        (49 calibrated built-in presets) from the same directory, so keep it co-located.
+      </p>
+
+      <h3>4 · VSCode / Cursor / VSCodium extension</h3>
+      <p>One-click install from your editor's marketplace:</p>
+
+      <div class="install-cards">
+        <a class="install-card"
+           href="https://marketplace.visualstudio.com/items?itemName=audio-cascading-style-sheets.acs-language"
+           target="_blank" rel="noopener">
+          <div class="install-card-head">
+            <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor" aria-hidden="true">
+              <path d="M11.86.353a1 1 0 0 1 .814.057l2.78 1.337a1 1 0 0 1 .553.894v10.718a1 1 0 0 1-.553.894l-2.78 1.337a1 1 0 0 1-1.139-.193L5.92 9.974l-3.146 2.39a.667.667 0 0 1-.851-.038l-.744-.677a.667.667 0 0 1 0-.985L4.91 8 1.18 5.336a.667.667 0 0 1 0-.985l.744-.677a.667.667 0 0 1 .851-.038l3.146 2.39 5.616-5.422a1 1 0 0 1 .323-.25zm.473 4.348L8.07 8l4.262 3.299V4.701z"/>
+            </svg>
+            <strong>VSCode Marketplace</strong>
+          </div>
+          <p>For Visual Studio Code on macOS, Windows, Linux. Auto-updates.</p>
+          <span class="install-card-cta">marketplace.visualstudio.com →</span>
+        </a>
+
+        <a class="install-card"
+           href="https://open-vsx.org/extension/audio-cascading-style-sheets/acs-language"
+           target="_blank" rel="noopener">
+          <div class="install-card-head">
+            <svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <rect x="2" y="2" width="12" height="12" rx="2"/>
+              <path d="M5 8h6M8 5v6" strokeLinecap="round"/>
+            </svg>
+            <strong>Open VSX Registry</strong>
+          </div>
+          <p>For Cursor, VSCodium, Theia, Gitpod, Code-OSS. Same package.</p>
+          <span class="install-card-cta">open-vsx.org →</span>
+        </a>
+
+        <a class="install-card"
+           href="https://github.com/Grkmyldz148/acs/releases/latest"
+           target="_blank" rel="noopener">
+          <div class="install-card-head">
+            <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor" aria-hidden="true">
+              <path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            <strong>Manual <code>.vsix</code></strong>
+          </div>
+          <p>Air-gapped, offline, custom forks. Download from GitHub Releases.</p>
+          <span class="install-card-cta">github.com/.../releases →</span>
+        </a>
+      </div>
+
+      <p style="margin-top: 16px">Or via the editor's CLI:</p>
+      <pre><code>code   --install-extension audio-cascading-style-sheets.acs-language   # VSCode
+cursor --install-extension audio-cascading-style-sheets.acs-language   # Cursor
+codium --install-extension audio-cascading-style-sheets.acs-language   # VSCodium</code></pre>
+      <p>
+        Provides syntax highlighting, outline, folding, hover docs, live linter with
+        fuzzy-match hints (<code>did you mean "master-volume"?</code>), ▶ audition
+        CodeLens, sound picker webview with knob-based layer editor, and 30+ snippets.
+      </p>
+    </section>
