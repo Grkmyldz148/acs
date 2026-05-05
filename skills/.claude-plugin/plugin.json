@@ -1,0 +1,20 @@
+{
+  "name": "acs-skills",
+  "version": "0.1.0",
+  "description": "Author bespoke audio for any web project — Audio Cascading Style Sheets. Bundles two Claude skills: create-acs-sound (design a single @sound block from a prompt or audio sample) and acs-soundscape (design a project-specific sonic identity for an existing site by reading its CSS, copy, and tokens).",
+  "author": {
+    "name": "Görkem Yıldız",
+    "url": "https://github.com/Grkmyldz148"
+  },
+  "homepage": "https://audiocss.dev",
+  "repository": "https://github.com/Grkmyldz148/acs-skills",
+  "keywords": [
+    "audio",
+    "ui-sounds",
+    "sound-design",
+    "acs",
+    "audio-cascading-style-sheets",
+    "soundscape",
+    "skill"
+  ]
+}

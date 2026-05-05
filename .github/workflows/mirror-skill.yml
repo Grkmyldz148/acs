@@ -1,20 +1,28 @@
 name: Mirror skills to acs-skills
 
-# Whenever any skill under `skills/` changes on `main`, push a snapshot to
-# `Grkmyldz148/acs-skills` (root). That mirror repo is what users install
-# via:
-#   npx skills add Grkmyldz148/acs-skills/<skill-name>
+# Mirror this repo's `skills/` folder into `Grkmyldz148/acs-skills` as a
+# Claude Code plugin. Anyone can install both bundled skills with:
 #
-# Layout in the mirror is one subfolder per skill:
+#   /plugin marketplace add Grkmyldz148/acs-skills
+#   /plugin install acs-skills@acs-skills
+#
+# Layout produced in the mirror:
+#
 #   acs-skills/
-#     create-acs-sound/  → mirrors source skills/create-acs-sound/
-#     acs-soundscape/    → mirrors source skills/acs-soundscape/
-# Adding a new skills/<name>/ folder in the source automatically gets
-# mirrored on the next push — no workflow change needed.
+#   ├── .claude-plugin/
+#   │   ├── plugin.json        (plugin manifest)
+#   │   └── marketplace.json   (single-plugin marketplace pointing at this repo)
+#   ├── skills/
+#   │   ├── create-acs-sound/  (mirrored from source skills/create-acs-sound/)
+#   │   └── acs-soundscape/    (mirrored from source skills/acs-soundscape/)
+#   └── README.md
 #
-# The workflow rebuilds each skill's SKILL.md before mirroring, so the
-# mirror is always fresh even if the author forgot to run build.mjs
-# locally before committing.
+# Adding a new `skills/<name>/` folder in the source automatically appears
+# in the mirror on the next push — no workflow change needed.
+#
+# The workflow rebuilds each skill's SKILL.md before mirroring so the
+# mirror always has a fresh index even if the author forgot to run
+# build.mjs locally before committing.
 #
 # Auth: SSH deploy key whose private half is the `MIRROR_SSH_KEY` secret
 # on this repo. Public half is registered (read-write) on the mirror's
@@ -72,7 +80,7 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Mirror skills/ folder tree to acs-skills
+      - name: Mirror to acs-skills as a Claude Code plugin
         env:
           SOURCE_SHA: ${{ github.sha }}
         run: |
@@ -84,32 +92,48 @@ jobs:
           # Wipe everything except .git so deletions in source propagate.
           find . -mindepth 1 -maxdepth 1 -not -name ".git" -exec rm -rf {} +
 
-          # Copy each skill as its own subfolder. Loop is forward-compatible —
-          # adding skills/<new>/ in source automatically appears here.
+          # Plugin metadata at the root — this is what makes the repo
+          # discoverable as a Claude Code plugin + marketplace.
+          if [ -d "$GITHUB_WORKSPACE/skills/.claude-plugin" ]; then
+            mkdir -p .claude-plugin
+            cp -R "$GITHUB_WORKSPACE/skills/.claude-plugin/." .claude-plugin/
+          fi
+
+          # Each skill goes under skills/<name>/ — Claude Code's plugin
+          # loader auto-discovers SKILL.md files there.
+          mkdir -p skills
           skill_list=""
-          for skill in "$GITHUB_WORKSPACE"/skills/*/; do
-            name=$(basename "$skill")
-            mkdir -p "$name"
-            cp -R "$skill". "$name/"
-            skill_list+="- \`$name\` — see [\`$name/SKILL.md\`]($name/SKILL.md)"$'\n'
+          for skill_dir in "$GITHUB_WORKSPACE"/skills/*/; do
+            name=$(basename "$skill_dir")
+            # Skip plugin metadata, dotfiles, and anything that isn't a real skill.
+            [[ "$name" == ".claude-plugin" ]] && continue
+            [[ "$name" == .* ]] && continue
+            mkdir -p "skills/$name"
+            cp -R "$skill_dir". "skills/$name/"
+            skill_list+="- \`$name\` — see [\`skills/$name/SKILL.md\`](skills/$name/SKILL.md)"$'\n'
           done
 
-          # Top-level README pointing back to source + listing skills.
+          # Top-level README pointing back to source + how to install.
           cat > README.md <<EOF
           # acs-skills
 
-          Auto-generated mirror of [\`Grkmyldz148/acs\`](https://github.com/Grkmyldz148/acs)'s
-          \`skills/\` folder. Each subfolder is one Claude skill ready to install.
+          A Claude Code plugin bundling skills for **Audio Cascading Style Sheets**
+          (ACS). Auto-generated mirror of [\`Grkmyldz148/acs\`](https://github.com/Grkmyldz148/acs)'s
+          \`skills/\` folder.
 
-          ## Skills
+          ## Bundled skills
 
           $skill_list
 
-          ## Install
+          ## Install (Claude Code plugin — recommended)
 
-          \`\`\`bash
-          npx skills add Grkmyldz148/acs-skills/<skill-name>
           \`\`\`
+          /plugin marketplace add Grkmyldz148/acs-skills
+          /plugin install acs-skills@acs-skills
+          \`\`\`
+
+          Both skills become available immediately. New skills added in the
+          source repo land here on the next sync.
 
           ## Updating
 

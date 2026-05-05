@@ -1,0 +1,15 @@
+{
+  "name": "acs-skills",
+  "owner": {
+    "name": "Görkem Yıldız",
+    "url": "https://github.com/Grkmyldz148"
+  },
+  "plugins": [
+    {
+      "name": "acs-skills",
+      "source": ".",
+      "version": "0.1.0",
+      "description": "Two skills for designing audio with the Audio Cascading Style Sheets runtime: per-preset authoring (`create-acs-sound`) and whole-site sonic identity design (`acs-soundscape`)."
+    }
+  ]
+}
