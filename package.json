@@ -1,6 +1,6 @@
 {
   "name": "acs-audio",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "Audio Cascading Style Sheets — declarative audio for the web. Same selectors and cascade as CSS, properties target sound (sound, volume, pitch, room, sound-mood).",
   "type": "module",
   "main": "./dist/runtime.cjs",

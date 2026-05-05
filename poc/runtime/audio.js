@@ -27,6 +27,15 @@
 import { parseDb, resolveVar } from "./parse.js";
 import { setQuality, getQualityProfile } from "./quality.js";
 
+// Worklet URL resolver — dev mode uses native ESM URL resolution.
+// Bundler (tools/bundle.mjs) rewrites this function to return a Blob URL
+// built from inlined worklet source, so the published bundle has no
+// `new URL(..., import.meta.url)` expression that would trip webpack/vite
+// asset resolution at the consumer's build time.
+function __acsWorkletUrl() {
+  return new URL("./worklets/click-processor.js", import.meta.url).href;
+}
+
 let ctx = null;
 let masterPost = null;
 let defaultRoomName = "none";
@@ -70,10 +79,12 @@ export function ensureCtx() {
     masterPost = buildMasterPost(ctx);
     // Lazy-load AudioWorklet voice processor (low-latency UI sounds).
     if (ctx.audioWorklet) {
-      const url = new URL("./worklets/click-processor.js", import.meta.url).href;
-      workletReady = ctx.audioWorklet.addModule(url)
-        .then(() => { workletReady.__ready = true; })
-        .catch(() => null);
+      const url = __acsWorkletUrl();
+      if (url) {
+        workletReady = ctx.audioWorklet.addModule(url)
+          .then(() => { workletReady.__ready = true; })
+          .catch(() => null);
+      }
     }
     // Flush any :root master decls captured before ctx existed.
     if (pendingMaster) {

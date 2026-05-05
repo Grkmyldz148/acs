@@ -133,7 +133,65 @@ const stripped = order.map((p) => {
 
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true });
 
-const esm = banner + stripped;
+let esm = banner + stripped;
+
+// Inline defaults.acs and the worklet source into the bundled runtime.
+// This eliminates the `new URL("...", import.meta.url)` expressions that
+// trip webpack/vite asset resolution at consumer build time, and removes
+// the runtime fetch for defaults.acs (which fails on CDNs that don't
+// serve `.acs` with CORS headers — e.g. unpkg returns no
+// Access-Control-Allow-Origin for unknown extensions).
+//
+// We textually rewrite the resolver function bodies that the source code
+// uses as bundler hooks (`__acsDefaultsSource`, `__acsDefaultsUrl`,
+// `__acsWorkletUrl`). The dev path (poc served directly) keeps the
+// URL-fetch behavior; only the published bundle gets the inline form.
+const defaultsAcs = readFileSync(resolve(ROOT, "poc/defaults.acs"), "utf8");
+const workletSrc = readFileSync(resolve(ROOT, "poc/runtime/worklets/click-processor.js"), "utf8");
+const ENC_DEFAULTS = JSON.stringify(defaultsAcs);
+const ENC_WORKLET = JSON.stringify(workletSrc);
+
+// Replace bodies of the three resolver functions by finding the function
+// header then walking braces to locate the matching close. Regex-only
+// approaches are fragile here — non-greedy `.*?` matches across multiple
+// functions and accidentally swallows neighbors.
+const replaceBody = (src, fnName, newBody) => {
+  const headerRe = new RegExp(`function\\s+${fnName}\\s*\\(\\s*\\)\\s*\\{`);
+  const m = headerRe.exec(src);
+  if (!m) throw new Error(`bundle: could not locate ${fnName}() in source`);
+  const start = m.index;
+  let i = m.index + m[0].length;
+  let depth = 1;
+  while (i < src.length && depth > 0) {
+    const c = src[i++];
+    if (c === "{") depth++;
+    else if (c === "}") depth--;
+  }
+  if (depth !== 0) throw new Error(`bundle: unbalanced braces while finding end of ${fnName}()`);
+  return src.slice(0, start) + `function ${fnName}() ${newBody}` + src.slice(i);
+};
+
+esm = replaceBody(esm, "__acsDefaultsSource", `{ return ${ENC_DEFAULTS}; }`);
+// `__acsDefaultsUrl` is unreachable in bundled mode (source check returns
+// inline first), but webpack does static analysis on the file regardless
+// of branch reachability — the `new URL(..., import.meta.url)` token
+// must not appear at all in the published bundle.
+esm = replaceBody(esm, "__acsDefaultsUrl", `{ return null; }`);
+// Worklet: build a Blob URL from inlined source so AudioWorklet.addModule
+// works without a co-located `.js` asset.
+esm = replaceBody(
+  esm,
+  "__acsWorkletUrl",
+  `{ return URL.createObjectURL(new Blob([${ENC_WORKLET}], { type: "application/javascript" })); }`,
+);
+
+// Sanity check: the bundled output must not retain the patterns that
+// caused the original webpack failure. Fail the build if it does.
+if (esm.includes(`new URL("../defaults.acs"`) ||
+    esm.includes(`new URL("./worklets/click-processor.js"`)) {
+  throw new Error("bundle: post-rewrite still contains forbidden new URL(..., import.meta.url) expressions");
+}
+
 writeFileSync(resolve(OUT_DIR, "runtime.mjs"), esm);
 
 // CJS shim: just a require() wrapper that loads the ESM via dynamic import.
@@ -146,13 +204,11 @@ writeFileSync(resolve(OUT_DIR, "runtime.cjs"), cjs);
 const parseSrc = readFileSync(resolve(ROOT, "poc/runtime/parse.js"), "utf8");
 writeFileSync(resolve(OUT_DIR, "parse.mjs"), banner + parseSrc);
 
-// runtime.mjs auto-fetches `../defaults.acs` and `./worklets/click-processor.js`
-// relative to its own URL — i.e. `dist/defaults.acs` and `dist/worklets/...`.
-// Bundlers (Vite, Webpack) hoist `node_modules/acs-audio/dist/runtime.mjs` and
-// resolve those URLs against `dist/`, so the assets must live there too. The
-// canonical sources are still `poc/defaults.acs` and `poc/runtime/worklets/`;
-// we just mirror them into `dist/` at build time so the published package is
-// drop-in for any `npm install acs-audio` consumer.
+// `defaults.acs` and the worklet source are inlined into runtime.mjs above;
+// the runtime no longer fetches either at load time. We still mirror them
+// into `dist/` for direct-asset use cases (manual `<link rel="audiostyle">`
+// pointing at the package's defaults, or unpkg consumers wanting to inspect
+// the source).
 copyFileSync(resolve(ROOT, "poc/defaults.acs"), resolve(OUT_DIR, "defaults.acs"));
 const WORKLET_OUT = resolve(OUT_DIR, "worklets");
 if (!existsSync(WORKLET_OUT)) mkdirSync(WORKLET_OUT, { recursive: true });

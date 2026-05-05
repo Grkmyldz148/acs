@@ -6,6 +6,28 @@ correspond to internal development milestones.
 
 ## [Unreleased]
 
+## [0.9.5] — 2026-05-05
+
+### Fixed
+- **Bundler / CDN compatibility.** `dist/runtime.mjs` no longer contains
+  `new URL("../defaults.acs", import.meta.url)` or
+  `new URL("./worklets/click-processor.js", import.meta.url)`. Both
+  expressions tripped webpack/vite asset resolution at consumer build
+  time (`Module not found: defaults.acs` errors when doing
+  `import 'acs-audio'` from Next.js, CRA, etc.) and also failed at
+  runtime on CDNs that don't serve `.acs` with permissive CORS — unpkg
+  in particular returns no `Access-Control-Allow-Origin` header for
+  unknown extensions, blocking the auto-load fetch.
+- The bundler (`tools/bundle.mjs`) now inlines `defaults.acs` content
+  as a string constant and the AudioWorklet source as a Blob URL, so
+  the published runtime is fully self-contained. Saves one HTTP
+  round-trip on first load and fixes both `<script type="module">` and
+  `import 'acs-audio'` paths simultaneously. Dev mode (poc/ served
+  directly) keeps the URL-fetch behavior — only the published bundle
+  is rewritten.
+- Bundler now fails the build if the forbidden patterns survive the
+  rewrite, so this regression cannot reach the registry again.
+
 ## [0.9.4] — 2026-05-04
 
 ### Added

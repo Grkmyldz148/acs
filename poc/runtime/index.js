@@ -392,6 +392,16 @@ function schedulePrecalibration() {
   }
 }
 
+// Defaults source resolver — bundler (tools/bundle.mjs) rewrites these
+// to return inlined string / null so the published bundle has no
+// `new URL(..., import.meta.url)` expression and no fetch dependency
+// on `defaults.acs` being co-located with the bundle. Dev mode (poc/
+// served as-is) keeps the URL-fetch path.
+function __acsDefaultsSource() { return null; }
+function __acsDefaultsUrl() {
+  return new URL("../defaults.acs", import.meta.url).href;
+}
+
 async function loadStylesheets() {
   const allRules = [];
   const loadedUrls = new Set();
@@ -415,11 +425,18 @@ async function loadStylesheets() {
   // Auto-load defaults.acs alongside the runtime module — unless the
   // page has it explicitly link-rel'd (we'd double-load and double-
   // register every @sound, breaking BAKED_FACTORS via the override path).
-  const defaultsUrl = new URL("../defaults.acs", import.meta.url).href;
   const linkUrls = Array.from(document.querySelectorAll('link[rel="audiostyle"]'))
     .map((l) => l.href);
-  if (!linkUrls.some((u) => u === defaultsUrl || u.endsWith("/defaults.acs"))) {
-    await fetchAndPush(defaultsUrl);
+  const hasLinkedDefaults = linkUrls.some((u) => u.endsWith("/defaults.acs"));
+  if (!hasLinkedDefaults) {
+    const inline = __acsDefaultsSource();
+    if (inline) {
+      try { allRules.push(...parse(inline)); }
+      catch (e) { console.warn("[acs] failed to parse inline defaults", e); }
+    } else {
+      const defaultsUrl = __acsDefaultsUrl();
+      if (defaultsUrl) await fetchAndPush(defaultsUrl);
+    }
   }
   for (const url of linkUrls) await fetchAndPush(url);
   if (allRules.length) bindAll(allRules);
@@ -450,11 +467,17 @@ async function fetchAllStylesheets() {
       if (res.ok) all.push(...parse(await res.text()));
     } catch (e) {}
   };
-  const defaultsUrl = new URL("../defaults.acs", import.meta.url).href;
   const linkUrls = Array.from(document.querySelectorAll('link[rel="audiostyle"]'))
     .map((l) => l.href);
-  if (!linkUrls.some((u) => u === defaultsUrl || u.endsWith("/defaults.acs"))) {
-    await grab(defaultsUrl);
+  const hasLinkedDefaults = linkUrls.some((u) => u.endsWith("/defaults.acs"));
+  if (!hasLinkedDefaults) {
+    const inline = __acsDefaultsSource();
+    if (inline) {
+      try { all.push(...parse(inline)); } catch (e) {}
+    } else {
+      const defaultsUrl = __acsDefaultsUrl();
+      if (defaultsUrl) await grab(defaultsUrl);
+    }
   }
   for (const url of linkUrls) await grab(url);
   return all;
