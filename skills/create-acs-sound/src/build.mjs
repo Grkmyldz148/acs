@@ -1,13 +1,17 @@
 #!/usr/bin/env node
-/* build.mjs — concatenate rules/*.md into SKILL.md.
+/* build.mjs — emit a SLIM SKILL.md as an INDEX into rules/*.md.
  *
- * Walks rules/ in raphael-style category order:
- *   pipeline → event → mood → layer → effect → interpret → validate
+ * Old behavior (pre-2026-05-05): concatenated every rule's full body
+ * into SKILL.md, producing a ~22k-token document the agent skimmed
+ * and confabulated from.
  *
- * Within a category, rules are sorted by impact (CRITICAL, HIGH, MEDIUM-HIGH,
- * MEDIUM, LOW), then alphabetically. The output begins with the orchestrator
- * preamble (current SKILL.md's first ~6 sections — pipeline overview), then
- * the rules in order, each as its own `### <title>` section.
+ * New behavior: SKILL.md = `src/preamble.md` + an auto-generated
+ * one-line-per-rule index grouped by category. Rule bodies stay in
+ * `rules/*.md`; the agent reads each rule on demand via the Read
+ * tool when the pipeline reaches a step that needs it. This is the
+ * progressive-disclosure pattern Anthropic skills are designed for.
+ *
+ * Output size target: <2.5k tokens. Original was 22k.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -17,6 +21,7 @@ import { loadRules, groupByCategory, CATEGORY_ORDER } from "./lib.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = dirname(__dirname);
 const RULES_DIR = join(ROOT, "rules");
+const PREAMBLE = join(__dirname, "preamble.md");
 const OUT = join(ROOT, "SKILL.md");
 
 const IMPACT_ORDER = {
@@ -28,55 +33,54 @@ const IMPACT_ORDER = {
 };
 
 const CATEGORY_HEADINGS = {
-  pipeline: "1. Generation Pipeline",
-  event: "4. Event base layers",
-  mood: "5. Mood overlays",
-  layer: "6. Layer shapes",
-  effect: "7. Effect recipes",
-  interpret: "8. Audio interpretation",
-  validate: "9. Validation",
+  pipeline: "Pipeline (orchestration)",
+  event: "Event base layers — pick one",
+  mood: "Mood overlays — stack as needed",
+  layer: "Layer shapes — single vs multi",
+  effect: "Effect recipes — applied at element level, not in @sound",
+  interpret: "Audio interpretation — for prompt+audio path",
+  validate: "Validation — run after emit",
 };
 
 const CATEGORY_INTROS = {
-  pipeline: "Procedural steps the agent runs end-to-end. Start here when handling any create-acs-sound request.",
-  event: "Pick exactly one based on the prompt's strongest event-class signal.",
-  mood: "Apply each in `pipeline-apply-mood`'s declared order. Multiple may stack.",
-  layer: "Decide single vs multi-layer in `pipeline-decide-layering`, then look up the shape.",
-  effect: "Add these to per-element rules (not to the @sound itself) — they live in the cascade.",
-  interpret: "Sub-steps for the audio-input path. Each emits a fragment; `pipeline-emit-and-render` merges them.",
-  validate: "Run after emit. Reject and refine if any tolerance fails.",
+  pipeline: "Read these in pipeline order; each is a procedural step.",
+  event: "Match the prompt's strongest event signal against `Triggers`. Open exactly one file.",
+  mood: "Map prompt adjectives to mood files. Multiple may stack — open each you apply.",
+  layer: "Pick a layer shape from `pipeline-decide-layering`, then open the corresponding file.",
+  effect: "These describe per-element decls (room, filter, mood-mix). Read when the user asks for room/space/character.",
+  interpret: "Sub-steps of audio analysis. Open each in order when the input includes a sample.",
+  validate: "Open before each check; the thresholds are specific (decay caps, gain budgets, frequency bounds).",
 };
 
-function renderRule(rule, headingLevel = 3) {
-  const { frontmatter, body } = rule;
-  const head = "#".repeat(headingLevel);
-  const impact = frontmatter.impact ? ` _(${frontmatter.impact})_` : "";
-  const tags = frontmatter.tags ? `\n_tags_: \`${frontmatter.tags}\`\n` : "";
+function pickTriggers(rule) {
+  const p = rule.frontmatter.prompt || "";
+  // Strip surrounding quotes (already done by parseRule, but defensive).
+  return p.replace(/^["']|["']$/g, "").trim();
+}
 
-  // Body already contains its own H2 — strip it (we replace with our own H3).
-  const bodyLines = body.split("\n");
-  if (bodyLines[0]?.startsWith("## ")) bodyLines.shift();
-  if (bodyLines[0] === "") bodyLines.shift();
+function pickWhy(rule) {
+  return (rule.frontmatter.impactDescription || "").trim();
+}
 
-  let out = `${head} \`${rule.slug}\`${impact}\n\n`;
-  if (frontmatter.impactDescription) {
-    out += `> ${frontmatter.impactDescription}\n\n`;
-  }
-  out += tags;
-  out += bodyLines.join("\n").trimEnd();
-
-  if (frontmatter.example) {
-    out += "\n\n**Example:**\n\n```css\n" + frontmatter.example.trimEnd() + "\n```";
-  }
-
-  return out;
+function renderIndexRow(rule) {
+  const slug = `\`${rule.slug}\``;
+  const impact = rule.frontmatter.impact || "";
+  const triggers = pickTriggers(rule);
+  const why = pickWhy(rule);
+  // Compact: slug | impact | triggers (or why if no triggers) — one line.
+  // Use a description list-ish format for readability without table noise.
+  const tail = triggers
+    ? `triggers: ${triggers}`
+    : why
+      ? why.replace(/\.$/, "")
+      : "";
+  return `- ${slug} _(${impact})_ — ${tail}`;
 }
 
 function build() {
   const rules = loadRules(RULES_DIR);
   const buckets = groupByCategory(rules);
 
-  // Sort each bucket by impact, then by slug
   for (const category of CATEGORY_ORDER) {
     buckets[category].sort((a, b) => {
       const ai = IMPACT_ORDER[a.frontmatter.impact] ?? 9;
@@ -86,36 +90,36 @@ function build() {
     });
   }
 
-  const preamble = readFileSync(join(ROOT, "SKILL.md"), "utf8")
-    .split(/^## 4\./m)[0]
-    .trimEnd();
+  const preamble = readFileSync(PREAMBLE, "utf8").trimEnd();
 
-  // For categories that already have hand-written content in the orchestrator
-  // preamble (pipeline), skip auto-render — the preamble owns them.
-  const skipAuto = new Set(["pipeline"]);
-
-  let out = preamble + "\n\n";
+  let out = preamble + "\n";
 
   for (const category of CATEGORY_ORDER) {
-    if (skipAuto.has(category)) continue;
     const items = buckets[category];
     if (!items?.length) continue;
-
-    out += `\n## ${CATEGORY_HEADINGS[category]}\n\n`;
+    out += `\n### ${CATEGORY_HEADINGS[category]}\n\n`;
     out += `_${CATEGORY_INTROS[category]}_\n\n`;
     for (const rule of items) {
-      out += renderRule(rule, 3) + "\n\n---\n\n";
+      out += renderIndexRow(rule) + "\n";
     }
   }
 
   out += "\n## Reference\n\n";
   out += "- ACS runtime source: `poc/runtime/`\n";
-  out += "- Built-in 49 presets: `poc/defaults.acs` (use these names in `sound:` declarations)\n";
-  out += "- Linter (catches typo'd preset names): `tools/lint-acs.mjs`\n";
+  out += "- Built-in 49 presets: `poc/defaults.acs` (preset names go in `sound:` declarations)\n";
+  out += "- Linter (catches typo'd preset names + unknown properties): `tools/lint-acs.mjs`\n";
   out += "- Audition any preset in VSCode: ▶ CodeLens above the `@sound` line\n";
 
   writeFileSync(OUT, out);
-  console.log(`[build] wrote ${OUT} — ${rules.length} rules across ${CATEGORY_ORDER.length} categories.`);
+
+  // Report: total rules, output bytes, rough token estimate.
+  const bytes = Buffer.byteLength(out, "utf8");
+  const tokens = Math.round(bytes / 3.5);
+  console.log(
+    `[build] wrote ${OUT} — ${rules.length} rules indexed, ` +
+    `${bytes} bytes (~${tokens} tokens). ` +
+    `Rule bodies remain in rules/*.md for on-demand Read.`
+  );
 }
 
 build();
