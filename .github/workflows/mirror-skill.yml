@@ -1,25 +1,34 @@
-name: Mirror create-acs-sound skill
+name: Mirror skills to acs-skills
 
-# Whenever the skill source under `skills/create-acs-sound/` changes
-# on `main`, push a snapshot to `Grkmyldz148/acs-skills` (root).
-# That mirror repo is what users install via:
-#   npx skills add Grkmyldz148/acs-skills
+# Whenever any skill under `skills/` changes on `main`, push a snapshot to
+# `Grkmyldz148/acs-skills` (root). That mirror repo is what users install
+# via:
+#   npx skills add Grkmyldz148/acs-skills/<skill-name>
 #
-# The workflow pushes via SSH using a deploy key whose private half is
-# stored as the `MIRROR_SSH_KEY` secret on this repo. The public half
-# is registered (read-write) on the mirror repo's deploy keys page.
-# No PAT, no token rotation, scope is exactly one repo.
+# Layout in the mirror is one subfolder per skill:
+#   acs-skills/
+#     create-acs-sound/  → mirrors source skills/create-acs-sound/
+#     acs-soundscape/    → mirrors source skills/acs-soundscape/
+# Adding a new skills/<name>/ folder in the source automatically gets
+# mirrored on the next push — no workflow change needed.
 #
-# History on the mirror is intentionally a single snapshot per push —
-# we don't try to reproduce the source repo's commit graph. Tags and
-# old commits stay intact in the source; the mirror is just the latest
-# tree at all times.
+# The workflow rebuilds each skill's SKILL.md before mirroring, so the
+# mirror is always fresh even if the author forgot to run build.mjs
+# locally before committing.
+#
+# Auth: SSH deploy key whose private half is the `MIRROR_SSH_KEY` secret
+# on this repo. Public half is registered (read-write) on the mirror's
+# deploy keys page. No PAT, no token rotation, scope is exactly one repo.
+#
+# History on the mirror is intentionally one snapshot per push — we don't
+# reproduce the source's commit graph. Tags and old commits stay in the
+# source; the mirror is just the latest tree.
 
 on:
   push:
     branches: [main]
     paths:
-      - "skills/create-acs-sound/**"
+      - "skills/**"
       - ".github/workflows/mirror-skill.yml"
   workflow_dispatch:
 
@@ -38,6 +47,21 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Rebuild every skill's SKILL.md
+        run: |
+          set -euo pipefail
+          for skill in skills/*/; do
+            if [ -f "${skill}src/build.mjs" ]; then
+              echo "[rebuild] ${skill}SKILL.md"
+              node "${skill}src/build.mjs"
+            fi
+          done
+
       - name: Configure SSH
         env:
           SSH_KEY: ${{ secrets.MIRROR_SSH_KEY }}
@@ -48,7 +72,7 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Mirror skill folder to acs-skills
+      - name: Mirror skills/ folder tree to acs-skills
         env:
           SOURCE_SHA: ${{ github.sha }}
         run: |
@@ -57,26 +81,46 @@ jobs:
           git clone --depth=1 git@github.com:Grkmyldz148/acs-skills.git "$WORK"
           cd "$WORK"
 
-          # Wipe everything except the .git directory, then sync the
-          # skill folder's contents to the repo root. Anything the
-          # source no longer ships (deleted rules, deleted scripts)
-          # disappears from the mirror at the same time.
+          # Wipe everything except .git so deletions in source propagate.
           find . -mindepth 1 -maxdepth 1 -not -name ".git" -exec rm -rf {} +
-          cp -R "$GITHUB_WORKSPACE/skills/create-acs-sound/." ./
 
-          # Drop a tiny pointer back to the source so curious users
-          # know where to file issues / PRs.
-          cat > .mirror-source.md <<EOF
-          # Mirror
+          # Copy each skill as its own subfolder. Loop is forward-compatible —
+          # adding skills/<new>/ in source automatically appears here.
+          skill_list=""
+          for skill in "$GITHUB_WORKSPACE"/skills/*/; do
+            name=$(basename "$skill")
+            mkdir -p "$name"
+            cp -R "$skill". "$name/"
+            skill_list+="- \`$name\` — see [\`$name/SKILL.md\`]($name/SKILL.md)"$'\n'
+          done
 
-          This repository is auto-generated from
-          [\`Grkmyldz148/acs\`](https://github.com/Grkmyldz148/acs)
-          at path \`skills/create-acs-sound/\`.
+          # Top-level README pointing back to source + listing skills.
+          cat > README.md <<EOF
+          # acs-skills
 
-          **Do not commit changes here.** Open PRs against the source
-          repo; the next push to \`main\` syncs them over.
+          Auto-generated mirror of [\`Grkmyldz148/acs\`](https://github.com/Grkmyldz148/acs)'s
+          \`skills/\` folder. Each subfolder is one Claude skill ready to install.
 
-          Source commit: \`$SOURCE_SHA\`
+          ## Skills
+
+          $skill_list
+
+          ## Install
+
+          \`\`\`bash
+          npx skills add Grkmyldz148/acs-skills/<skill-name>
+          \`\`\`
+
+          ## Updating
+
+          **Do not commit here.** Changes pushed directly to this repo are
+          overwritten on the next mirror sync. Open PRs against the source repo
+          (\`Grkmyldz148/acs\`) under \`skills/<skill-name>/\`; merging to
+          \`main\` triggers a re-mirror within seconds.
+
+          ---
+
+          Last sync: \`${SOURCE_SHA::7}\`
           EOF
 
           git config user.name  "acs-skill-mirror[bot]"
