@@ -2,57 +2,126 @@
     <section id="skills">
       <h2>Skills (AI agents)</h2>
       <p>
-        ACS ships a Claude / Cursor "skill" that lets an AI agent design a sound for you
-        from a natural-language prompt or by reverse-engineering an audio file. The skill
-        sits in <code>skills/create-acs-sound/</code> in the repo.
+        ACS ships <strong>two skills</strong> for AI coding agents — both bundled in
+        the same install. The skills sit under <code>skills/</code> in the
+        <a href="https://github.com/Grkmyldz148/acs" target="_blank" rel="noopener">monorepo</a>
+        and are mirrored to
+        <a href="https://github.com/Grkmyldz148/acs-skills" target="_blank" rel="noopener"><code>Grkmyldz148/acs-skills</code></a>
+        on every push.
       </p>
 
-      <h3>What it does</h3>
+      <h3>The two skills</h3>
       <ul>
-        <li><strong>Prompt input</strong> — "Give me a soft pop that's brighter than the default" → emits a calibrated <code>@sound</code> block.</li>
-        <li><strong>Audio input</strong> — Drop a <code>.wav</code>, the skill measures source/envelope/effects and reverse-engineers a matching <code>@sound</code>.</li>
-        <li><strong>Mixed</strong> — Audio + qualifier ("warmer", "punchier") refines the measured definition.</li>
-        <li><strong>Round-trip render</strong> — The skill renders the result to a WAV preview and validates within tolerance bands (gain budget, frequency bounds, duration cap).</li>
+        <li>
+          <strong><code>create-acs-sound</code></strong> — design a single
+          <code>@sound</code> block. Input is a natural-language prompt
+          ("a soft pop that's brighter than the default") or a dropped
+          <code>.wav</code> for reverse-engineering, or both. Emits a
+          calibrated <code>@sound</code> block, optionally renders a WAV
+          preview, validates within tolerance bands.
+        </li>
+        <li>
+          <strong><code>acs-soundscape</code></strong> — design a complete
+          project-specific sound layer for a website. The agent reads the
+          project's README, global CSS, hero JSX, and copy, extracts design
+          tokens (color, type, radius, motion, shadow), picks an archetype
+          (terminal-CRT, editorial-paper, precision-metal, organic-wood,
+          brutalist-raw, crystalline-luxury, arcade-warm, clinical-quiet),
+          authors a coherent family of project-prefixed <code>@sound</code>
+          blocks, and writes the <code>.acs</code> file with selector
+          bindings. Validators reject default-preset binding without
+          rationale, generic naming, and incoherent families — so
+          two different sites can't end up sounding alike.
+        </li>
       </ul>
 
-      <h3>Install</h3>
+      <h3>Install — Claude Code (native plugin)</h3>
+      <pre><code>/plugin marketplace add Grkmyldz148/acs-skills
+/plugin install acs-skills@acs-skills</code></pre>
       <p>
-        One command via the
+        Both skills land in <code>~/.claude/plugins/</code> and become
+        invokable as <code>/create-acs-sound</code> and
+        <code>/acs-soundscape</code> immediately. Tab autocomplete shows
+        them. Future skills added to the source repo arrive via
+        <code>/plugin update acs-skills</code> — no re-install.
+      </p>
+
+      <h3>Install — any agent runtime (<code>npx skills</code>)</h3>
+      <p>
+        For Cursor, Codex, OpenCode, Gemini CLI, GitHub Copilot, Warp,
+        Windsurf, and 50+ other agent runtimes, use the
         <a href="https://www.npmjs.com/package/skills" target="_blank" rel="noopener"><code>skills</code></a>
-        CLI (vercel-labs) — supports Claude Code, Cursor, Codex,
-        OpenCode, Gemini CLI, GitHub Copilot, Warp, Windsurf, and 50+ other agent runtimes:
+        CLI from vercel-labs:
       </p>
       <pre><code>npx skills add Grkmyldz148/acs-skills</code></pre>
-      <p>The CLI prompts you to pick which agent(s) to install for, then drops the skill into their conventional path (e.g. <code>.claude/skills/create-acs-sound/</code> for Claude Code, <code>.cursor/skills/...</code> for Cursor, etc.).</p>
-      <p style="font-size:12px;color:var(--ink-3)">
-        <code>Grkmyldz148/acs-skills</code> is an auto-mirror of the
-        <a href="https://github.com/Grkmyldz148/acs/tree/main/skills/create-acs-sound" target="_blank" rel="noopener">skill source</a>
-        in the monorepo — a GitHub Action pushes the snapshot on every change to <code>main</code>.
+      <p>
+        The CLI clones the mirror, finds both skills, and shows a
+        multi-select picker — install both at once, or just one. The
+        skill lands in the runtime's conventional path (e.g.
+        <code>.cursor/skills/...</code> for Cursor).
       </p>
 
       <h4>Manual install (fallback)</h4>
-      <pre><code># clone the repo
+      <pre><code># clone the source repo
 git clone https://github.com/Grkmyldz148/acs.git
-# copy the skill into your agent's skills directory:
+# copy whichever skill(s) you want into your agent's skills directory
 cp -r acs/skills/create-acs-sound ~/.claude/skills/
-# or reference SKILL.md directly:
-acs/skills/create-acs-sound/SKILL.md</code></pre>
-      <p>The skill is a directory of <code>rules/*.md</code> atomic decision documents plus pipeline orchestration in <code>SKILL.md</code>. Compatible with the vercel-labs <code>skills</code> CLI ecosystem (Claude Code, Cursor, Codex, OpenCode, and 50+ others).</p>
+cp -r acs/skills/acs-soundscape  ~/.claude/skills/</code></pre>
 
-      <h3>Pipeline</h3>
+      <h3>Architecture — progressive disclosure</h3>
+      <p>
+        Each skill follows the same pattern: <code>SKILL.md</code> is a
+        slim INDEX (~2k tokens) — frontmatter, pipeline skeleton with
+        file pointers, and a one-line-per-rule table. Detailed rule
+        bodies live under <code>rules/*.md</code>. The agent opens
+        each rule with <code>Read</code> at the moment the pipeline
+        reaches a step that needs it, so a typical run loads 4–14 rule
+        files out of 50+. No full-skill dump, no skim-and-confabulate.
+      </p>
+      <p>
+        Run <code>node src/build.mjs</code> in either skill's folder to
+        rebuild its <code>SKILL.md</code> from the rules. The mirror
+        workflow rebuilds automatically before publishing, so the
+        published index is always in sync even if a contributor
+        forgets to run the build locally.
+      </p>
+
+      <h3>Pipeline — <code>create-acs-sound</code></h3>
       <pre><code>1. pipeline-detect-input    → prompt | audio | both
 2. pipeline-pick-base-layer → match event-class tokens (event-click, event-tap, …)
-3. pipeline-apply-mood      → adjective tokens mutate source/filter/effects
-4. pipeline-decide-layering → 1, 2, or 3 layers based on event class
+3. pipeline-decide-layering → 1, 2, or 3 layers based on event class
+4. pipeline-apply-mood      → adjective tokens mutate source/filter/effects
 5. pipeline-emit-and-render → emit @sound, optional WAV preview, validate</code></pre>
+
+      <h3>Pipeline — <code>acs-soundscape</code></h3>
+      <pre><code>1. pipeline-inventory          → read README, package.json, globals.css, hero, footer
+2. pipeline-extract-tokens     → color → freq band, type → texture, radius → attack,
+                                 motion → decay, shadow → room, copy → mood + volume
+3. pipeline-archetype          → pick or blend from 8 archetype templates
+4. pipeline-identity-statement → 3–4 falsifiable sentences ("sounds like X, not Y")
+5. pipeline-author-customs     → 5–10 project-prefixed @sound blocks, declared coherence
+6. pipeline-bind               → write .acs file: customs first, selectors next
+7. validate-*                  → no-default-binding, distinct-naming, coherence, token-fit</code></pre>
+
+      <p>
+        Validators reject the file if it's >40% default-bound, if any
+        preset name lacks a project prefix (or collides with a built-in),
+        if the custom family lacks a declared shared trait, or if any
+        preset's parameters fall outside the token sheet's ranges. So
+        the skill cannot regress to "drop <code>tap-tactile</code> on
+        every button" — the failure mode that prompted the skill's
+        existence.
+      </p>
 
       <h3>Authoring your own skill</h3>
       <p>
-        Each rule is a markdown file with frontmatter declaring its category
-        (<code>event</code>, <code>layer</code>, <code>mood</code>, <code>effect</code>,
-        <code>pipeline</code>, <code>validate</code>, <code>interpret</code>) and a body
-        containing the rule's logic + an example <code>@sound</code> block. Run
-        <code>node src/build.mjs</code> to compile <code>SKILL.md</code> from the rules.
+        Each rule is a markdown file with frontmatter declaring its
+        category and impact, plus a body containing the rule's logic
+        and an example. The build script
+        (<code>src/build.mjs</code>) reads <code>src/preamble.md</code>
+        plus the rule frontmatter and produces a slim
+        <code>SKILL.md</code> index. See the
+        <a href="https://github.com/Grkmyldz148/acs/tree/main/skills" target="_blank" rel="noopener">skills directory</a>
+        for the full source.
       </p>
-      <p>See the <a href="https://github.com/Grkmyldz148/acs/tree/main/skills/create-acs-sound" target="_blank" rel="noopener">skills directory in the repo</a> for the full source.</p>
     </section>

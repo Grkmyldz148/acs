@@ -212,30 +212,51 @@ Adds language support for `.acs`:
 
 ---
 
-## AI agent skill
+## AI agent skills
 
 For Claude Code / Cursor / Codex / OpenCode / 50+ agent runtimes, ACS
-ships a `create-acs-sound` skill that turns a natural-language prompt
-or an audio sample into a paste-ready ACS `@sound` block.
+ships **two skills** — both bundled in the same install:
+
+- **[`create-acs-sound`](skills/create-acs-sound/)** — turns a
+  natural-language prompt or an audio sample into a paste-ready
+  ACS `@sound` block. Use when you want a single sound designed.
+- **[`acs-soundscape`](skills/acs-soundscape/)** — designs a complete
+  project-specific sound layer for a website by reading its CSS,
+  copy, and tokens. Authors custom `@sound` blocks tied to the
+  project's identity instead of binding generic defaults. Use when
+  you want a whole `.acs` stylesheet wired to an existing site.
+
+### Install (Claude Code — recommended)
+
+```
+/plugin marketplace add Grkmyldz148/acs-skills
+/plugin install acs-skills@acs-skills
+```
+
+Native Claude Code plugin path. Both skills land in `~/.claude/plugins/`
+and become invokable as `/create-acs-sound` and `/acs-soundscape`.
+Future skills added to this repo arrive via `/plugin update acs-skills`.
+
+### Install (any agent runtime — `npx skills`)
 
 ```bash
 npx skills add Grkmyldz148/acs-skills
 ```
 
 Uses the [`skills`](https://www.npmjs.com/package/skills) CLI
-(vercel-labs). The agent runtime is picked interactively; the skill
-lands in the conventional path (e.g. `.claude/skills/create-acs-sound/`
-for Claude Code).
+(vercel-labs). Picks the runtime interactively (Claude Code, Cursor,
+Codex, OpenCode, …), shows a multi-select picker so you can install
+both skills in one go or just the one you need.
 
-The `Grkmyldz148/acs-skills` repo is an auto-generated mirror of the
-[`skills/create-acs-sound/`](skills/create-acs-sound/) directory in
-this monorepo — pushed by GitHub Actions on every change. Open PRs
-against this repo; the mirror catches up automatically.
+### Source
 
-48 atomic rule documents under `rules/` (events, moods, layers,
-effects, pipelines, validators, audio interpretation) composed by
-`SKILL.md`. See [`skills/create-acs-sound/`](skills/create-acs-sound/)
-for the full source.
+The [`Grkmyldz148/acs-skills`](https://github.com/Grkmyldz148/acs-skills)
+repo is an auto-generated mirror of [`skills/`](skills/) in this
+monorepo — re-published by GitHub Actions on every push. Open PRs
+against this repo; the mirror catches up automatically. Each skill
+follows a progressive-disclosure pattern: `SKILL.md` is a slim INDEX
+(~2k tokens), and the agent reads individual rule files under
+`rules/` on demand.
 
 ---
 
